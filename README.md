@@ -1,25 +1,39 @@
-# Layterms
+# OmicTerms — your genome, explained in plain English
 
-Layterms takes the documents people actually receive in real life — medical reports, hospital bills, legal letters, insurance emails — and re-explains them in plain language. Upload a document, and Layterms extracts its content and walks you through what it means, one question at a time, in language a layperson can follow.
+Your DNA is not destiny — but right now, the data that would prove it is locked inside `.vcf` files, methylation matrices, and peak calls that only bioinformaticians can read.
 
-The project is built on the FastAPI + React full-stack pattern, with the application domain (documents, explanations, conversations) designed specifically for this product.
+**OmicTerms is the translator.** It takes omics data and re-explains it in plain language, one question at a time — no jargon, no gatekeeping. Upload a gene expression matrix or a variant call file, and OmicTerms extracts the content, tells you what kind of data it is, and walks you through what it actually means for your health, your family, or your research.
+
+Built to support the fight against disease through **epigenomic drift** research — how the genome's regulatory state shifts over time in cancer and neurodegeneration.
+
+---
+
+## Why this matters
+
+Whole-genome sequencing costs less than a nice dinner. Epigenomics can now spot drift in gene regulation years before symptoms appear. But the people who need that information most — patients, clinicians, researchers in other fields — can't read the raw output.
+
+OmicTerms bridges that gap. The goal is simple: **nobody should need a PhD to understand their own genome.**
+
+---
 
 ## Current state
 
-Under active development. The backend foundation is complete and the document workflow is the next milestone.
+Under active development. The backend foundation is complete; the document workflow is the active milestone.
 
 **Implemented**
 
 - Full user authentication: registration, login with JWT, profile management, password reset via email, admin user management
-- Database models for users, documents, explanations, conversations (SQLModel + Alembic migrations)
-- Utility endpoints: health check, admin-only test email, admin user provisioning
+- Document upload with **real file validation** — magic-byte sniffing (PDF/PNG/JPEG/zip), size limits, and extension sanity so a renamed `bomb.exe` can't masquerade as a PDF
+- Project → Experiment → Sample → Document data hierarchy, with ownership rooted at the project level
+- Text extraction service (PDF via `pypdf`, OCR via `pytesseract`, `.docx`, `.eml`) — orchestration in progress
+- Database models for users, projects, experiments, samples, documents, explanations, and conversations (SQLModel + Alembic migrations)
 - Frontend shell: login/signup/password-recovery pages, dashboard, and a documents area with upload, explanation, and chat UI
 
 **In progress** — tracked as [GitHub issues](https://github.com/Sirius1616/Layterms/issues)
 
-- Document upload, storage, and listing
-- Text extraction pipeline (PDFs, scanned images, emails) with background jobs
-- Document type classification
+- Project/Experiment/Sample CRUD routes + the ownership walk (document → sample → experiment → project → user)
+- Background text-extraction jobs that flip `pending → success / failed`
+- Omics data-type classification (`expression`, `methylation`, `variants`, `peaks`, `document`)
 - AI service layer for plain-language explanations and follow-up Q&A
 - Streaming conversation answers
 
@@ -30,6 +44,7 @@ Under active development. The backend foundation is complete and the document wo
 - FastAPI, SQLModel, Alembic, PostgreSQL
 - Pydantic Settings for configuration, PyJWT for tokens, Argon2/Bcrypt password hashing
 - Email delivery via the `emails` library with Jinja2 templates
+- `pypdf`, `pytesseract`/Pillow, `python-docx` for text extraction
 - Sentry for error tracking
 
 **Frontend** (`frontend/`)
@@ -107,10 +122,11 @@ npm run generate-client
 backend/
   app/
     api/
-      routes/            # login, users, utils, private
+      routes/            # login, users, utils, private, documents
       deps.py            # auth dependencies (current user, admin)
     core/                # config, database, security
     models.py            # SQLModel tables + request/response schemas
+    services/            # text extraction (pdf, image OCR, docx, eml)
     crud.py              # database operations
     initial_data.py      # seeds the first superuser
     utils.py             # email and token helpers
