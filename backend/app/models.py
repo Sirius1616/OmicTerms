@@ -33,7 +33,7 @@ class User(UserBase, table=True):
     hashed_password: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    documents: list["Document"] = Relationship(back_populates="user")
+    projects: list[Project] = Relationship(back_populates="user")
 
 
 # ---- inputs ----
@@ -92,12 +92,12 @@ class DocumentBase(SQLModel):
 class Document(DocumentBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     filename: str = Field(nullable=True, max_length=128, min_length=3)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    sample_id: uuid.UUID = Field(foreign_key="sample.id", index=True)
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     extraction_status: ExtractionStatus = ExtractionStatus.pending
     raw_extracted_json: str | None = None
 
-    user: User = Relationship(back_populates="documents")
+    sample: Sample = Relationship(back_populates="documents")
     explanation: "Explanation" = Relationship(back_populates="document")
     conversations: list["Conversation"] = Relationship(back_populates="document")
 
@@ -214,3 +214,34 @@ class Filter(BaseModel):
     order_by: str | None = None
     search: str | None = None
     descending: bool = False
+
+
+class Project(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    name: str = Field(max_length=128, min_length=3)
+    created_at: datetime = Field(default_factory=lambda:datetime.now(UTC))
+    description: str | None = Field(default=None)
+
+    user: User = Relationship(back_populates="projects")
+    experiments: list[Experiment] = Relationship(back_populates="project")
+
+class Experiment(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    name: str = Field(max_length=128, min_length=3)
+    project_id: uuid.UUID = Field(foreign_key="project.id", index=True)
+    created_at: datetime = Field(default_factory=lambda:datetime.now(UTC))
+
+    project: Project = Relationship(back_populates="experiments")
+    samples: list[Sample] = Relationship(back_populates="experiment")
+
+class Sample(SQLModel, table= True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    name: str = Field(max_length=128, min_length=3)
+    created_at: datetime = Field(default_factory=lambda:datetime.now(UTC))
+    experiment_id: uuid.UUID = Field(foreign_key="experiment.id", index=True)
+
+    experiment: Experiment = Relationship(back_populates="samples")
+    documents: list[Document] = Relationship(back_populates="sample")
+
+
