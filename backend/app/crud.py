@@ -1,9 +1,11 @@
+import uuid
 from sqlalchemy import create_engine
 from sqlmodel import Session, select
 from app.core.config import settings
 from collections.abc import Generator
 from app.models import (UserCreate, User, UserPublic,
-                        UserUpdate, UserUpdateMe)
+                        UserUpdate, UserUpdateMe, Document, 
+                        Sample, Experiment, Project)
 from pydantic import EmailStr
 from typing import Annotated
 from fastapi import Depends
@@ -94,5 +96,32 @@ def authenticate(session: SessionDep,
         session.commit()
         session.refresh(user)
     return user
+
+
+def get_sample_owned_by(session: Session, user_id: uuid.UUID, sample_id: uuid.UUID) -> Sample | None:
+    statement = (select(Sample)
+                        .join(Experiment, Experiment.id == Sample.experiment_id)
+                        .join(Project, Project.id == Experiment.project_id)
+                        .where(Sample.id == sample_id)
+                        .where(Project.user_id == user_id)
+                        )
+    sample = session.exec(statement).first()
+    return sample
+
+
+def get_doc_owned_by(session: Session, user_id: uuid.UUID, doc: Document) -> bool:
+    return get_sample_owned_by(session, user_id, doc.sample_id)
+
+
+def get_sample_owned_by(session: Session, user_id: uuid.UUID, sample_id: uuid.UUID) -> Sample | None:
+    statement = (select(Sample)
+                        .join(Experiment, Experiment.id == Sample.experiment_id)
+                        .join(Project, Project.id == Experiment.project_id)
+                        .where(Sample.id == sample_id)
+                        .where(Project.user_id == user_id)
+                        )
+    sample = session.exec(statement).first()
+    return sample
+
 
 

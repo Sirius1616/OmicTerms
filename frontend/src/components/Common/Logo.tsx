@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router"
 
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import icon from "/assets/images/layterms-icon.svg"
-import iconLight from "/assets/images/layterms-icon-light.svg"
-import logo from "/assets/images/layterms-logo.svg"
-import logoLight from "/assets/images/layterms-logo-light.svg"
+import icon from "/assets/images/omicterms-icon.svg"
+import iconLight from "/assets/images/omicterms-icon-light.svg"
+import logo from "/assets/images/omicterms-logo.svg"
+import logoLight from "/assets/images/omicterms-logo-light.svg"
 
 interface LogoProps {
   variant?: "full" | "icon" | "responsive"
@@ -29,7 +29,7 @@ export function Logo({
       <>
         <img
           src={fullLogo}
-          alt="Layterms"
+          alt="OmicTerms"
           className={cn(
             "h-6 w-auto group-data-[collapsible=icon]:hidden",
             className,
@@ -37,7 +37,7 @@ export function Logo({
         />
         <img
           src={iconLogo}
-          alt="Layterms"
+          alt="OmicTerms"
           className={cn(
             "size-5 hidden group-data-[collapsible=icon]:block",
             className,
@@ -47,7 +47,7 @@ export function Logo({
     ) : (
       <img
         src={variant === "full" ? fullLogo : iconLogo}
-        alt="Layterms"
+        alt="OmicTerms"
         className={cn(variant === "full" ? "h-6 w-auto" : "size-5", className)}
       />
     )

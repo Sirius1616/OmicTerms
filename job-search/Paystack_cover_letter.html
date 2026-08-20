@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cover Letter - John Ezekiel - Application Security Engineer</title>
+<style>
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #111; margin: 48px 64px; line-height: 1.5; }
+  .contact-line { font-size: 10.5pt; }
+  .contact-line b { font-weight: bold; }
+  .contact-line span { margin-right: 14px; }
+  .date { margin-top: 26px; }
+  .recipient { margin-top: 22px; line-height: 1.5; }
+  .salutation { margin-top: 22px; }
+  p { margin: 10px 0; text-align: justify; }
+  .closing { margin-top: 22px; }
+  .signature { margin-top: 34px; font-weight: bold; }
+  .divider { border-top: 1.5px solid #111; width: 60%; margin: 30px 0 8px 0; }
+  .encl { font-size: 9.5pt; color: #333; }
+</style>
+</head>
+<body>
+
+<div class="contact-line">
+  <span><b>John Ezekiel</b></span>
+  <span>johnezekiel130@gmail.com</span>
+  <span>+234 813 658 7945</span>
+  <span>github.com/Sirius1616</span>
+  <span>linkedin.com/in/john-ezekiel-dev</span>
+</div>
+
+<div class="date">11 August 2026</div>
+
+<div class="recipient">
+  Paystack Information Security Team<br>
+  (Application Security Engineer &mdash; via Talent Safari)
+</div>
+
+<div class="salutation">Dear Paystack Security Team,</div>
+
+<p><b>Re: Application for Application Security Engineer</b></p>
+
+<p>I am applying for the Application Security Engineer role. I am a backend
+developer with about four years in production payments and billing environments
+where security testing is a release gate, not an afterthought &mdash; and I have
+deliberately built on that foundation to develop a security-engineering
+skillset.</p>
+
+<p><b>Application security testing is my habit, not a task.</b> At Benin Electrics
+(BEDC), I manually tested every API endpoint ahead of every release with Burp
+Suite and OWASP ZAP &mdash; probing authentication, authorization, and input
+handling &mdash; and remediated findings before they reached production, on a
+payments backend serving 325,000 customer accounts. At Chingu I repeated the same
+discipline on new builds: an AI trading dashboard that executes real trades, and
+a word game whose Supabase RPC endpoints and Node/Express API I tested with Burp
+Suite, OWASP ZAP, and SQLMap for injection, broken access control, and
+auth-bypass.</p>
+
+<p><b>I have shipped a real security fix in a security tool.</b> I found and fixed
+CWE-614 in Tracecat, a 3.8k-star security-automation platform: the auth cookie's
+Secure flag was derived from the internal API URL instead of the public HTTPS
+URL, so it could transmit over plaintext HTTP. I shipped the fix with regression
+tests covering both cases, and a maintainer reviewed and merged it, crediting the
+find. That is the OWASP/CWE mindset working end-to-end: identify the class, root
+the cause, fix it properly, and prove it with tests.</p>
+
+<p><b>I speak both languages &mdash; security and engineering.</b> I work from OWASP
+Top 10 / CWE reference points and script security checks in Python and Bash. Because
+I also build and ship the backend (Python, PostgreSQL, Docker, GitHub Actions
+CI/CD), I can review code and explain a fix to a developer and to a non-technical
+stakeholder with equal clarity &mdash; and guide teams during sprints, not just
+report findings afterwards.</p>
+
+<p>I am comfortable in a hybrid, distributed setup and genuinely excited about
+securing Paystack's fintech platform as it scales. I would welcome the chance to
+discuss how my background maps to your SDLC, vulnerability management, and
+DevSecOps initiatives.</p>
+
+<div class="closing">Sincerely,</div>
+
+<div class="signature">John Ezekiel</div>
+
+<div class="divider"></div>
+<div class="encl">Encl.: CV (John_Ezekiel_CV_Paystack.pdf)</div>
+
+</body>
+</html>

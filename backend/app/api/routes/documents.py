@@ -1,4 +1,5 @@
-from app.models import (DocumentPublic, Document, ExtractionStatus, DocumentsPublic, Filter, DocumentUpdate)
+from app.models import (DocumentPublic, Document, ExtractionStatus, DocumentsPublic, 
+                        Filter, DocumentUpdate, Sample, Experiment, Project)
 from fastapi import UploadFile, Form, APIRouter, HTTPException, Query
 from app.api.deps import SessionDep, CurrentUser
 from fastapi.responses import FileResponse
@@ -61,8 +62,10 @@ async def create_document(
 
     file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{file_id}"
 
+    samples = session.exec(select(Sample))
+
     document = Document(file_url=file_url, 
-                        user_id=current_user.id,
+                        sample_id=Document.sample.id,
                         filename=file.filename
                         )
 

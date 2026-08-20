@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>John Ezekiel - Security-focused Backend Developer</title>
+<style>
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #111; margin: 32px 40px; line-height: 1.35; }
+  h1 { font-size: 20pt; margin: 0 0 2px 0; }
+  .role { font-size: 11.5pt; color: #333; margin: 0 0 6px 0; }
+  .contact { font-size: 9.5pt; color: #333; margin: 0 0 12px 0; }
+  h2 { font-size: 11.5pt; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1.5px solid #111; padding-bottom: 2px; margin: 16px 0 6px 0; }
+  h3 { font-size: 10.5pt; margin: 10px 0 2px 0; }
+  .jobhead { display: block; font-size: 10.5pt; font-weight: bold; }
+  .meta { float: right; font-weight: normal; font-size: 9.5pt; color: #333; }
+  ul { margin: 3px 0 6px 0; padding-left: 18px; }
+  li { margin-bottom: 3px; }
+  p { margin: 3px 0; }
+</style>
+</head>
+<body>
+<h1>John Ezekiel</h1>
+<div class="role">Security-focused Backend Developer &mdash; Application Security Testing &middot; Python &middot; Web &amp; API Security &middot; OWASP/CWE</div>
+<div class="contact">johnezekiel130@gmail.com &middot; +234 813 658 7945 &middot; github.com/Sirius1616 &middot; linkedin.com/in/john-ezekiel-dev &middot; Remote (Nigeria) &middot; Full-time</div>
+
+<h2>Profile</h2>
+<p>Backend developer with ~4 years in production, payments and billing environments, where security testing is baked into my workflow. I manually test every API endpoint I ship &mdash; probing authentication, authorization, and input handling with Burp Suite, OWASP ZAP, and SQLMap &mdash; and remediate findings before release. I found and fixed a session-cookie security flaw (CWE-614) in Tracecat, a 3.8k-star security-automation platform, with regression tests merged by the maintainer. I work from OWASP Top 10 / CWE reference points, script security checks in Python and Bash, and integrate them into release and CI workflows. Strong communicator comfortable explaining vulnerabilities and fixes to technical and non-technical audiences.</p>
+
+<h2>Experience</h2>
+
+<h3><span class="jobhead">Backend Developer / Technical Support &mdash; Benin Electrics (BEDC) <span class="meta">Edo, Nigeria &middot; Jan 2022 &ndash; Jan 2026</span></span></h3>
+<p>Customer-facing backend for electricity payments, billing, and account management across the BEDC franchise.</p>
+<ul>
+  <li>Ran manual application security assessments across all API endpoints ahead of every release &mdash; testing authentication, broken access control, and input handling (Burp Suite, OWASP ZAP) &mdash; and remediated findings before they reached production.</li>
+  <li>Maintained and scaled backend services as customer accounts grew from ~255,000 to <b>325,000</b>, including API design, database hardening, and release management in a high-volume payments/billing domain.</li>
+  <li>Provided technical support for deployment and access issues; designed and delivered training programmes that raised internal digital literacy.</li>
+</ul>
+
+<h3><span class="jobhead">Web Developer &mdash; Chingu (Agile Developer Program) <span class="meta">Remote &middot; Feb 2026 &ndash; Present</span></span></h3>
+<p>Cross-functional, distributed Scrum teams shipping a full-stack web app within each 7-week Voyage.</p>
+<p><b>Voyage 60 &mdash; CramerBot (AI trading dashboard)</b></p>
+<ul>
+  <li>Because the app executes real trades, ran manual security testing across all API endpoints (auth, authorization, input handling) before features merged to production.</li>
+  <li>Built an LLM data pipeline ingesting real-time posts and converting them into structured trading signals; contributed the Supabase/PostgreSQL data layer (Alembic migrations, Dockerised Postgres, upsert ingestion).</li>
+</ul>
+<p><b>Voyage 61 &mdash; Wordle-ish (word game, React 19 / Vite / Tailwind)</b></p>
+<ul>
+  <li>Tested Supabase RPC endpoints and a legacy Node/Express API with Burp Suite, OWASP ZAP, and SQLMap &mdash; checking injection, broken access control, and auth-bypass.</li>
+  <li>Built frontend + Supabase backend (Postgres, Auth, Row Level Security, GitHub OAuth sign-in); worked inside a GitHub Actions CI pipeline enforcing lint + build on every pull request.</li>
+</ul>
+
+<h2>Education</h2>
+<p><b>Bachelor of Engineering (Mechanical)</b> &mdash; University of Benin, Edo &middot; 2017</p>
+
+<h2>Skills</h2>
+<ul>
+  <li><b>Application Security:</b> Manual penetration testing (Burp Suite, OWASP ZAP, SQLMap), web &amp; API security testing, OWASP Top 10 / CWE, secure code review, auth &amp; access control testing, injection &amp; auth-bypass checks</li>
+  <li><b>Secure Development / DevSecOps:</b> Security testing integrated into release workflows, GitHub Actions CI/CD, secure coding practices, secrets &amp; session handling, Row Level Security, defense-in-depth for payments domains</li>
+  <li><b>Backend &amp; APIs:</b> Python, REST &amp; RPC APIs, async services, SQLAlchemy/Alembic migrations, API auth (OAuth/JWT patterns), PostgreSQL, Supabase, Redis, SQL</li>
+  <li><b>Scripting &amp; Tooling:</b> Python, Bash, Docker, Git, Linux/Unix</li>
+  <li><b>AI/LLM:</b> LLM pipeline integration, prompt-based data processing, structured-signal generation (relevant to securing LLM-integrated applications)</li>
+</ul>
+
+<h2>Open Source</h2>
+<p><b>Tracecat (tracecat/tracecat)</b> &mdash; 3.8k+ stars, security-automation platform</p>
+<ul>
+  <li>Found and fixed a session-cookie security flaw (CWE-614): the auth cookie&rsquo;s Secure flag derived from the internal API URL instead of the public HTTPS URL, so it could transmit over plaintext HTTP. Shipped the fix with regression tests covering HTTP and HTTPS; reviewed and merged by a maintainer who credited the find.</li>
+</ul>
+<p><b>cytham/nanovar</b> &mdash; structural-variant caller for long-read sequencing</p>
+<ul>
+  <li>Diagnosed a crash when BAM/CRAM files lacked an expected alignment-score tag; implemented a fallback alignment-score calculation from CIGAR/NM data and verified it against synthetic BAM test cases (PR open, pending maintainer review).</li>
+</ul>
+</body>
+</html>

@@ -29,7 +29,7 @@ Under active development. The backend foundation is complete; the document workf
 - Database models for users, projects, experiments, samples, documents, explanations, and conversations (SQLModel + Alembic migrations)
 - Frontend shell: login/signup/password-recovery pages, dashboard, and a documents area with upload, explanation, and chat UI
 
-**In progress** — tracked as [GitHub issues](https://github.com/Sirius1616/Layterms/issues)
+**In progress** — tracked as [GitHub issues](https://github.com/Sirius1616/OmicTerms/issues)
 
 - Project/Experiment/Sample CRUD routes + the ownership walk (document → sample → experiment → project → user)
 - Background text-extraction jobs that flip `pending → success / failed`

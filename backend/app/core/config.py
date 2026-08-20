@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    PROJECT_NAME: str = 'Layterms'
+    PROJECT_NAME: str = 'OmicTerms'
     API_V1_STR: str = "/api/v1"
     UPLOAD_MAX_SIZE: int = 1024*1024*10
     UPLOAD_DIR: str = "uploads"

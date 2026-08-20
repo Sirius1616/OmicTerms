@@ -71,7 +71,6 @@ class NewPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
-
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime
@@ -82,8 +81,8 @@ class UsersPublic(SQLModel):
     count: int
 
 
-
 #  ------  DOCUMENT  --------
+
 
 class DocumentBase(SQLModel):
     file_url: str
@@ -122,7 +121,6 @@ class DocumentsPublic(SQLModel):
     count: int
 
 
-
 # ------  EXPLANATION  --------
 
 
@@ -139,7 +137,6 @@ class ExplanationPublic(SQLModel):
     id: uuid.UUID
     summary_text: str
     generated_at: datetime
-
 
 
 #  ------ CONVERSATION  ------
@@ -190,9 +187,11 @@ class MessagePublic(SQLModel):
 
 # ------  Auth  -------
 
+
 class Token(SQLModel):
     access_token: str
     token_type: str = "bearer"
+
 
 class TokenPayload(SQLModel):
     sub: str | None = None
@@ -226,6 +225,7 @@ class Project(SQLModel, table=True):
     user: User = Relationship(back_populates="projects")
     experiments: list[Experiment] = Relationship(back_populates="project")
 
+
 class Experiment(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     name: str = Field(max_length=128, min_length=3)
@@ -234,6 +234,7 @@ class Experiment(SQLModel, table=True):
 
     project: Project = Relationship(back_populates="experiments")
     samples: list[Sample] = Relationship(back_populates="experiment")
+
 
 class Sample(SQLModel, table= True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
