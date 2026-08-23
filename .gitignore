@@ -1,0 +1,18 @@
+# Personal / job-search files
+job-search/
+
+# Secrets & cookies
+cookies.txt
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+
+# LibreOffice lock files
+.~lock.*
