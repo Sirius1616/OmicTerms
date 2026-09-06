@@ -15,9 +15,7 @@ interface DocumentActionsMenuProps {
   document: DocumentPublic
 }
 
-export const DocumentActionsMenu = ({
-  document,
-}: DocumentActionsMenuProps) => {
+export const DocumentActionsMenu = ({ document }: DocumentActionsMenuProps) => {
   const [open, setOpen] = useState(false)
 
   return (

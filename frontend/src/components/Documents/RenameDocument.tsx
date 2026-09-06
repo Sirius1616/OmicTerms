@@ -104,7 +104,11 @@ const RenameDocument = ({ document, onSuccess }: RenameDocumentProps) => {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Document name" type="text" {...field} />
+                      <Input
+                        placeholder="Document name"
+                        type="text"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -1,26 +1,15 @@
-# Stage 0, "build-stage", based on Bun, to build and compile the frontend
-FROM oven/bun:1 AS build-stage
+FROM node:22-alpine AS build-stage
 
 WORKDIR /app
 
-COPY package.json bun.lock /app/
+COPY package.json package-lock.json ./
+RUN npm ci
 
-COPY frontend/package.json /app/frontend/
-
-WORKDIR /app/frontend
-
-RUN bun install
-
-COPY ./frontend /app/frontend
+COPY . .
 ARG VITE_API_URL
+RUN npm run build
 
-RUN bun run build
-
-
-# Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
 FROM nginx:1
-
-COPY --from=build-stage /app/frontend/dist/ /usr/share/nginx/html
-
-COPY ./frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./frontend/nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
+COPY --from=build-stage /app/dist/ /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
