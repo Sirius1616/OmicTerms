@@ -1,10 +1,9 @@
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from enum import Enum
-from pydantic import BaseModel
 
-from pydantic import EmailStr
-from sqlmodel import SQLModel, Relationship, Field
+from pydantic import BaseModel, EmailStr
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class ExtractionStatus(str, Enum):
@@ -18,8 +17,8 @@ class MessageRole(str, Enum):
     assistant = "assistant"
 
 
+# ------ USER   --------
 
-# ------ USER   --------  
 
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=128, min_length=8)
@@ -37,6 +36,7 @@ class User(UserBase, table=True):
 
 
 # ---- inputs ----
+
 
 class UserRegister(SQLModel):
     full_name: str | None = Field(default=None, max_length=128)
@@ -97,8 +97,8 @@ class Document(DocumentBase, table=True):
     raw_extracted_json: str | None = None
 
     sample: Sample = Relationship(back_populates="documents")
-    explanation: "Explanation" = Relationship(back_populates="document")
-    conversations: list["Conversation"] = Relationship(back_populates="document")
+    explanation: Explanation = Relationship(back_populates="document")
+    conversations: list[Conversation] = Relationship(back_populates="document")
 
 
 class DocumentCreate(DocumentBase):
@@ -112,8 +112,12 @@ class DocumentUpdate(SQLModel):
 class DocumentPublic(DocumentBase):
     id: uuid.UUID
     filename: str | None = None
+    sample_id: uuid.UUID
     uploaded_at: datetime
     extraction_status: ExtractionStatus
+    sample_name: str | None = None
+    experiment_name: str | None = None
+    project_name: str | None = None
 
 
 class DocumentsPublic(SQLModel):
@@ -148,7 +152,7 @@ class Conversation(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     document: Document = Relationship(back_populates="conversations")
-    messages: list["Message"] = Relationship(back_populates="conversation")
+    messages: list[Message] = Relationship(back_populates="conversation")
 
 
 class ConversationPublic(SQLModel):
@@ -185,6 +189,7 @@ class MessagePublic(SQLModel):
     content: str
     created_at: datetime
 
+
 # ------  Auth  -------
 
 
@@ -219,7 +224,7 @@ class Project(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     name: str = Field(max_length=128, min_length=3)
-    created_at: datetime = Field(default_factory=lambda:datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     description: str | None = Field(default=None)
 
     user: User = Relationship(back_populates="projects")
@@ -230,19 +235,109 @@ class Experiment(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     name: str = Field(max_length=128, min_length=3)
     project_id: uuid.UUID = Field(foreign_key="project.id", index=True)
-    created_at: datetime = Field(default_factory=lambda:datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     project: Project = Relationship(back_populates="experiments")
     samples: list[Sample] = Relationship(back_populates="experiment")
 
 
-class Sample(SQLModel, table= True):
+class Sample(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     name: str = Field(max_length=128, min_length=3)
-    created_at: datetime = Field(default_factory=lambda:datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     experiment_id: uuid.UUID = Field(foreign_key="experiment.id", index=True)
 
     experiment: Experiment = Relationship(back_populates="samples")
     documents: list[Document] = Relationship(back_populates="sample")
 
 
+#  ------  PROJECT/EXPERIMENT/SAMPLE SCHEMAS  --------
+
+
+class ProjectCreate(SQLModel):
+    name: str = Field(max_length=128, min_length=3)
+    description: str | None = Field(default=None)
+
+
+class ProjectUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=128, min_length=3)
+    description: str | None = Field(default=None)
+
+
+class ProjectPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    description: str | None = None
+    created_at: datetime
+
+
+class ProjectsPublic(SQLModel):
+    data: list[ProjectPublic]
+    count: int
+
+
+class ExperimentCreate(SQLModel):
+    name: str = Field(max_length=128, min_length=3)
+
+
+class ExperimentUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=128, min_length=3)
+
+
+class ExperimentPublic(SQLModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    name: str
+    created_at: datetime
+
+
+class ExperimentsPublic(SQLModel):
+    data: list[ExperimentPublic]
+    count: int
+
+
+class SampleCreate(SQLModel):
+    name: str = Field(max_length=128, min_length=3)
+
+
+class SampleUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=128, min_length=3)
+
+
+class SamplePublic(SQLModel):
+    id: uuid.UUID
+    experiment_id: uuid.UUID
+    name: str
+    created_at: datetime
+
+
+class SamplesPublic(SQLModel):
+    data: list[SamplePublic]
+    count: int
+
+
+class SampleTreeNode(SQLModel):
+    id: uuid.UUID
+    name: str
+    created_at: datetime
+
+
+class ExperimentTreeNode(SQLModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    name: str
+    created_at: datetime
+    samples: list[SampleTreeNode] = []
+
+
+class ProjectTreeNode(SQLModel):
+    id: uuid.UUID
+    name: str
+    description: str | None = None
+    created_at: datetime
+    experiments: list[ExperimentTreeNode] = []
+
+
+class ProjectTreePublic(SQLModel):
+    data: list[ProjectTreeNode]
+    count: int
