@@ -15,14 +15,19 @@ export type Body_auth_login_access_token = {
 
 export type Body_documents_create_document = {
     file: string;
+    sample_id: string;
 };
 
 export type DocumentPublic = {
     file_url: string;
     id: string;
     filename?: (string | null);
+    sample_id: string;
     uploaded_at: string;
     extraction_status: ExtractionStatus;
+    sample_name?: (string | null);
+    experiment_name?: (string | null);
+    project_name?: (string | null);
 };
 
 export type DocumentsPublic = {
@@ -32,6 +37,34 @@ export type DocumentsPublic = {
 
 export type DocumentUpdate = {
     filename?: (string | null);
+};
+
+export type ExperimentCreate = {
+    name: string;
+};
+
+export type ExperimentPublic = {
+    id: string;
+    project_id: string;
+    name: string;
+    created_at: string;
+};
+
+export type ExperimentsPublic = {
+    data: Array<ExperimentPublic>;
+    count: number;
+};
+
+export type ExperimentTreeNode = {
+    id: string;
+    project_id: string;
+    name: string;
+    created_at: string;
+    samples?: Array<SampleTreeNode>;
+};
+
+export type ExperimentUpdate = {
+    name?: (string | null);
 };
 
 export type ExtractionStatus = 'pending' | 'success' | 'failed';
@@ -50,6 +83,62 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_active?: boolean;
+};
+
+export type ProjectCreate = {
+    name: string;
+    description?: (string | null);
+};
+
+export type ProjectPublic = {
+    id: string;
+    name: string;
+    description?: (string | null);
+    created_at: string;
+};
+
+export type ProjectTreeNode = {
+    id: string;
+    name: string;
+    description?: (string | null);
+    created_at: string;
+    experiments?: Array<ExperimentTreeNode>;
+};
+
+export type ProjectTreePublic = {
+    data: Array<ProjectTreeNode>;
+    count: number;
+};
+
+export type ProjectUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+};
+
+export type SampleCreate = {
+    name: string;
+};
+
+export type SamplePublic = {
+    id: string;
+    experiment_id: string;
+    name: string;
+    created_at: string;
+};
+
+export type SamplesPublic = {
+    data: Array<SamplePublic>;
+    count: number;
+};
+
+export type SampleTreeNode = {
+    id: string;
+    name: string;
+    created_at: string;
+};
+
+export type SampleUpdate = {
+    name?: (string | null);
 };
 
 export type Token = {
@@ -174,11 +263,102 @@ export type DocumentsReadDocData = {
 
 export type DocumentsReadDocResponse = (DocumentPublic);
 
+export type ExperimentsCreateExperimentData = {
+    projectId: string;
+    requestBody: ExperimentCreate;
+};
+
+export type ExperimentsCreateExperimentResponse = (ExperimentPublic);
+
+export type ExperimentsReadProjectExperimentsData = {
+    projectId: string;
+};
+
+export type ExperimentsReadProjectExperimentsResponse = (ExperimentsPublic);
+
+export type ExperimentsReadExperimentData = {
+    experimentId: string;
+};
+
+export type ExperimentsReadExperimentResponse = (ExperimentPublic);
+
+export type ExperimentsUpdateExperimentData = {
+    experimentId: string;
+    requestBody: ExperimentUpdate;
+};
+
+export type ExperimentsUpdateExperimentResponse = (ExperimentPublic);
+
+export type ExperimentsDeleteExperimentData = {
+    experimentId: string;
+};
+
+export type ExperimentsDeleteExperimentResponse = (void);
+
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ProjectsReadProjectsTreeResponse = (ProjectTreePublic);
+
+export type ProjectsCreateProjectData = {
+    requestBody: ProjectCreate;
+};
+
+export type ProjectsCreateProjectResponse = (ProjectPublic);
+
+export type ProjectsReadProjectTreeData = {
+    projectId: string;
+};
+
+export type ProjectsReadProjectTreeResponse = (ProjectTreeNode);
+
+export type ProjectsUpdateProjectData = {
+    projectId: string;
+    requestBody: ProjectUpdate;
+};
+
+export type ProjectsUpdateProjectResponse = (ProjectPublic);
+
+export type ProjectsDeleteProjectData = {
+    projectId: string;
+};
+
+export type ProjectsDeleteProjectResponse = (void);
+
+export type SamplesCreateSampleData = {
+    experimentId: string;
+    requestBody: SampleCreate;
+};
+
+export type SamplesCreateSampleResponse = (SamplePublic);
+
+export type SamplesReadExperimentSamplesData = {
+    experimentId: string;
+};
+
+export type SamplesReadExperimentSamplesResponse = (SamplesPublic);
+
+export type SamplesReadSampleData = {
+    sampleId: string;
+};
+
+export type SamplesReadSampleResponse = (SamplePublic);
+
+export type SamplesUpdateSampleData = {
+    requestBody: SampleUpdate;
+    sampleId: string;
+};
+
+export type SamplesUpdateSampleResponse = (SamplePublic);
+
+export type SamplesDeleteSampleData = {
+    sampleId: string;
+};
+
+export type SamplesDeleteSampleResponse = (void);
 
 export type UploadsReadDocumentData = {
     fileId: string;

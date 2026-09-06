@@ -6,8 +6,12 @@ export type DocumentPublic = {
   file_url: string
   id: string
   filename?: string | null
+  sample_id: string
   uploaded_at: string
   extraction_status: ExtractionStatus
+  sample_name?: string | null
+  experiment_name?: string | null
+  project_name?: string | null
 }
 
 export type DocumentsPublic = {

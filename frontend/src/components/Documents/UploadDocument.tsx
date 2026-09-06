@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { FileUp } from "lucide-react"
 import { useState } from "react"
 
@@ -16,21 +16,93 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { documentsApi } from "@/services/documents"
+import { hierarchyApi } from "@/services/hierarchy"
 import { handleError } from "@/utils"
+
+const NEW = "__new__"
 
 const UploadDocument = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const [projectId, setProjectId] = useState("")
+  const [experimentId, setExperimentId] = useState("")
+  const [sampleId, setSampleId] = useState("")
+  const [creatingProject, setCreatingProject] = useState(false)
+  const [creatingExperiment, setCreatingExperiment] = useState(false)
+  const [creatingSample, setCreatingSample] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
-  const mutation = useMutation({
-    mutationFn: (file: File) => documentsApi.uploadDocument(file),
+  const { data: tree, isFetching } = useQuery({
+    queryKey: ["hierarchy"],
+    queryFn: () => hierarchyApi.listProjectsTree(),
+    enabled: isOpen,
+  })
+
+  const projects = tree?.data ?? []
+  const selectedProject = projects.find((project) => project.id === projectId)
+  const experiments = selectedProject?.experiments ?? []
+  const selectedExperiment = experiments.find(
+    (experiment) => experiment.id === experimentId,
+  )
+  const samples = selectedExperiment?.samples ?? []
+
+  const invalidateHierarchy = () =>
+    queryClient.invalidateQueries({ queryKey: ["hierarchy"] })
+
+  const createProjectMutation = useMutation({
+    mutationFn: (name: string) => hierarchyApi.createProject(name),
+    onSuccess: (created) => {
+      showSuccessToast("Project created")
+      setProjectId(created.id)
+      setCreatingProject(false)
+      setCreatingExperiment(false)
+      setExperimentId("")
+      invalidateHierarchy()
+    },
+    onError: handleError.bind(showErrorToast),
+  })
+
+  const createExperimentMutation = useMutation({
+    mutationFn: (name: string) =>
+      hierarchyApi.createExperiment(projectId, name),
+    onSuccess: (created) => {
+      showSuccessToast("Experiment created")
+      setExperimentId(created.id)
+      setCreatingExperiment(false)
+      setCreatingSample(false)
+      invalidateHierarchy()
+    },
+    onError: handleError.bind(showErrorToast),
+  })
+
+  const createSampleMutation = useMutation({
+    mutationFn: (name: string) => hierarchyApi.createSample(experimentId, name),
+    onSuccess: (created) => {
+      showSuccessToast("Sample created")
+      setSampleId(created.id)
+      setCreatingSample(false)
+      invalidateHierarchy()
+    },
+    onError: handleError.bind(showErrorToast),
+  })
+
+  const uploadMutation = useMutation({
+    mutationFn: (payload: { file: File; sampleId: string }) =>
+      documentsApi.uploadDocument(payload.file, payload.sampleId),
     onSuccess: () => {
       showSuccessToast("Document uploaded successfully")
       setFile(null)
+      setSampleId("")
       setIsOpen(false)
     },
     onError: handleError.bind(showErrorToast),
@@ -39,9 +111,45 @@ const UploadDocument = () => {
     },
   })
 
+  const onProjectChange = (value: string) => {
+    if (value === NEW) {
+      setCreatingProject(true)
+      setProjectId("")
+      setExperimentId("")
+      setSampleId("")
+      return
+    }
+    setCreatingProject(false)
+    setProjectId(value)
+    setExperimentId("")
+    setSampleId("")
+  }
+
+  const onExperimentChange = (value: string) => {
+    if (value === NEW) {
+      setCreatingExperiment(true)
+      setExperimentId("")
+      setSampleId("")
+      return
+    }
+    setCreatingExperiment(false)
+    setExperimentId(value)
+    setSampleId("")
+  }
+
+  const onSampleChange = (value: string) => {
+    if (value === NEW) {
+      setCreatingSample(true)
+      setSampleId("")
+      return
+    }
+    setCreatingSample(false)
+    setSampleId(value)
+  }
+
   const onSubmit = () => {
-    if (!file) return
-    mutation.mutate(file)
+    if (!file || !sampleId) return
+    uploadMutation.mutate({ file, sampleId })
   }
 
   return (
@@ -69,17 +177,104 @@ const UploadDocument = () => {
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             />
           </div>
+
+          <div className="grid gap-2">
+            <Label>Project</Label>
+            <Select
+              disabled={isFetching && projects.length === 0}
+              value={creatingProject ? NEW : projectId || undefined}
+              onValueChange={onProjectChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a project" />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value={NEW}>＋ Create new project…</SelectItem>
+              </SelectContent>
+            </Select>
+            {creatingProject && (
+              <InlineCreate
+                placeholder="Project name"
+                pending={createProjectMutation.isPending}
+                onCreate={createProjectMutation.mutate}
+                onCancel={() => setCreatingProject(false)}
+              />
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Experiment</Label>
+            <Select
+              disabled={!projectId}
+              value={creatingExperiment ? NEW : experimentId || undefined}
+              onValueChange={onExperimentChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select an experiment" />
+              </SelectTrigger>
+              <SelectContent>
+                {experiments.map((experiment) => (
+                  <SelectItem key={experiment.id} value={experiment.id}>
+                    {experiment.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value={NEW}>＋ Create new experiment…</SelectItem>
+              </SelectContent>
+            </Select>
+            {creatingExperiment && (
+              <InlineCreate
+                placeholder="Experiment name"
+                pending={createExperimentMutation.isPending}
+                onCreate={createExperimentMutation.mutate}
+                onCancel={() => setCreatingExperiment(false)}
+              />
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Sample</Label>
+            <Select
+              disabled={!experimentId}
+              value={creatingSample ? NEW : sampleId || undefined}
+              onValueChange={onSampleChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a sample" />
+              </SelectTrigger>
+              <SelectContent>
+                {samples.map((sample) => (
+                  <SelectItem key={sample.id} value={sample.id}>
+                    {sample.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value={NEW}>＋ Create new sample…</SelectItem>
+              </SelectContent>
+            </Select>
+            {creatingSample && (
+              <InlineCreate
+                placeholder="Sample name"
+                pending={createSampleMutation.isPending}
+                onCreate={createSampleMutation.mutate}
+                onCancel={() => setCreatingSample(false)}
+              />
+            )}
+          </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" disabled={mutation.isPending}>
+            <Button variant="outline" disabled={uploadMutation.isPending}>
               Cancel
             </Button>
           </DialogClose>
           <LoadingButton
             type="submit"
-            disabled={!file}
-            loading={mutation.isPending}
+            disabled={!file || !sampleId}
+            loading={uploadMutation.isPending}
             onClick={onSubmit}
           >
             Upload
@@ -87,6 +282,44 @@ const UploadDocument = () => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function InlineCreate({
+  placeholder,
+  pending,
+  onCreate,
+  onCancel,
+}: {
+  placeholder: string
+  pending: boolean
+  onCreate: (name: string) => void
+  onCancel: () => void
+}) {
+  const [name, setName] = useState("")
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        autoFocus
+        placeholder={placeholder}
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && name.trim()) onCreate(name.trim())
+        }}
+      />
+      <LoadingButton
+        size="sm"
+        disabled={!name.trim()}
+        loading={pending}
+        onClick={() => onCreate(name.trim())}
+      >
+        Create
+      </LoadingButton>
+      <Button size="sm" variant="ghost" onClick={onCancel}>
+        Cancel
+      </Button>
+    </div>
   )
 }
 

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -209,6 +209,114 @@ export class DocumentsService {
     }
 }
 
+export class ExperimentsService {
+    /**
+     * Create Experiment
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.requestBody
+     * @returns ExperimentPublic Successful Response
+     * @throws ApiError
+     */
+    public static createExperiment(data: ExperimentsCreateExperimentData): CancelablePromise<ExperimentsCreateExperimentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{project_id}/experiments',
+            path: {
+                project_id: data.projectId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Project Experiments
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns ExperimentsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readProjectExperiments(data: ExperimentsReadProjectExperimentsData): CancelablePromise<ExperimentsReadProjectExperimentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/experiments',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Experiment
+     * @param data The data for the request.
+     * @param data.experimentId
+     * @returns ExperimentPublic Successful Response
+     * @throws ApiError
+     */
+    public static readExperiment(data: ExperimentsReadExperimentData): CancelablePromise<ExperimentsReadExperimentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/experiments/{experiment_id}',
+            path: {
+                experiment_id: data.experimentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Experiment
+     * @param data The data for the request.
+     * @param data.experimentId
+     * @param data.requestBody
+     * @returns ExperimentPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateExperiment(data: ExperimentsUpdateExperimentData): CancelablePromise<ExperimentsUpdateExperimentResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/experiments/{experiment_id}',
+            path: {
+                experiment_id: data.experimentId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Experiment
+     * @param data The data for the request.
+     * @param data.experimentId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static deleteExperiment(data: ExperimentsDeleteExperimentData): CancelablePromise<ExperimentsDeleteExperimentResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/experiments/{experiment_id}',
+            path: {
+                experiment_id: data.experimentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class PrivateService {
     /**
      * Create User
@@ -224,6 +332,210 @@ export class PrivateService {
             url: '/api/v1/private/users/',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ProjectsService {
+    /**
+     * Read Projects Tree
+     * @returns ProjectTreePublic Successful Response
+     * @throws ApiError
+     */
+    public static readProjectsTree(): CancelablePromise<ProjectsReadProjectsTreeResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/'
+        });
+    }
+    
+    /**
+     * Create Project
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ProjectPublic Successful Response
+     * @throws ApiError
+     */
+    public static createProject(data: ProjectsCreateProjectData): CancelablePromise<ProjectsCreateProjectResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Project Tree
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns ProjectTreeNode Successful Response
+     * @throws ApiError
+     */
+    public static readProjectTree(data: ProjectsReadProjectTreeData): CancelablePromise<ProjectsReadProjectTreeResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Project
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.requestBody
+     * @returns ProjectPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateProject(data: ProjectsUpdateProjectData): CancelablePromise<ProjectsUpdateProjectResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/projects/{project_id}',
+            path: {
+                project_id: data.projectId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Project
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static deleteProject(data: ProjectsDeleteProjectData): CancelablePromise<ProjectsDeleteProjectResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/projects/{project_id}',
+            path: {
+                project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class SamplesService {
+    /**
+     * Create Sample
+     * @param data The data for the request.
+     * @param data.experimentId
+     * @param data.requestBody
+     * @returns SamplePublic Successful Response
+     * @throws ApiError
+     */
+    public static createSample(data: SamplesCreateSampleData): CancelablePromise<SamplesCreateSampleResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/experiments/{experiment_id}/samples',
+            path: {
+                experiment_id: data.experimentId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Experiment Samples
+     * @param data The data for the request.
+     * @param data.experimentId
+     * @returns SamplesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readExperimentSamples(data: SamplesReadExperimentSamplesData): CancelablePromise<SamplesReadExperimentSamplesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/experiments/{experiment_id}/samples',
+            path: {
+                experiment_id: data.experimentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Sample
+     * @param data The data for the request.
+     * @param data.sampleId
+     * @returns SamplePublic Successful Response
+     * @throws ApiError
+     */
+    public static readSample(data: SamplesReadSampleData): CancelablePromise<SamplesReadSampleResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/samples/{sample_id}',
+            path: {
+                sample_id: data.sampleId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Sample
+     * @param data The data for the request.
+     * @param data.sampleId
+     * @param data.requestBody
+     * @returns SamplePublic Successful Response
+     * @throws ApiError
+     */
+    public static updateSample(data: SamplesUpdateSampleData): CancelablePromise<SamplesUpdateSampleResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/samples/{sample_id}',
+            path: {
+                sample_id: data.sampleId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Sample
+     * @param data The data for the request.
+     * @param data.sampleId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static deleteSample(data: SamplesDeleteSampleData): CancelablePromise<SamplesDeleteSampleResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/samples/{sample_id}',
+            path: {
+                sample_id: data.sampleId
+            },
             errors: {
                 422: 'Validation Error'
             }

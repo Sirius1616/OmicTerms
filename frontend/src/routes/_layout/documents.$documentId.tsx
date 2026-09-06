@@ -38,6 +38,12 @@ function getDisplayName(document: DocumentPublic): string {
   return document.filename || getFileName(document.file_url)
 }
 
+function getSamplePath(document: DocumentPublic): string {
+  return [document.project_name, document.experiment_name, document.sample_name]
+    .filter((part): part is string => Boolean(part))
+    .join(" / ")
+}
+
 function DocumentDetailContent() {
   const { documentId } = Route.useParams()
   const { data: document } = useSuspenseQuery(
@@ -77,13 +83,21 @@ function DocumentDetailContent() {
             <p className="text-sm text-muted-foreground capitalize">
               {document.extraction_status}
             </p>
+            {getSamplePath(document) && (
+              <p className="text-xs text-muted-foreground">
+                {getSamplePath(document)}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
       <div className={cn("grid gap-6", "lg:grid-cols-2")}>
         <div className="flex flex-col gap-6">
-          <DocumentViewer documentId={document.id} fileUrl={document.file_url} />
+          <DocumentViewer
+            documentId={document.id}
+            fileUrl={document.file_url}
+          />
           <ExplanationPanel documentId={document.id} />
         </div>
         <DocumentChat documentId={document.id} />

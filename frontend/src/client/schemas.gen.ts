@@ -75,10 +75,14 @@ export const Body_documents_create_documentSchema = {
             type: 'string',
             contentMediaType: 'application/octet-stream',
             title: 'File'
+        },
+        sample_id: {
+            type: 'string',
+            title: 'Sample Id'
         }
     },
     type: 'object',
-    required: ['file'],
+    required: ['file', 'sample_id'],
     title: 'Body_documents-create_document'
 } as const;
 
@@ -104,6 +108,11 @@ export const DocumentPublicSchema = {
             ],
             title: 'Filename'
         },
+        sample_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Sample Id'
+        },
         uploaded_at: {
             type: 'string',
             format: 'date-time',
@@ -111,10 +120,43 @@ export const DocumentPublicSchema = {
         },
         extraction_status: {
             '$ref': '#/components/schemas/ExtractionStatus'
+        },
+        sample_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sample Name'
+        },
+        experiment_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Experiment Name'
+        },
+        project_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Project Name'
         }
     },
     type: 'object',
-    required: ['file_url', 'id', 'uploaded_at', 'extraction_status'],
+    required: ['file_url', 'id', 'sample_id', 'uploaded_at', 'extraction_status'],
     title: 'DocumentPublic'
 } as const;
 
@@ -155,6 +197,121 @@ export const DocumentsPublicSchema = {
     type: 'object',
     required: ['data', 'count'],
     title: 'DocumentsPublic'
+} as const;
+
+export const ExperimentCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 3,
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'ExperimentCreate'
+} as const;
+
+export const ExperimentPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'project_id', 'name', 'created_at'],
+    title: 'ExperimentPublic'
+} as const;
+
+export const ExperimentTreeNodeSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        samples: {
+            items: {
+                '$ref': '#/components/schemas/SampleTreeNode'
+            },
+            type: 'array',
+            title: 'Samples',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'project_id', 'name', 'created_at'],
+    title: 'ExperimentTreeNode'
+} as const;
+
+export const ExperimentUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128,
+                    minLength: 3
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    title: 'ExperimentUpdate'
+} as const;
+
+export const ExperimentsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ExperimentPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ExperimentsPublic'
 } as const;
 
 export const ExtractionStatusSchema = {
@@ -218,6 +375,257 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const ProjectCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 3,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'ProjectCreate'
+} as const;
+
+export const ProjectPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'created_at'],
+    title: 'ProjectPublic'
+} as const;
+
+export const ProjectTreeNodeSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        experiments: {
+            items: {
+                '$ref': '#/components/schemas/ExperimentTreeNode'
+            },
+            type: 'array',
+            title: 'Experiments',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'created_at'],
+    title: 'ProjectTreeNode'
+} as const;
+
+export const ProjectTreePublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProjectTreeNode'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ProjectTreePublic'
+} as const;
+
+export const ProjectUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128,
+                    minLength: 3
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    title: 'ProjectUpdate'
+} as const;
+
+export const SampleCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 3,
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'SampleCreate'
+} as const;
+
+export const SamplePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        experiment_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Experiment Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'experiment_id', 'name', 'created_at'],
+    title: 'SamplePublic'
+} as const;
+
+export const SampleTreeNodeSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'created_at'],
+    title: 'SampleTreeNode'
+} as const;
+
+export const SampleUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128,
+                    minLength: 3
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    title: 'SampleUpdate'
+} as const;
+
+export const SamplesPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/SamplePublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'SamplesPublic'
 } as const;
 
 export const TokenSchema = {

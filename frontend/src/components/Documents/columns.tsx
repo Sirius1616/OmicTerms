@@ -16,6 +16,12 @@ function getDisplayName(document: DocumentPublic): string {
   return document.filename || getFileName(document.file_url)
 }
 
+function getSamplePath(document: DocumentPublic): string {
+  return [document.project_name, document.experiment_name, document.sample_name]
+    .filter((part): part is string => Boolean(part))
+    .join(" / ")
+}
+
 function StatusBadge({ status }: { status: ExtractionStatus }) {
   const styles: Record<ExtractionStatus, string> = {
     pending: "bg-amber-100 text-amber-800",
@@ -43,6 +49,15 @@ export const columns: ColumnDef<DocumentPublic>[] = [
           {getDisplayName(row.original)}
         </span>
       </div>
+    ),
+  },
+  {
+    accessorKey: "sample_id",
+    header: "Sample",
+    cell: ({ row }) => (
+      <span className="text-sm text-muted-foreground break-words">
+        {getSamplePath(row.original) || "—"}
+      </span>
     ),
   },
   {

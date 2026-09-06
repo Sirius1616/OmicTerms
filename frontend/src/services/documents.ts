@@ -1,5 +1,5 @@
-import { DocumentsService, type Body_documents_create_document } from "@/client"
-import type { DocumentPublic } from "@/client"
+import type { Body_documents_create_document, DocumentPublic } from "@/client"
+import { DocumentsService } from "@/client"
 import { OpenAPI } from "@/client/core/OpenAPI"
 
 import type {
@@ -19,9 +19,12 @@ export const documentsApi = {
     return DocumentsService.readDocuments()
   },
 
-  async uploadDocument(file: File): Promise<DocumentPublic> {
+  async uploadDocument(file: File, sampleId: string): Promise<DocumentPublic> {
     return DocumentsService.createDocument({
-      formData: { file } as unknown as Body_documents_create_document,
+      formData: {
+        file,
+        sample_id: sampleId,
+      } as unknown as Body_documents_create_document,
     })
   },
 
