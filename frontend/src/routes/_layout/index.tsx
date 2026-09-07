@@ -1,8 +1,14 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link as RouterLink } from "@tanstack/react-router"
-import { FileText, FileUp, Sparkles } from "lucide-react"
+import { Dna, FileUp, Microscope } from "lucide-react"
 import { Suspense } from "react"
 
+import {
+  BasePairCode,
+  CoverageTrace,
+  HelixDivider,
+  LabReadout,
+} from "@/components/Common/GenomicsMotif"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,6 +36,12 @@ function getDocumentsQueryOptions() {
   }
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  pending: "border-cytosine/60 text-cytosine",
+  success: "border-adenine/60 text-adenine",
+  failed: "border-thymine/60 text-thymine",
+}
+
 function RecentDocuments() {
   const { data: documents } = useSuspenseQuery(getDocumentsQueryOptions())
   const recent = documents.data.slice(0, 5)
@@ -37,7 +49,10 @@ function RecentDocuments() {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Recent documents</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Dna className="size-4 text-primary" />
+          Recent samples
+        </CardTitle>
         <Button variant="ghost" size="sm" asChild>
           <RouterLink to="/documents">View all</RouterLink>
         </Button>
@@ -45,17 +60,17 @@ function RecentDocuments() {
       <CardContent className="flex flex-col gap-2">
         {recent.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <FileText className="size-8 text-muted-foreground" />
+            <div className="mb-4 rounded-full bg-muted p-4">
+              <Dna className="size-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold">No documents yet</h3>
+            <h3 className="text-lg font-semibold">No samples loaded yet</h3>
             <p className="text-muted-foreground">
-              Upload a bill, report or email to get started
+              Upload your first omics file to begin analysis
             </p>
             <Button className="mt-4" asChild>
               <RouterLink to="/documents">
                 <FileUp className="mr-2" />
-                Upload a document
+                Upload data
               </RouterLink>
             </Button>
           </div>
@@ -68,7 +83,7 @@ function RecentDocuments() {
               className="flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors hover:bg-muted/50"
             >
               <div className="rounded-md bg-muted p-2">
-                <FileText className="size-4 text-muted-foreground" />
+                <Dna className="size-4 text-muted-foreground" />
               </div>
               <div className="flex-1 truncate">
                 <p className="truncate text-sm font-medium">
@@ -81,9 +96,9 @@ function RecentDocuments() {
               <Badge
                 variant="outline"
                 className={cn(
-                  document.extraction_status === "success"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-amber-100 text-amber-800",
+                  "border bg-transparent",
+                  STATUS_COLORS[document.extraction_status] ??
+                    "border-border text-muted-foreground",
                 )}
               >
                 {document.extraction_status}
@@ -96,57 +111,69 @@ function RecentDocuments() {
   )
 }
 
+const METRICS = [
+  {
+    icon: Microscope,
+    title: "Omics analysis",
+    body: "Upload expression, methylation, variant or peak files. Each type gets the right statistical treatment.",
+    accent: "from-cyan-500/20 to-transparent",
+  },
+  {
+    icon: Dna,
+    title: "Explained plainly",
+    body: "Every p-value, fold-change and cluster gets translated into a verdict you can act on — not just a plot.",
+    accent: "from-adenine/20 to-transparent",
+  },
+  {
+    icon: FileUp,
+    title: "Organized by design",
+    body: "Samples live inside experiments inside projects, so your hierarchy always reflects your study design.",
+    accent: "from-guanine/20 to-transparent",
+  },
+]
+
 function Dashboard() {
   const { user: currentUser } = useAuth()
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl truncate max-w-sm">
-          Hi, {currentUser?.full_name || currentUser?.email} 👋
-        </h1>
-        <p className="text-muted-foreground">
-          Welcome back, nice to see you again!!!
-        </p>
+      <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-background p-6 md:p-8">
+        <div className="relative z-10 flex flex-col gap-3">
+          <BasePairCode className="w-fit" />
+          <h1 className="text-2xl">
+            Hi, {currentUser?.full_name || currentUser?.email}
+          </h1>
+          <p className="text-muted-foreground">
+            Your sequencing workspace is ready.
+          </p>
+          <LabReadout />
+        </div>
+        <CoverageTrace className="h-24 opacity-20" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="size-4 text-muted-foreground" />
-              Your documents
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Upload bills, medical reports and emails. We will break them down
-            into plain language.
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="size-4 text-muted-foreground" />
-              Simple explanations
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Every confusing term gets explained in language anyone can
-            understand.
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileUp className="size-4 text-muted-foreground" />
-              Ask questions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Not sure about a charge or result? Chat with your document and ask.
-          </CardContent>
-        </Card>
+        {METRICS.map(({ icon: Icon, title, body, accent }) => (
+          <Card key={title}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Icon className="size-4 text-primary" />
+                {title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="relative overflow-hidden text-sm text-muted-foreground">
+              <div
+                className={cn(
+                  "pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br",
+                  accent,
+                )}
+              />
+              {body}
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      <HelixDivider className="text-primary/40" />
 
       <Suspense
         fallback={

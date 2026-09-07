@@ -1,6 +1,8 @@
 import { FaGithub, FaLinkedinIn } from "react-icons/fa"
 import { FaXTwitter } from "react-icons/fa6"
 
+import { BasePairCode, HelixDivider } from "@/components/Common/GenomicsMotif"
+
 const socialLinks = [
   {
     icon: FaGithub,
@@ -20,10 +22,17 @@ export function Footer() {
 
   return (
     <footer className="border-t py-4 px-6">
+      <HelixDivider className="mb-4 text-primary/30" />
       <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <p className="text-muted-foreground text-sm">
-          OmicTerms - {currentYear}
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-muted-foreground text-sm">
+            OmicTerms - {currentYear}
+          </p>
+          <p className="readout text-[10px] text-muted-foreground/60">
+            from data to discovery
+          </p>
+        </div>
+        <BasePairCode />
         <div className="flex items-center gap-4">
           {socialLinks.map(({ icon: Icon, href, label }) => (
             <a
