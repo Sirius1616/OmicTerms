@@ -147,3 +147,143 @@
     letter-spacing: -0.02em;
   }
 }
+
+/* ═══════════ genomics motion (plain CSS so it is always emitted) ═══════════ */
+
+/* sequencing scan beam traveling across a panel */
+.gm-scan {
+  animation: gm-scan 3.4s ease-in-out infinite;
+}
+@keyframes gm-scan {
+  0% {
+    left: -18%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    left: 116%;
+    opacity: 0;
+  }
+}
+
+/* endless marquee of base-pair letters (flowcell effect) */
+.gm-baserain {
+  animation: gm-baserain 26s linear infinite;
+}
+@keyframes gm-baserain {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* spinning double helix (two identical cells, -50% loop) */
+.gm-dna {
+  animation: gm-dna 8s linear infinite;
+  will-change: transform;
+}
+@keyframes gm-dna {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* nucleobases breathing in sequence */
+.gm-breathe {
+  animation: gm-breathe 2s ease-in-out infinite;
+}
+@keyframes gm-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+
+/* chromosome rods shimmering like a machine waking up */
+.gm-chromo {
+  animation: gm-chromo 1.8s ease-in-out infinite;
+}
+@keyframes gm-chromo {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* helix strands drifting past each other (rotation illusion) */
+.gm-helixl {
+  animation: gm-helixl 7s linear infinite;
+}
+.gm-helixr {
+  animation: gm-helixr 7s linear infinite;
+}
+@keyframes gm-helixl {
+  to {
+    transform: translateX(48px);
+  }
+}
+@keyframes gm-helixr {
+  to {
+    transform: translateX(-48px);
+  }
+}
+
+/* terminal-style blinking caret */
+.gm-caret {
+  animation: gm-caret 1.1s steps(1) infinite;
+}
+@keyframes gm-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* glowing pulse for live/analyzing status badges */
+.gm-pulseglow {
+  animation: gm-pulseglow 1.8s ease-in-out infinite;
+}
+@keyframes gm-pulseglow {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* flowing reads streaming through a flowcell lane */
+.gm-flow-track {
+  animation: gm-flow-track 22s linear infinite;
+  will-change: transform;
+}
+@keyframes gm-flow-track {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* specimen deck progress lane filling between slides */
+.gm-progress {
+  animation: gm-progress 3.6s linear forwards;
+}
+@keyframes gm-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}

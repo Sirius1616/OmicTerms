@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link as RouterLink } from "@tanstack/react-router"
 import { ArrowLeft, FileText } from "lucide-react"
 import { Suspense } from "react"
+import { AnalyzingIndicator } from "@/components/Common/GenomicsMotif"
 
 import { DocumentChat } from "@/components/Documents/DocumentChat"
 import { DocumentViewer } from "@/components/Documents/DocumentViewer"
@@ -80,9 +81,13 @@ function DocumentDetailContent() {
             <h1 className="text-2xl font-bold tracking-tight">
               {getDisplayName(document)}
             </h1>
-            <p className="text-sm text-muted-foreground capitalize">
-              {document.extraction_status}
-            </p>
+            {document.extraction_status === "pending" ? (
+              <AnalyzingIndicator />
+            ) : (
+              <p className="text-sm text-muted-foreground capitalize">
+                {document.extraction_status}
+              </p>
+            )}
             {getSamplePath(document) && (
               <p className="text-xs text-muted-foreground">
                 {getSamplePath(document)}
