@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from sqlmodel import col, func, select
 
@@ -20,6 +20,7 @@ from app.models import (
     Project,
     Sample,
 )
+from app.services.extraction_job import run_document_extraction
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 upload_router = APIRouter(prefix="/uploads", tags=["uploads"])
@@ -74,6 +75,7 @@ async def create_document(
     current_user: CurrentUser,
     file: UploadFile,
     sample_id: Annotated[str, Form()],
+    background_tasks: BackgroundTasks,
 ) -> DocumentPublic:
 
     MAGIC = {
@@ -87,7 +89,7 @@ async def create_document(
     await file.seek(0)
     matched_sig = next((sig for sig in MAGIC if sample.startswith(sig)), None)
 
-    TEXT_EXT = {".txt", ".eml"}
+    TEXT_EXT = {".txt", ".eml", ".tsv", ".csv", ".vcf", ".bed"}
     stored_ext = os.path.splitext(file.filename)[1].lower()
     is_text = stored_ext in TEXT_EXT and b"\x00" not in sample
     if matched_sig is None and not is_text:
@@ -131,6 +133,7 @@ async def create_document(
     session.add(document)
     session.commit()
     session.refresh(document)
+    background_tasks.add_task(run_document_extraction, document.id)
     return _to_public(document, _doc_names(session, document.sample_id))
 
 
