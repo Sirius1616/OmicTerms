@@ -7,7 +7,10 @@ export function CoverageTrace({ className }: { className?: string }) {
       viewBox="0 0 600 120"
       preserveAspectRatio="none"
       aria-hidden="true"
-      className={cn("absolute inset-x-0 bottom-0", className)}
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-0",
+        className,
+      )}
     >
       <defs>
         <linearGradient id="traceStroke" x1="0" y1="0" x2="1" y2="0">
@@ -192,7 +195,10 @@ export function BaseRain({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={cn("relative select-none overflow-hidden", className)}
+      className={cn(
+        "pointer-events-none relative select-none overflow-hidden",
+        className,
+      )}
     >
       <div className="gm-baserain flex w-[200%]">
         {cell}
@@ -241,7 +247,10 @@ function HelixCell() {
 /** A double helix that visually spins — two cells looped, strand-winding. */
 export function HelixSpinner({ className }: { className?: string }) {
   return (
-    <div aria-hidden="true" className={cn("text-primary/80", className)}>
+    <div
+      aria-hidden="true"
+      className={cn("pointer-events-none text-primary/80", className)}
+    >
       <div className="relative h-full w-full overflow-hidden">
         <div className="gm-dna flex w-[200%]">
           <HelixCell />
@@ -312,7 +321,7 @@ export function FlowLane({ className }: { className?: string }) {
     <div
       aria-hidden="true"
       className={cn(
-        "relative overflow-hidden rounded-lg border border-border/50 bg-background/60",
+        "pointer-events-none relative overflow-hidden rounded-lg border border-border/50 bg-background/60",
         className,
       )}
     >
