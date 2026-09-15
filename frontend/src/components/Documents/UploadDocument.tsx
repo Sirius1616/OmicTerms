@@ -26,6 +26,7 @@ import {
 import useCustomToast from "@/hooks/useCustomToast"
 import { documentsApi } from "@/services/documents"
 import { hierarchyApi } from "@/services/hierarchy"
+import { DATA_TYPES } from "@/types/documents"
 import { handleError } from "@/utils"
 
 const NEW = "__new__"
@@ -36,6 +37,7 @@ const UploadDocument = () => {
   const [projectId, setProjectId] = useState("")
   const [experimentId, setExperimentId] = useState("")
   const [sampleId, setSampleId] = useState("")
+  const [dataType, setDataType] = useState("auto")
   const [creatingProject, setCreatingProject] = useState(false)
   const [creatingExperiment, setCreatingExperiment] = useState(false)
   const [creatingSample, setCreatingSample] = useState(false)
@@ -98,11 +100,12 @@ const UploadDocument = () => {
 
   const uploadMutation = useMutation({
     mutationFn: (payload: { file: File; sampleId: string }) =>
-      documentsApi.uploadDocument(payload.file, payload.sampleId),
+      documentsApi.uploadDocument(payload.file, payload.sampleId, dataType),
     onSuccess: () => {
       showSuccessToast("Document uploaded successfully")
       setFile(null)
       setSampleId("")
+      setDataType("auto")
       setIsOpen(false)
     },
     onError: handleError.bind(showErrorToast),
@@ -173,9 +176,30 @@ const UploadDocument = () => {
             <Label>Document</Label>
             <Input
               type="file"
-              accept=".pdf,.doc,.docx,.txt,.eml"
+              accept=".pdf,.doc,.docx,.txt,.eml,.tsv,.csv,.vcf,.bed"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Data type</Label>
+            <Select value={dataType} onValueChange={setDataType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Auto-detect</SelectItem>
+                {DATA_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type[0].toUpperCase() + type.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Auto-detect inspects the file: VCF → variants, BED → peaks, gene
+              matrix → expression, CpG matrix → methylation.
+            </p>
           </div>
 
           <div className="grid gap-2">

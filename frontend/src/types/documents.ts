@@ -1,5 +1,15 @@
 export type ExtractionStatus = "pending" | "success" | "failed"
 
+export const DATA_TYPES = [
+  "expression",
+  "methylation",
+  "variants",
+  "peaks",
+  "document",
+] as const
+
+export type DataType = (typeof DATA_TYPES)[number]
+
 export type MessageRole = "user" | "assistant"
 
 export type DocumentPublic = {
@@ -9,6 +19,7 @@ export type DocumentPublic = {
   sample_id: string
   uploaded_at: string
   extraction_status: ExtractionStatus
+  data_type?: DataType | null
   sample_name?: string | null
   experiment_name?: string | null
   project_name?: string | null

@@ -4,7 +4,11 @@ import { FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { DocumentPublic, ExtractionStatus } from "@/types/documents"
+import type {
+  DataType,
+  DocumentPublic,
+  ExtractionStatus,
+} from "@/types/documents"
 import { formatDate } from "@/utils/format"
 import { DocumentActionsMenu } from "./DocumentActionsMenu"
 
@@ -32,6 +36,29 @@ function StatusBadge({ status }: { status: ExtractionStatus }) {
   return (
     <Badge variant="outline" className={cn(styles[status])}>
       {status}
+    </Badge>
+  )
+}
+
+const DATA_TYPE_STYLES: Record<DataType, string> = {
+  expression: "bg-sky-100 text-sky-800",
+  methylation: "bg-violet-100 text-violet-800",
+  variants: "bg-rose-100 text-rose-800",
+  peaks: "bg-emerald-100 text-emerald-800",
+  document: "bg-slate-100 text-slate-700",
+}
+
+function DataTypeBadge({ dataType }: { dataType?: DataType | null }) {
+  if (!dataType) {
+    return (
+      <Badge variant="outline" className="text-muted-foreground">
+        detecting…
+      </Badge>
+    )
+  }
+  return (
+    <Badge variant="outline" className={cn(DATA_TYPE_STYLES[dataType])}>
+      {dataType}
     </Badge>
   )
 }
@@ -64,6 +91,11 @@ export const columns: ColumnDef<DocumentPublic>[] = [
     accessorKey: "extraction_status",
     header: "Status",
     cell: ({ row }) => <StatusBadge status={row.original.extraction_status} />,
+  },
+  {
+    accessorKey: "data_type",
+    header: "Type",
+    cell: ({ row }) => <DataTypeBadge dataType={row.original.data_type} />,
   },
   {
     accessorKey: "uploaded_at",

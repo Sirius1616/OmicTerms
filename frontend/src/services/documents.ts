@@ -19,11 +19,16 @@ export const documentsApi = {
     return DocumentsService.readDocuments()
   },
 
-  async uploadDocument(file: File, sampleId: string): Promise<DocumentPublic> {
+  async uploadDocument(
+    file: File,
+    sampleId: string,
+    dataType: string = "auto",
+  ): Promise<DocumentPublic> {
     return DocumentsService.createDocument({
       formData: {
         file,
         sample_id: sampleId,
+        data_type: dataType,
       } as unknown as Body_documents_create_document,
     })
   },

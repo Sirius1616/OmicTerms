@@ -42,3 +42,4 @@ This is the index of practice work for skills we convert from "I watched it" to
 | Feature | Drill file | Depends on |
 |---------|-----------|------------|
 | extraction (issue #8) — sniffing bytes into a typed parse | `practice/features/extraction/README.md` | — |
+| classification (issue #9) — turning a parsed document into a data type | `practice/features/classification/README.md` | extraction (#8) |
