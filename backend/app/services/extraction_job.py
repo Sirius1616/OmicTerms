@@ -10,6 +10,7 @@ import app as app_pkg
 from app.core.config import settings
 from app.crud import engine
 from app.models import Document, ExtractionStatus
+from app.services.classification import classify
 from app.services.extraction import extract_text
 
 APP_ROOT = Path(app_pkg.__file__).resolve().parent.parent
@@ -42,6 +43,13 @@ def run_document_extraction(document_id: uuid.UUID) -> None:
 
             document.raw_extracted_json = json.dumps(payload)
             document.extraction_status = ExtractionStatus.success
+
+            if document.data_type is None:
+                document.data_type = classify(
+                    document.filename or "",
+                    result.kind,
+                    result.structure,
+                )
         except Exception as exc:  # noqa: BLE001 - any failure must mark the doc failed
             document.extraction_status = ExtractionStatus.failed
             document.raw_extracted_json = json.dumps({"error": str(exc)})

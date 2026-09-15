@@ -12,6 +12,14 @@ class ExtractionStatus(str, Enum):
     failed = "failed"
 
 
+class DataType(str, Enum):
+    expression = "expression"
+    methylation = "methylation"
+    variants = "variants"
+    peaks = "peaks"
+    document = "document"
+
+
 class MessageRole(str, Enum):
     user = "user"
     assistant = "assistant"
@@ -94,6 +102,7 @@ class Document(DocumentBase, table=True):
     sample_id: uuid.UUID = Field(foreign_key="sample.id", index=True)
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     extraction_status: ExtractionStatus = ExtractionStatus.pending
+    data_type: DataType | None = None
     raw_extracted_json: str | None = None
 
     sample: Sample = Relationship(back_populates="documents")
@@ -115,6 +124,7 @@ class DocumentPublic(DocumentBase):
     sample_id: uuid.UUID
     uploaded_at: datetime
     extraction_status: ExtractionStatus
+    data_type: DataType | None = None
     sample_name: str | None = None
     experiment_name: str | None = None
     project_name: str | None = None

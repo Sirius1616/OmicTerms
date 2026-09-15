@@ -8,6 +8,7 @@ manually against ``backend/app/services/*.{pdf,png,docx}``.
 from pathlib import Path
 
 import pytest
+
 from app.services.extraction import ExtractionResult, extract_text
 from app.services.omics_parser import parse_omics
 

@@ -11,6 +11,7 @@ from app import crud
 from app.api.deps import CurrentUser, SessionDep
 from app.core.config import settings
 from app.models import (
+    DataType,
     Document,
     DocumentPublic,
     DocumentsPublic,
@@ -37,6 +38,7 @@ def _to_public(doc: Document, names: tuple[str, str, str] | None) -> DocumentPub
         sample_id=doc.sample_id,
         uploaded_at=doc.uploaded_at,
         extraction_status=doc.extraction_status,
+        data_type=doc.data_type,
         project_name=project_name,
         experiment_name=experiment_name,
         sample_name=sample_name,
@@ -76,6 +78,7 @@ async def create_document(
     file: UploadFile,
     sample_id: Annotated[str, Form()],
     background_tasks: BackgroundTasks,
+    data_type: Annotated[str, Form()] = "auto",
 ) -> DocumentPublic:
 
     MAGIC = {
@@ -104,6 +107,18 @@ async def create_document(
     if not owned_sample:
         raise HTTPException(status_code=403, detail="Sample not found")
 
+    if data_type == "auto":
+        explicit_data_type = None
+    else:
+        try:
+            explicit_data_type = DataType(data_type)
+        except ValueError:
+            choices = ", ".join(t.value for t in DataType)
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid data type: '{data_type}' (choose from: {choices} or 'auto')",
+            )
+
     ext = f".{MAGIC[matched_sig]}" if matched_sig else stored_ext
 
     file_id = f"{uuid.uuid4()}{ext}"
@@ -127,7 +142,10 @@ async def create_document(
     file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{file_id}"
 
     document = Document(
-        file_url=file_url, sample_id=sample_uuid, filename=file.filename
+        file_url=file_url,
+        sample_id=sample_uuid,
+        filename=file.filename,
+        data_type=explicit_data_type,
     )
 
     session.add(document)
