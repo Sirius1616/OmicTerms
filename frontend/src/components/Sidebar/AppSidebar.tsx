@@ -1,7 +1,20 @@
-import { FileText, Home, Users } from "lucide-react"
+import {
+  BookOpen,
+  Database,
+  FileBarChart,
+  FlaskConical,
+  FolderKanban,
+  GraduationCap,
+  LayoutDashboard,
+  Network,
+  Plug,
+  Route as RouteIcon,
+  TrendingUp,
+  Users,
+  Wrench,
+} from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
-import { ChromosomeBars, LabReadout } from "@/components/Common/GenomicsMotif"
 import { Logo } from "@/components/Common/Logo"
 import {
   Sidebar,
@@ -10,13 +23,32 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
-import { type Item, Main } from "./Main"
+import { type ItemGroup, Main } from "./Main"
 import { User } from "./User"
 
-const baseItems: Item[] = [
-  { icon: Home, title: "Dashboard", path: "/" },
-  { icon: FileText, title: "Documents", path: "/documents" },
-]
+const researchGroup: ItemGroup = {
+  label: "Research",
+  items: [
+    { icon: LayoutDashboard, title: "Dashboard", path: "/" },
+    { icon: FolderKanban, title: "Projects", path: "/projects" },
+    { icon: Database, title: "Data Sources", path: "/documents" },
+    { icon: Plug, title: "Integrations", path: "/integrations" },
+    { icon: Wrench, title: "Analysis Tools", path: "/analysis-tools" },
+    { icon: Network, title: "Evidence Graph", path: "/evidence" },
+    { icon: FileBarChart, title: "Reports", path: "/reports" },
+  ],
+}
+
+const academyGroup: ItemGroup = {
+  label: "Academy",
+  items: [
+    { icon: GraduationCap, title: "Academy", path: "/academy" },
+    { icon: RouteIcon, title: "Learning Path", path: "/academy/path" },
+    { icon: BookOpen, title: "Concept Explorer", path: "/academy/concepts" },
+    { icon: FlaskConical, title: "Interactive Labs", path: "/academy/labs" },
+    { icon: TrendingUp, title: "My Progress", path: "/academy/progress" },
+  ],
+}
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
@@ -25,23 +57,24 @@ export function AppSidebar() {
     (currentUser as { is_admin?: boolean } | undefined)?.is_admin,
   )
 
-  const items = isAdmin
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
-    : baseItems
+  const groups: ItemGroup[] = [researchGroup, academyGroup]
+
+  if (isAdmin) {
+    groups.push({
+      label: "Admin",
+      items: [{ icon: Users, title: "Admin", path: "/admin" }],
+    })
+  }
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
+      <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <Logo variant="responsive" />
       </SidebarHeader>
       <SidebarContent>
-        <Main items={items} />
+        <Main groups={groups} />
       </SidebarContent>
       <SidebarFooter>
-        <div className="group-data-[collapsible=icon]:hidden">
-          <ChromosomeBars className="h-10 border-t border-border/40 pt-2" />
-          <LabReadout className="justify-center px-4 py-2" />
-        </div>
         <SidebarAppearance />
         <User user={currentUser} />
       </SidebarFooter>
