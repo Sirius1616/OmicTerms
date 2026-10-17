@@ -1,52 +1,21 @@
-import { FaGithub, FaLinkedinIn } from "react-icons/fa"
-import { FaXTwitter } from "react-icons/fa6"
-
-import { BasePairCode, HelixDivider } from "@/components/Common/GenomicsMotif"
-
-const socialLinks = [
-  {
-    icon: FaGithub,
-    href: "https://github.com/",
-    label: "GitHub",
-  },
-  { icon: FaXTwitter, href: "https://x.com/", label: "X" },
-  {
-    icon: FaLinkedinIn,
-    href: "https://linkedin.com/",
-    label: "LinkedIn",
-  },
-]
+import { ExternalLink } from "lucide-react"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t py-4 px-6">
-      <HelixDivider className="mb-4 text-primary/30" />
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <div className="flex flex-col gap-2">
-          <p className="text-muted-foreground text-sm">
-            OmicTerms - {currentYear}
-          </p>
-          <p className="readout text-[10px] text-muted-foreground/60">
-            from data to discovery
-          </p>
-        </div>
-        <BasePairCode />
-        <div className="flex items-center gap-4">
-          {socialLinks.map(({ icon: Icon, href, label }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={label}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Icon className="h-5 w-5" />
-            </a>
-          ))}
-        </div>
+    <footer className="border-t px-6 py-4">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 text-sm text-muted-foreground sm:flex-row">
+        <p>OmicTerms © {currentYear} · From data to discovery</p>
+        <a
+          href="https://github.com/Sirius1616/OmicTerms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
+        >
+          <ExternalLink className="size-4" />
+          Source &amp; docs
+        </a>
       </div>
     </footer>
   )

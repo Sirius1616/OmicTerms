@@ -14,9 +14,9 @@ export function CoverageTrace({ className }: { className?: string }) {
     >
       <defs>
         <linearGradient id="traceStroke" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#22d3ee" />
-          <stop offset="0.55" stopColor="#22c55e" />
-          <stop offset="1" stopColor="#818cf8" />
+          <stop offset="0" stopColor="var(--color-accent-cyan)" />
+          <stop offset="0.55" stopColor="var(--color-valid)" />
+          <stop offset="1" stopColor="var(--color-learning)" />
         </linearGradient>
       </defs>
       <path
@@ -48,7 +48,7 @@ export function ScanBeam({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="gm-scan absolute top-0 h-full w-24 -skew-x-12 bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent" />
+      <div className="gm-scan absolute top-0 h-full w-24 -skew-x-12 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
     </div>
   )
 }
@@ -145,7 +145,7 @@ export function LabReadout({ className }: { className?: string }) {
           {label}
         </span>
       ))}
-      <span className="gm-caret select-none text-cyan-300">▍</span>
+      <span className="gm-caret select-none text-primary">▍</span>
     </div>
   )
 }
