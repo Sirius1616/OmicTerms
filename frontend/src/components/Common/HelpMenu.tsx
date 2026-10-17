@@ -1,4 +1,5 @@
 import { BookText, CircleHelp, Info, Keyboard } from "lucide-react"
+import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -25,23 +26,25 @@ const SHORTCUTS: Array<{ keys: string; description: string }> = [
   { keys: "Esc", description: "Close dialogs and menus" },
 ]
 
-export function HelpMenu() {
+export function HelpMenu({ trigger }: { trigger?: ReactNode }) {
   const { enabled, toggle } = useDevFixtures()
 
   return (
     <Dialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Help"
-            className="text-muted-foreground"
-          >
-            <CircleHelp className="size-4" />
-          </Button>
+          {trigger ?? (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Help"
+              className="text-muted-foreground"
+            >
+              <CircleHelp className="size-4" />
+            </Button>
+          )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuContent side="right" align="end" className="w-64">
           <DropdownMenuLabel>Help</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>

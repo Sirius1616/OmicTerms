@@ -4,7 +4,6 @@ import { Breadcrumbs } from "@/components/Common/Breadcrumbs"
 import { DevFixtureBadge } from "@/components/Common/DevFixtureBadge"
 import { Footer } from "@/components/Common/Footer"
 import { GlobalSearch } from "@/components/Common/GlobalSearch"
-import { HelpMenu } from "@/components/Common/HelpMenu"
 import { NotificationsBell } from "@/components/Common/NotificationsBell"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import {
@@ -36,11 +35,10 @@ function Layout() {
           <div className="ml-auto flex items-center gap-1">
             <GlobalSearch />
             <NotificationsBell />
-            <HelpMenu />
           </div>
         </header>
         <main className="flex-1 p-6 md:p-8">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-[1600px]">
             <Outlet />
           </div>
         </main>

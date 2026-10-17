@@ -1,5 +1,7 @@
+import { Link as RouterLink } from "@tanstack/react-router"
 import {
   BookOpen,
+  CircleHelp,
   Database,
   FileBarChart,
   FlaskConical,
@@ -9,27 +11,33 @@ import {
   Network,
   Plug,
   Route as RouteIcon,
+  Settings,
+  Shield,
   TrendingUp,
-  Users,
   Wrench,
 } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
+import { HelpMenu } from "@/components/Common/HelpMenu"
 import { Logo } from "@/components/Common/Logo"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
 import { type ItemGroup, Main } from "./Main"
 import { User } from "./User"
 
 const researchGroup: ItemGroup = {
-  label: "Research",
+  label: "Research Workspace",
   items: [
-    { icon: LayoutDashboard, title: "Dashboard", path: "/" },
+    { icon: LayoutDashboard, title: "Home", path: "/" },
     { icon: FolderKanban, title: "Projects", path: "/projects" },
     { icon: Database, title: "Data Sources", path: "/documents" },
     { icon: Plug, title: "Integrations", path: "/integrations" },
@@ -40,9 +48,9 @@ const researchGroup: ItemGroup = {
 }
 
 const academyGroup: ItemGroup = {
-  label: "Academy",
+  label: "Learning & Academy",
   items: [
-    { icon: GraduationCap, title: "Academy", path: "/academy" },
+    { icon: GraduationCap, title: "OmicTerms Academy", path: "/academy" },
     { icon: RouteIcon, title: "Learning Path", path: "/academy/path" },
     { icon: BookOpen, title: "Concept Explorer", path: "/academy/concepts" },
     { icon: FlaskConical, title: "Interactive Labs", path: "/academy/labs" },
@@ -52,29 +60,60 @@ const academyGroup: ItemGroup = {
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
+  const { isMobile, setOpenMobile } = useSidebar()
 
   const isAdmin = Boolean(
     (currentUser as { is_admin?: boolean } | undefined)?.is_admin,
   )
 
-  const groups: ItemGroup[] = [researchGroup, academyGroup]
-
-  if (isAdmin) {
-    groups.push({
-      label: "Admin",
-      items: [{ icon: Users, title: "Admin", path: "/admin" }],
-    })
+  const handleMenuClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
   }
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+      <SidebarHeader className="gap-1 px-4 py-6 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <Logo variant="responsive" />
+        <p className="px-0.5 text-[11px] leading-tight text-muted-foreground group-data-[collapsible=icon]:hidden">
+          Multi-omics research workspace
+        </p>
       </SidebarHeader>
       <SidebarContent>
-        <Main groups={groups} />
+        <Main groups={[researchGroup, academyGroup]} />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          {isAdmin ? (
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Admin" asChild>
+                <RouterLink to="/admin" onClick={handleMenuClick}>
+                  <Shield />
+                  <span>Admin</span>
+                </RouterLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ) : null}
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Settings" asChild>
+              <RouterLink to="/settings" onClick={handleMenuClick}>
+                <Settings />
+                <span>Settings</span>
+              </RouterLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <HelpMenu
+              trigger={
+                <SidebarMenuButton aria-label="Help">
+                  <CircleHelp />
+                  <span>Help</span>
+                </SidebarMenuButton>
+              }
+            />
+          </SidebarMenuItem>
+        </SidebarMenu>
         <SidebarAppearance />
         <User user={currentUser} />
       </SidebarFooter>

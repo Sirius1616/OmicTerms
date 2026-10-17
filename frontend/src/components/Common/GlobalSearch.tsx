@@ -35,66 +35,76 @@ type Destination = {
 }
 
 const DESTINATIONS: Destination[] = [
-  { title: "Dashboard", path: "/", group: "Research", icon: LayoutDashboard },
+  {
+    title: "Home",
+    path: "/",
+    group: "Research Workspace",
+    icon: LayoutDashboard,
+  },
   {
     title: "Projects",
     path: "/projects",
-    group: "Research",
+    group: "Research Workspace",
     icon: FolderKanban,
   },
   {
     title: "Data Sources",
     path: "/documents",
-    group: "Research",
+    group: "Research Workspace",
     icon: Database,
   },
   {
     title: "Integrations",
     path: "/integrations",
-    group: "Research",
+    group: "Research Workspace",
     icon: Plug,
   },
   {
     title: "Analysis Tools",
     path: "/analysis-tools",
-    group: "Research",
+    group: "Research Workspace",
     icon: Wrench,
   },
   {
     title: "Evidence Graph",
     path: "/evidence",
-    group: "Research",
+    group: "Research Workspace",
     icon: Network,
   },
-  { title: "Reports", path: "/reports", group: "Research", icon: FileBarChart },
   {
-    title: "Academy",
+    title: "Reports",
+    path: "/reports",
+    group: "Research Workspace",
+    icon: FileBarChart,
+  },
+  {
+    title: "OmicTerms Academy",
     path: "/academy",
-    group: "Academy",
+    group: "Learning & Academy",
     icon: GraduationCap,
   },
   {
     title: "Learning Path",
     path: "/academy/path",
-    group: "Academy",
+    group: "Learning & Academy",
     icon: RouteIcon,
   },
   {
     title: "Concept Explorer",
     path: "/academy/concepts",
-    group: "Academy",
+    group: "Learning & Academy",
     icon: BookOpen,
   },
   {
     title: "Interactive Labs",
     path: "/academy/labs",
-    group: "Academy",
+    group: "Learning & Academy",
     icon: FlaskConical,
   },
   {
     title: "My Progress",
     path: "/academy/progress",
-    group: "Academy",
+    group: "Learning & Academy",
     icon: TrendingUp,
   },
 ]
@@ -198,7 +208,7 @@ export function GlobalSearch() {
       <Button
         variant="outline"
         size="sm"
-        className="w-full justify-start gap-2 text-muted-foreground sm:w-56"
+        className="w-9 justify-center gap-2 px-0 text-muted-foreground sm:w-64 sm:justify-start sm:px-3 xl:w-80"
         onClick={() => setOpen(true)}
         aria-label="Open global search"
       >
