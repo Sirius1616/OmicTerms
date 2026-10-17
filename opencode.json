@@ -1,0 +1,79 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openrouter/meta-llama/llama-3.3-70b-instruct",
+  "provider": {
+    "openrouter": {
+      "options": {
+        "baseURL": "https://openrouter.ai/api/v1"
+      },
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "models": {
+        "meta-llama/llama-3.3-70b-instruct": {
+          "name": "Llama 3.3 70B (OpenRouter)"
+        },
+        "cognitivecomputations/dolphin-mistral-24b-venice-edition": {
+          "name": "Dolphin Mistral 24B (OpenRouter, no tools)"
+        }
+      }
+    }
+  },
+  "permission": {
+    "webfetch": "deny",
+    "websearch": "deny",
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny"
+    },
+    "edit": {
+      "*": "allow",
+      "*/*.env": "deny",
+      "*/session.json": "deny"
+    },
+    "bash": {
+      "*": "ask",
+      "git *": "allow",
+      "git status *": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "ls *": "allow",
+      "pwd": "allow",
+      "whoami": "allow",
+      "cat *": "ask",
+      "npm *": "ask",
+      "pnpm *": "ask",
+      "yarn *": "ask",
+      "pip *": "ask",
+      "python *": "ask",
+      "curl *": "ask",
+      "wget *": "ask",
+      "node *": "ask",
+      "nc *": "deny",
+      "nmap *": "deny",
+      "masscan *": "deny",
+      "sqlmap *": "deny",
+      "nikto *": "deny",
+      "hydra *": "deny",
+      "john *": "deny",
+      "hashcat *": "deny",
+      "msfconsole *": "deny",
+      "msfvenom *": "deny",
+      "metasploit*": "deny",
+      "xhydra *": "deny",
+      "aircrack-ng *": "deny",
+      "whatweb *": "deny",
+      "dirb *": "deny",
+      "gobuster *": "deny",
+      "ffuf *": "deny",
+      "zap*": "deny",
+      "burpsuite*": "deny",
+      "* --reverse-shell*": "deny",
+      "* -reverse*": "deny",
+      "*&&*": "deny",
+      "*;*": "deny",
+      "*|*": "deny",
+      "*||*": "deny",
+      "*`*": "deny"
+    }
+  }
+}

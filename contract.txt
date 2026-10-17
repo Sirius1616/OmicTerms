@@ -1,0 +1,370 @@
+API CONTRACT
+
+Phase 1: Authentication and User Management
+
+a. User Registers: Front-end sends the new user's name, email, and password to the back-end to create an account.
+
+Method: POST
+Endpoint: /api/v1/auth/register
+
+Request:
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!",
+  "fullName": "Jane Doe"
+}
+
+Response:
+{
+  "user": {
+    "id": "usr_98765",
+    "email": "user@example.com",
+    "fullName": "Jane Doe",
+    "role": "USER"
+  },
+  "token": "eyJhbGciOiJIUzI1Ni..."
+}
+
+b. User Logs In: Front-end sends email and password; back-end verifies them and sends back a security token (JWT) to prove the user is logged in.
+
+Method: POST
+Endpoint: /api/v1/auth/login
+
+Request:
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!"
+}
+
+Response:
+(same as registration)
+{
+  "user": {
+    "id": "usr_98765",
+    "email": "user@example.com",
+    "fullName": "Jane Doe",
+    "role": "USER"
+  },
+  "token": "eyJhbGciOiJIUzI1Ni..."
+}
+
+
+Phase 2: Exam Presenter (Taking a Quiz)
+
+a. Load Exam Categories: When the user lands on the dashboard, the front-end fetches the list of available certifications/categories (e.g., PSM I, PSPO I) to display as options.
+
+Method: GET
+Endpoint: /api/v1/categories
+
+Request details:
+Headers: Authorization: Bearer <token> (Optional if guests can view categories, or required if login is mandatory)
+Body: empty
+
+Response payload:
+[
+  {
+    "id": "cat_psm1",
+    "name": "PSM I",
+    "organization": "Scrum.org",
+    "description": "Professional Scrum Master I practice questions and mock exams.",
+    "totalApprovedQuestions": 45
+  },
+  {
+    "id": "cat_pspo1",
+    "name": "PSPO I",
+    "organization": "Scrum.org",
+    "description": "Professional Scrum Product Owner I practice test pool.",
+    "totalApprovedQuestions": 30
+  }
+]
+
+
+b. Start an Exam: User selects a category and clicks "Start Exam". The back-end grabs randomized questions from the database for that category and sends them to the front-end without the correct answer keys.
+
+Method: POST
+Endpoint: /api/v1/exams/start
+
+Request details:
+Header: Authorization: Bearer <token> (Required so the system knows which user's journal to attach this exam attempt to)
+Body: 
+{
+  "categoryId": "cat_psm1"
+}
+
+Response payload:
+{
+  "examId": "ex_99887766",
+  "categoryId": "cat_psm1",
+  "startedAt": "2026-10-09T13:20:00Z",
+  "questions": [
+    {
+      "id": "q_101",
+      "text": "What is the maximum recommended duration for a Daily Scrum?",
+      "type": "MULTIPLE_CHOICE",
+      "options": [
+        { "id": "opt_a", "text": "15 minutes" },
+        { "id": "opt_b", "text": "30 minutes" },
+        { "id": "opt_c", "text": "4 hours" }
+      ]
+    },
+    {
+      "id": "q_102",
+      "text": "Who is responsible for managing the Product Backlog?",
+      "type": "SHORT_ANSWER"
+    }
+  ]
+}
+
+c. Submit Answers & Grade: User finishes the exam and clicks "Submit". The front-end sends all selected/typed answers to the back-end. The back-end evaluates them, calculates the score, saves the result to the user's journal, and sends back the score along with feedback on which questions were right or wrong.
+
+Method: POST
+Endpoint: /api/v1/exams/:examId/submit
+
+Request details: 
+Header: Authorization: Bearer <token>
+Body:
+{
+  "answers": [
+    {
+      "questionId": "q_101",
+      "selectedOptionIds": ["opt_a"]
+    },
+    {
+      "questionId": "q_102",
+      "textAnswer": "Product Owner"
+    }
+  ]
+}
+
+Response:
+{
+  "examId": "ex_99887766",
+  "scorePercentage": 100.0,
+  "totalQuestions": 2,
+  "correctCount": 2,
+  "submittedAt": "2026-10-09T13:35:00Z",
+  "results": [
+    {
+      "questionId": "q_101",
+      "isCorrect": true,
+      "userAnswer": ["opt_a"],
+      "correctAnswer": ["opt_a"],
+      "explanation": "The Daily Scrum is a 15-minute timeboxed event."
+    },
+    {
+      "questionId": "q_102",
+      "isCorrect": true,
+      "userAnswer": "Product Owner",
+      "correctAnswer": "Product Owner",
+      "explanation": "The Product Owner is explicitly accountable for Product Backlog management."
+    }
+  ]
+}
+
+
+Phase 3: User Journal & Progress History
+
+a. View Journal / Past Results: User opens their "History" tab. The front-end fetches their saved list of past exam attempts, scores, and completion dates from the back-end to render on screen.
+
+Method: GET
+Endpoint: /api/v1/users/me/journal
+
+Request details:
+Header: Authorization: Bearer <token> (Required so the server knows whose journal to retrieve)
+Body: empty
+
+Response payload:
+{
+  "summary": {
+    "totalExamsTaken": 5,
+    "averageScore": 88.0,
+    "categoryBreakdown": [
+      { "categoryName": "PSM I", "attempts": 4, "bestScore": 100.0 },
+      { "categoryName": "PSPO I", "attempts": 1, "bestScore": 76.0 }
+    ]
+  },
+  "history": [
+    {
+      "examId": "ex_99887766",
+      "categoryName": "PSM I",
+      "submittedAt": "2026-10-09T13:35:00Z",
+      "scorePercentage": 100.0,
+      "totalQuestions": 2,
+      "correctCount": 2
+    },
+    {
+      "examId": "ex_11223344",
+      "categoryName": "PSM I",
+      "submittedAt": "2026-10-02T09:10:00Z",
+      "scorePercentage": 75.0,
+      "totalQuestions": 4,
+      "correctCount": 3
+    }
+  ]
+}
+
+Phase 4: Community Submissions (Any User)
+
+a. Submit a Proposed Question: A user writes a new question in the app and clicks "Submit for Review". Front-end sends the question text, options, category, and answer key to the back-end, which saves it in a PENDING state.
+
+Method: POST
+Endpoint: /api/v1/questions
+
+Request details:
+Header: Authorization: Bearer <token> (Required so the back-end can store who submitted the question via submittedBy)
+Body:
+{
+  "categoryId": "cat_psm1",
+  "text": "What is the primary responsibility of a Scrum Master during a Daily Scrum?",
+  "type": "MULTIPLE_CHOICE",
+  "options": [
+    { "text": "Assign daily tasks to developers", "isCorrect": false },
+    { "text": "Ensure the event takes place and stays within the 15-minute timebox", "isCorrect": true },
+    { "text": "Lead the meeting and record status updates", "isCorrect": false }
+  ],
+  "explanation": "The Scrum Master teaches the Scrum Team to keep the Daily Scrum within the timebox, but the Developers are responsible for running the meeting."
+}
+
+Response payload:
+{
+  "id": "q_5501",
+  "categoryId": "cat_psm1",
+  "status": "PENDING",
+  "submittedBy": "usr_98765",
+  "createdAt": "2026-10-09T14:25:00Z"
+}
+
+Phase 5: Question Editor & Admin Dashboard (Admin Only)
+
+a. Fetch Pending Questions Queue: Admin opens the admin screen. Front-end requests all questions currently sitting in PENDING status.
+
+Method: GET
+Endpoint: /api/v1/admin/questions?status=PENDING
+
+Request details:
+Header: Authorization: Bearer <token> (Required — the back-end verifies that the user associated with this JWT has an ADMIN role)
+Body: empty
+
+Response payload:
+[
+  {
+    "id": "q_5501",
+    "categoryId": "cat_psm1",
+    "categoryName": "PSM I",
+    "status": "PENDING",
+    "text": "What is the primary responsibility of a Scrum Master during a Daily Scrum?",
+    "type": "MULTIPLE_CHOICE",
+    "options": [
+      { "id": "opt_a", "text": "Assign daily tasks to developers", "isCorrect": false },
+      { "id": "opt_b", "text": "Ensure the event takes place and stays within the 15-minute timebox", "isCorrect": true },
+      { "id": "opt_c", "text": "Lead the meeting and record status updates", "isCorrect": false }
+    ],
+    "explanation": "The Scrum Master teaches the Scrum Team to keep the Daily Scrum within the timebox...",
+    "submittedBy": {
+      "userId": "usr_98765",
+      "fullName": "Jane Doe",
+      "email": "jane@example.com"
+    },
+    "createdAt": "2026-10-09T14:25:00Z"
+  }
+]
+
+b. Review / Action Question: Admin clicks "Approve", "Edit", or "Reject". Front-end sends the admin's decision (and any edited text) to the back-end to update the question status in the database.
+
+Method: PATCH
+Endpoint: /api/v1/admin/questions/:id/review
+
+Request details:
+Header: Authorization: Bearer <token> (Required — must belong to an admin user)
+Body when approving:
+{
+  "status": "APPROVED",
+  "text": "What is the primary responsibility of a Scrum Master during a Daily Scrum?",
+  "options": [
+    { "id": "opt_a", "text": "Assign daily tasks to developers", "isCorrect": false },
+    { "id": "opt_b", "text": "Ensure the event takes place and stays within the 15-minute timebox", "isCorrect": true },
+    { "id": "opt_c", "text": "Lead the meeting and record status updates", "isCorrect": false }
+  ]
+}
+
+Body when - rejecting:
+{
+  "status": "REJECTED",
+  "rejectionReason": "Question text is confusing and violates copyright guidelines."
+}
+
+Response payload:
+{
+  "id": "q_5501",
+  "status": "APPROVED",
+  "approvedBy": "usr_007",
+  "updatedAt": "2026-10-09T14:40:00Z"
+}
+
+c. Manage Users: Admin grants/revokes admin rights or blocks a user. Front-end sends the targeted user ID and the requested status change to the back-end.
+
+Method: PATCH
+Endpoint: /api/v1/admin/users/:userId
+
+Request details:
+Header: Authorization: Bearer <token> (Required — must belong to an active admin account)
+Body when granting or revoking admin rights:
+{
+  "role": "ADMIN" // "ADMIN" | "USER"
+}
+
+Body when blocking or unblocking a user:
+{
+  "isBlocked": true,
+  "blockReason": "Repeated submission of inappropriate and copyrighted content."
+}
+
+Response payload:
+{
+  "id": "usr_98765",
+  "email": "user@example.com",
+  "fullName": "Jane Doe",
+  "role": "ADMIN",
+  "isBlocked": false,
+  "updatedAt": "2026-10-09T14:45:00Z"
+}
+
+d. Fetch Admin Reports: Admin opens the reporting tab. Front-end requests basic statistics from the back-end (e.g., total exams taken, question error rates, pending queue size).
+
+Method: GET
+Endpoint: /api/v1/admin/analytics
+
+Request Details:
+Header: Authorization: Bearer <token> (Required — must belong to an account with ADMIN privileges)
+Body: empty
+
+Response Payload:
+{
+  "queueSummary": {
+    "pendingCount": 14,
+    "rejectedCount": 5
+  },
+  "problemQuestions": [ //questions with high failure rates - above 75% wrong
+    {
+      "questionId": "q_108",
+      "text": "Which framework role is accountable for managing the Product Backlog?",
+      "categoryName": "PSM I",
+      "incorrectPercentage": 78.5,
+      "totalAttempts": 210
+    }
+  ],
+  "categoryOverview": [
+    {
+      "categoryId": "cat_psm1",
+      "categoryName": "PSM I",
+      "totalExamsTaken": 340,
+      "averageScorePercentage": 81.2
+    },
+    {
+      "categoryId": "cat_pspo1",
+      "categoryName": "PSPO I",
+      "totalExamsTaken": 120,
+      "averageScorePercentage": 74.0
+    }
+  ]
+}
