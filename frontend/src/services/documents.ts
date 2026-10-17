@@ -15,8 +15,10 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const mockExplanation = ""
 
 export const documentsApi = {
-  async listDocuments(): Promise<DocumentsPublic> {
-    return DocumentsService.readDocuments()
+  async listDocuments(params?: { search?: string }): Promise<DocumentsPublic> {
+    return DocumentsService.readDocuments({
+      search: params?.search,
+    })
   },
 
   async uploadDocument(

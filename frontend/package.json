@@ -13,6 +13,8 @@
     "test:ui": "bunx playwright test --ui"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-avatar": "^1.1.12",
     "@radix-ui/react-checkbox": "^1.3.4",
@@ -37,7 +39,6 @@
     "clsx": "^2.1.1",
     "form-data": "4.0.6",
     "lucide-react": "^1.17.0",
-    "next-themes": "^0.4.6",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-error-boundary": "^6.1.2",

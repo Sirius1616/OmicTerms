@@ -15,9 +15,20 @@ import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutAcademyRouteImport } from './routes/_layout/academy'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutAnalysisToolsRouteImport } from './routes/_layout/analysis-tools'
 import { Route as LayoutDocumentsRouteImport } from './routes/_layout/documents'
+import { Route as LayoutEvidenceRouteImport } from './routes/_layout/evidence'
+import { Route as LayoutIntegrationsRouteImport } from './routes/_layout/integrations'
+import { Route as LayoutProjectsRouteImport } from './routes/_layout/projects'
+import { Route as LayoutReportsRouteImport } from './routes/_layout/reports'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutAcademyIndexRouteImport } from './routes/_layout/academy.index'
+import { Route as LayoutAcademyConceptsRouteImport } from './routes/_layout/academy.concepts'
+import { Route as LayoutAcademyLabsRouteImport } from './routes/_layout/academy.labs'
+import { Route as LayoutAcademyPathRouteImport } from './routes/_layout/academy.path'
+import { Route as LayoutAcademyProgressRouteImport } from './routes/_layout/academy.progress'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents.$documentId'
 
 const LayoutRoute = LayoutRouteImport.update({
@@ -49,9 +60,19 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutAcademyRoute = LayoutAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAnalysisToolsRoute = LayoutAnalysisToolsRouteImport.update({
+  id: '/analysis-tools',
+  path: '/analysis-tools',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDocumentsRoute = LayoutDocumentsRouteImport.update({
@@ -59,10 +80,55 @@ const LayoutDocumentsRoute = LayoutDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutEvidenceRoute = LayoutEvidenceRouteImport.update({
+  id: '/evidence',
+  path: '/evidence',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutIntegrationsRoute = LayoutIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutProjectsRoute = LayoutProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReportsRoute = LayoutReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAcademyIndexRoute = LayoutAcademyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutAcademyRoute,
+} as any)
+const LayoutAcademyConceptsRoute = LayoutAcademyConceptsRouteImport.update({
+  id: '/concepts',
+  path: '/concepts',
+  getParentRoute: () => LayoutAcademyRoute,
+} as any)
+const LayoutAcademyLabsRoute = LayoutAcademyLabsRouteImport.update({
+  id: '/labs',
+  path: '/labs',
+  getParentRoute: () => LayoutAcademyRoute,
+} as any)
+const LayoutAcademyPathRoute = LayoutAcademyPathRouteImport.update({
+  id: '/path',
+  path: '/path',
+  getParentRoute: () => LayoutAcademyRoute,
+} as any)
+const LayoutAcademyProgressRoute = LayoutAcademyProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => LayoutAcademyRoute,
 } as any)
 const LayoutDocumentsDocumentIdRoute =
   LayoutDocumentsDocumentIdRouteImport.update({
@@ -77,10 +143,21 @@ export interface FileRoutesByFullPath {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/academy': typeof LayoutAcademyRouteWithChildren
   '/admin': typeof LayoutAdminRoute
+  '/analysis-tools': typeof LayoutAnalysisToolsRoute
   '/documents': typeof LayoutDocumentsRouteWithChildren
+  '/evidence': typeof LayoutEvidenceRoute
+  '/integrations': typeof LayoutIntegrationsRoute
+  '/projects': typeof LayoutProjectsRoute
+  '/reports': typeof LayoutReportsRoute
   '/settings': typeof LayoutSettingsRoute
+  '/academy/concepts': typeof LayoutAcademyConceptsRoute
+  '/academy/labs': typeof LayoutAcademyLabsRoute
+  '/academy/path': typeof LayoutAcademyPathRoute
+  '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/academy/': typeof LayoutAcademyIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -88,10 +165,20 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/analysis-tools': typeof LayoutAnalysisToolsRoute
   '/documents': typeof LayoutDocumentsRouteWithChildren
+  '/evidence': typeof LayoutEvidenceRoute
+  '/integrations': typeof LayoutIntegrationsRoute
+  '/projects': typeof LayoutProjectsRoute
+  '/reports': typeof LayoutReportsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
+  '/academy/concepts': typeof LayoutAcademyConceptsRoute
+  '/academy/labs': typeof LayoutAcademyLabsRoute
+  '/academy/path': typeof LayoutAcademyPathRoute
+  '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/academy': typeof LayoutAcademyIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -100,11 +187,22 @@ export interface FileRoutesById {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/_layout/academy': typeof LayoutAcademyRouteWithChildren
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/analysis-tools': typeof LayoutAnalysisToolsRoute
   '/_layout/documents': typeof LayoutDocumentsRouteWithChildren
+  '/_layout/evidence': typeof LayoutEvidenceRoute
+  '/_layout/integrations': typeof LayoutIntegrationsRoute
+  '/_layout/projects': typeof LayoutProjectsRoute
+  '/_layout/reports': typeof LayoutReportsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/academy/concepts': typeof LayoutAcademyConceptsRoute
+  '/_layout/academy/labs': typeof LayoutAcademyLabsRoute
+  '/_layout/academy/path': typeof LayoutAcademyPathRoute
+  '/_layout/academy/progress': typeof LayoutAcademyProgressRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/_layout/academy/': typeof LayoutAcademyIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -114,10 +212,21 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/signup'
+    | '/academy'
     | '/admin'
+    | '/analysis-tools'
     | '/documents'
+    | '/evidence'
+    | '/integrations'
+    | '/projects'
+    | '/reports'
     | '/settings'
+    | '/academy/concepts'
+    | '/academy/labs'
+    | '/academy/path'
+    | '/academy/progress'
     | '/documents/$documentId'
+    | '/academy/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -125,10 +234,20 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/analysis-tools'
     | '/documents'
+    | '/evidence'
+    | '/integrations'
+    | '/projects'
+    | '/reports'
     | '/settings'
     | '/'
+    | '/academy/concepts'
+    | '/academy/labs'
+    | '/academy/path'
+    | '/academy/progress'
     | '/documents/$documentId'
+    | '/academy'
   id:
     | '__root__'
     | '/_layout'
@@ -136,11 +255,22 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/signup'
+    | '/_layout/academy'
     | '/_layout/admin'
+    | '/_layout/analysis-tools'
     | '/_layout/documents'
+    | '/_layout/evidence'
+    | '/_layout/integrations'
+    | '/_layout/projects'
+    | '/_layout/reports'
     | '/_layout/settings'
     | '/_layout/'
+    | '/_layout/academy/concepts'
+    | '/_layout/academy/labs'
+    | '/_layout/academy/path'
+    | '/_layout/academy/progress'
     | '/_layout/documents/$documentId'
+    | '/_layout/academy/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -195,11 +325,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/academy': {
+      id: '/_layout/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof LayoutAcademyRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof LayoutAdminRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/analysis-tools': {
+      id: '/_layout/analysis-tools'
+      path: '/analysis-tools'
+      fullPath: '/analysis-tools'
+      preLoaderRoute: typeof LayoutAnalysisToolsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/documents': {
@@ -209,12 +353,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDocumentsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/evidence': {
+      id: '/_layout/evidence'
+      path: '/evidence'
+      fullPath: '/evidence'
+      preLoaderRoute: typeof LayoutEvidenceRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/integrations': {
+      id: '/_layout/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof LayoutIntegrationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/projects': {
+      id: '/_layout/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof LayoutProjectsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/reports': {
+      id: '/_layout/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof LayoutReportsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/_layout/academy/': {
+      id: '/_layout/academy/'
+      path: '/'
+      fullPath: '/academy/'
+      preLoaderRoute: typeof LayoutAcademyIndexRouteImport
+      parentRoute: typeof LayoutAcademyRoute
+    }
+    '/_layout/academy/concepts': {
+      id: '/_layout/academy/concepts'
+      path: '/concepts'
+      fullPath: '/academy/concepts'
+      preLoaderRoute: typeof LayoutAcademyConceptsRouteImport
+      parentRoute: typeof LayoutAcademyRoute
+    }
+    '/_layout/academy/labs': {
+      id: '/_layout/academy/labs'
+      path: '/labs'
+      fullPath: '/academy/labs'
+      preLoaderRoute: typeof LayoutAcademyLabsRouteImport
+      parentRoute: typeof LayoutAcademyRoute
+    }
+    '/_layout/academy/path': {
+      id: '/_layout/academy/path'
+      path: '/path'
+      fullPath: '/academy/path'
+      preLoaderRoute: typeof LayoutAcademyPathRouteImport
+      parentRoute: typeof LayoutAcademyRoute
+    }
+    '/_layout/academy/progress': {
+      id: '/_layout/academy/progress'
+      path: '/progress'
+      fullPath: '/academy/progress'
+      preLoaderRoute: typeof LayoutAcademyProgressRouteImport
+      parentRoute: typeof LayoutAcademyRoute
     }
     '/_layout/documents/$documentId': {
       id: '/_layout/documents/$documentId'
@@ -225,6 +432,26 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface LayoutAcademyRouteChildren {
+  LayoutAcademyConceptsRoute: typeof LayoutAcademyConceptsRoute
+  LayoutAcademyLabsRoute: typeof LayoutAcademyLabsRoute
+  LayoutAcademyPathRoute: typeof LayoutAcademyPathRoute
+  LayoutAcademyProgressRoute: typeof LayoutAcademyProgressRoute
+  LayoutAcademyIndexRoute: typeof LayoutAcademyIndexRoute
+}
+
+const LayoutAcademyRouteChildren: LayoutAcademyRouteChildren = {
+  LayoutAcademyConceptsRoute: LayoutAcademyConceptsRoute,
+  LayoutAcademyLabsRoute: LayoutAcademyLabsRoute,
+  LayoutAcademyPathRoute: LayoutAcademyPathRoute,
+  LayoutAcademyProgressRoute: LayoutAcademyProgressRoute,
+  LayoutAcademyIndexRoute: LayoutAcademyIndexRoute,
+}
+
+const LayoutAcademyRouteWithChildren = LayoutAcademyRoute._addFileChildren(
+  LayoutAcademyRouteChildren,
+)
 
 interface LayoutDocumentsRouteChildren {
   LayoutDocumentsDocumentIdRoute: typeof LayoutDocumentsDocumentIdRoute
@@ -239,15 +466,27 @@ const LayoutDocumentsRouteWithChildren = LayoutDocumentsRoute._addFileChildren(
 )
 
 interface LayoutRouteChildren {
+  LayoutAcademyRoute: typeof LayoutAcademyRouteWithChildren
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutAnalysisToolsRoute: typeof LayoutAnalysisToolsRoute
   LayoutDocumentsRoute: typeof LayoutDocumentsRouteWithChildren
+  LayoutEvidenceRoute: typeof LayoutEvidenceRoute
+  LayoutIntegrationsRoute: typeof LayoutIntegrationsRoute
+  LayoutProjectsRoute: typeof LayoutProjectsRoute
+  LayoutReportsRoute: typeof LayoutReportsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutAcademyRoute: LayoutAcademyRouteWithChildren,
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutAnalysisToolsRoute: LayoutAnalysisToolsRoute,
   LayoutDocumentsRoute: LayoutDocumentsRouteWithChildren,
+  LayoutEvidenceRoute: LayoutEvidenceRoute,
+  LayoutIntegrationsRoute: LayoutIntegrationsRoute,
+  LayoutProjectsRoute: LayoutProjectsRoute,
+  LayoutReportsRoute: LayoutReportsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }

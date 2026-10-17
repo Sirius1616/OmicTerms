@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { FileUp } from "lucide-react"
+import type { ReactNode } from "react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -31,7 +32,12 @@ import { handleError } from "@/utils"
 
 const NEW = "__new__"
 
-const UploadDocument = () => {
+const UploadDocument = ({
+  trigger,
+}: {
+  /** Optional custom trigger; defaults to the standard "Upload Document" button. */
+  trigger?: ReactNode
+} = {}) => {
   const [isOpen, setIsOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [projectId, setProjectId] = useState("")
@@ -158,22 +164,24 @@ const UploadDocument = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <FileUp className="mr-2" />
-          Upload Document
-        </Button>
+        {trigger ?? (
+          <Button>
+            <FileUp className="mr-2" />
+            Upload Document
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload a document</DialogTitle>
+          <DialogTitle>Upload a data file</DialogTitle>
           <DialogDescription>
-            PDF, medical report, bill or email. We will explain it in plain
-            language.
+            Variant calls, coverage tracks, expression or methylation matrices,
+            or a report. OmicTerms detects the format and records provenance.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>Document</Label>
+            <Label>File</Label>
             <Input
               type="file"
               accept=".pdf,.doc,.docx,.txt,.eml,.tsv,.csv,.vcf,.bed"
