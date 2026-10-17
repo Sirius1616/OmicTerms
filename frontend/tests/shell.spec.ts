@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test"
 
 const SIDEBAR_LINKS = [
-  "Dashboard",
+  "Home",
   "Projects",
   "Data Sources",
   "Integrations",
   "Analysis Tools",
   "Evidence Graph",
   "Reports",
-  "Academy",
+  "OmicTerms Academy",
   "Learning Path",
   "Concept Explorer",
   "Interactive Labs",
@@ -21,7 +21,9 @@ test.describe("Application shell", () => {
   }) => {
     await page.goto("/")
 
-    await expect(page.getByText("Research", { exact: true })).toBeVisible()
+    await expect(
+      page.getByText("Research Workspace", { exact: true }),
+    ).toBeVisible()
 
     for (const label of SIDEBAR_LINKS) {
       await expect(
@@ -40,12 +42,12 @@ test.describe("Application shell", () => {
   test("global search navigates to a page", async ({ page }) => {
     await page.goto("/")
 
-    await page.getByRole("button", { name: /Search/ }).click()
+    await page.getByRole("button", { name: "Open global search" }).click()
     const dialog = page.getByRole("dialog")
     await expect(dialog).toBeVisible()
 
     await dialog.getByRole("textbox").fill("Reports")
-    await dialog.getByRole("option", { name: /Reports/ }).click()
+    await dialog.getByRole("option", { name: /^Reports/ }).click()
 
     await expect(page).toHaveURL(/\/reports$/)
     await expect(page.getByRole("heading", { name: "Reports" })).toBeVisible()

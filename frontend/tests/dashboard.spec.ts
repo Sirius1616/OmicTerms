@@ -48,7 +48,9 @@ test.describe("Dashboard", () => {
       page.getByText("Your evidence graph will appear here"),
     ).toBeVisible()
     await expect(page.getByText("No findings yet")).toBeVisible()
-    await expect(page.getByText("OmicTerms Academy")).toBeVisible()
+    await expect(
+      page.getByRole("heading", { name: "OmicTerms Academy" }),
+    ).toBeVisible()
     await expect(
       page.getByRole("progressbar", { name: "Academy progress" }),
     ).toBeVisible()
