@@ -328,3 +328,61 @@
     width: 100%;
   }
 }
+
+.hero-fade {
+  -webkit-mask-image: linear-gradient(
+    to left,
+    #000 0%,
+    #000 24%,
+    rgba(0, 0, 0, 0.12) 44%,
+    rgba(0, 0, 0, 0.09) 100%
+  );
+  mask-image: linear-gradient(
+    to left,
+    #000 0%,
+    #000 24%,
+    rgba(0, 0, 0, 0.12) 44%,
+    rgba(0, 0, 0, 0.09) 100%
+  );
+}
+
+/* diagonal double helix flowing across the hero */
+.hero-helix-tilt {
+  transform: rotate(24deg);
+  transform-origin: center;
+}
+.hero-helix-flow {
+  animation: hero-helix-flow 15s linear infinite;
+  will-change: transform;
+}
+@keyframes hero-helix-flow {
+  to {
+    transform: translateY(-50%);
+  }
+}
+.hero-particle {
+  animation: hero-particle 7s ease-in-out infinite;
+}
+@keyframes hero-particle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.8);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-8px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gm-dna,
+  .gm-breathe,
+  .gm-caret,
+  .gm-scan,
+  .gm-flow-track,
+  .hero-helix-flow,
+  .hero-particle {
+    animation: none;
+  }
+}
