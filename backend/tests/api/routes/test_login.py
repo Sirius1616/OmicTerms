@@ -26,4 +26,4 @@ def test_password_reset_rejects_wrong_purpose(client):
     res = client.post(
         "/api/v1/reset-password", json={"token": bad, "new_password": "newpass123"}
     )
-    assert res.status_code == 404  # Invalid token
+    assert res.status_code == 400  # wrong-purpose token rejected

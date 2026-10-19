@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { Download, FileText } from "lucide-react"
+import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,6 +27,11 @@ export function DocumentViewer({ documentId, fileUrl }: DocumentViewerProps) {
       return URL.createObjectURL(blob)
     },
   })
+
+  useEffect(() => {
+    if (!objectUrl) return
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [objectUrl])
 
   return (
     <Card>

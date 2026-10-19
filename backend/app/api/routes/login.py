@@ -59,7 +59,7 @@ def recover_password(email: str, session: SessionDep) -> AuthMessage:
 def reset_password(session: SessionDep, password_update: NewPassword) -> AuthMessage:
     user_email = validate_password_reset_token(token=password_update.token)
     if not user_email:
-        raise HTTPException(status_code=404, detail="Invalid token")
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
     user = crud.get_user_by_email(session, user_email)
     if not user:
         raise HTTPException(status_code=404, detail="Invalid token")

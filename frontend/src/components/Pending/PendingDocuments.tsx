@@ -12,8 +12,10 @@ const PendingDocuments = () => (
   <Table>
     <TableHeader>
       <TableRow>
-        <TableHead>Document</TableHead>
+        <TableHead>File</TableHead>
+        <TableHead>Sample</TableHead>
         <TableHead>Status</TableHead>
+        <TableHead>Type</TableHead>
         <TableHead>Uploaded</TableHead>
         <TableHead>
           <span className="sr-only">Actions</span>
@@ -24,10 +26,19 @@ const PendingDocuments = () => (
       {Array.from({ length: 5 }).map((_, index) => (
         <TableRow key={index}>
           <TableCell>
-            <Skeleton className="h-4 w-64" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-8 rounded-md" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-32" />
           </TableCell>
           <TableCell>
             <Skeleton className="h-4 w-20" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-16" />
           </TableCell>
           <TableCell>
             <Skeleton className="h-4 w-24" />
