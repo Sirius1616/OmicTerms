@@ -2,24 +2,26 @@ import { Link as RouterLink } from "@tanstack/react-router"
 import {
   BookOpen,
   CircleHelp,
-  Database,
   FileBarChart,
   FlaskConical,
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
-  Network,
   Plug,
   Route as RouteIcon,
   Settings,
   Shield,
   TrendingUp,
-  Wrench,
 } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { HelpMenu } from "@/components/Common/HelpMenu"
 import { Logo } from "@/components/Common/Logo"
+import {
+  AnalysisGlyph,
+  DataSourcesGlyph,
+  GraphGlyph,
+} from "@/components/Common/ScientificIcons"
 import {
   Sidebar,
   SidebarContent,
@@ -39,10 +41,10 @@ const researchGroup: ItemGroup = {
   items: [
     { icon: LayoutDashboard, title: "Home", path: "/" },
     { icon: FolderKanban, title: "Projects", path: "/projects" },
-    { icon: Database, title: "Data Sources", path: "/documents" },
+    { icon: DataSourcesGlyph, title: "Data Sources", path: "/documents" },
     { icon: Plug, title: "Integrations", path: "/integrations" },
-    { icon: Wrench, title: "Analysis Tools", path: "/analysis-tools" },
-    { icon: Network, title: "Evidence Graph", path: "/evidence" },
+    { icon: AnalysisGlyph, title: "Analysis Tools", path: "/analysis-tools" },
+    { icon: GraphGlyph, title: "Evidence Graph", path: "/evidence" },
     { icon: FileBarChart, title: "Reports", path: "/reports" },
   ],
 }

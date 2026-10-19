@@ -50,6 +50,18 @@
   --color-thymine: var(--pa-thymine);
   --color-guanine: var(--pa-guanine);
   --color-cytosine: var(--pa-cytosine);
+  /* omics identity palette — data-type & evidence-layer identity only,
+     never a validity/status signal */
+  --color-omics-variants: var(--omics-variants);
+  --color-omics-expression: var(--omics-expression);
+  --color-omics-methylation: var(--omics-methylation);
+  --color-omics-peaks: var(--omics-peaks);
+  --color-omics-proteomics: var(--omics-proteomics);
+  --color-omics-microbiome: var(--omics-microbiome);
+  --color-omics-sample: var(--omics-sample);
+  --color-omics-analysis: var(--omics-analysis);
+  --color-omics-finding: var(--omics-finding);
+  --color-omics-document: var(--omics-document);
   /* genomic readout typography */
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono:
@@ -102,6 +114,17 @@
   --pa-thymine: oklch(0.55 0.19 26);
   --pa-guanine: oklch(0.55 0.15 250);
   --pa-cytosine: oklch(0.65 0.13 92);
+  /* omics identity palette (light) */
+  --omics-variants: oklch(0.5 0.14 258);
+  --omics-expression: oklch(0.53 0.12 205);
+  --omics-methylation: oklch(0.54 0.16 330);
+  --omics-peaks: oklch(0.55 0.17 355);
+  --omics-proteomics: oklch(0.53 0.12 155);
+  --omics-microbiome: oklch(0.56 0.12 100);
+  --omics-sample: oklch(0.5 0.05 245);
+  --omics-analysis: oklch(0.5 0.14 285);
+  --omics-finding: oklch(0.6 0.15 58);
+  --omics-document: oklch(0.52 0.02 250);
 }
 
 /* Dark instrument lab — default theme */
@@ -148,6 +171,17 @@
   --pa-thymine: oklch(0.68 0.2 25);
   --pa-guanine: oklch(0.7 0.16 250);
   --pa-cytosine: oklch(0.84 0.14 92);
+  /* omics identity palette (dark) */
+  --omics-variants: oklch(0.73 0.13 258);
+  --omics-expression: oklch(0.79 0.11 205);
+  --omics-methylation: oklch(0.75 0.15 330);
+  --omics-peaks: oklch(0.75 0.15 355);
+  --omics-proteomics: oklch(0.78 0.12 155);
+  --omics-microbiome: oklch(0.82 0.13 100);
+  --omics-sample: oklch(0.74 0.05 245);
+  --omics-analysis: oklch(0.73 0.13 285);
+  --omics-finding: oklch(0.82 0.15 62);
+  --omics-document: oklch(0.76 0.02 250);
 }
 
 @layer base {
@@ -186,6 +220,18 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
+  }
+  /* omics identity chip/dot — accent supplied per element via --accent-omics */
+  .omics-chip {
+    color: var(--accent-omics);
+    border-color: color-mix(in oklch, var(--accent-omics) 42%, transparent);
+    background-color: color-mix(in oklch, var(--accent-omics) 12%, transparent);
+  }
+  .omics-dot {
+    background-color: var(--accent-omics);
+  }
+  .omics-solid {
+    background-color: var(--accent-omics);
   }
 }
 

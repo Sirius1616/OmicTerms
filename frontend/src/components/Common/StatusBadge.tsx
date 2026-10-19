@@ -29,11 +29,15 @@ export type StatusBadgeVariant = NonNullable<
 
 interface StatusBadgeProps
   extends React.ComponentProps<"span">,
-    VariantProps<typeof statusBadgeVariants> {}
+    VariantProps<typeof statusBadgeVariants> {
+  /** Optional leading glyph; sized automatically by the badge. */
+  icon?: React.ReactNode
+}
 
 export function StatusBadge({
   className,
   variant,
+  icon,
   children,
   ...props
 }: StatusBadgeProps) {
@@ -43,6 +47,7 @@ export function StatusBadge({
       className={cn(statusBadgeVariants({ variant }), className)}
       {...props}
     >
+      {icon}
       {children}
     </span>
   )

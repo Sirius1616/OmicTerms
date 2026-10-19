@@ -75,6 +75,32 @@ Reserved for motif/sequence rendering; do **not** use for chrome.
 | `--pa-guanine` | `0.55 0.15 250` | `0.7 0.16 250` |
 | `--pa-cytosine` | `0.65 0.13 92` | `0.84 0.14 92` |
 
+### Omics identity palette (identity only)
+
+Every omics layer, entity, and evidence node has a dedicated identity colour so
+the same data type reads consistently across badges, the evidence map, and
+legends. These encode **what something is**, never validity — status is always
+carried by `--valid` / `--warning` / `--destructive` (plus shape, dash, or an
+icon, never colour alone).
+
+| Token | Meaning |
+|---|---|
+| `--omics-variants` | Genomic variants |
+| `--omics-expression` | Gene/transcript expression |
+| `--omics-methylation` | DNA methylation |
+| `--omics-peaks` | ChIP/ATAC peak calls |
+| `--omics-proteomics` | Protein abundance |
+| `--omics-microbiome` | Microbial abundance |
+| `--omics-sample` | Samples & experiments |
+| `--omics-analysis` | Analysis runs |
+| `--omics-finding` | Candidate findings |
+| `--omics-document` | Documents & reports |
+
+Use `components/Common/ScientificIcons.tsx` (`DATA_TYPE_META`, `omicsClasses`)
+for the matching glyph, label, and static Tailwind classes. Helper classes
+`.omics-chip`, `.omics-dot`, and `.omics-solid` read an `--accent-omics` custom
+property set per element inline.
+
 ### Sidebar
 
 `--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-accent`,

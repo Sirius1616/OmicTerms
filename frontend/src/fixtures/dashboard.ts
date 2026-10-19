@@ -18,23 +18,48 @@ export type FixtureFinding = {
   validation: "unvalidated"
 }
 
-export type FixtureGraphNodeType =
-  | "genomics"
-  | "transcriptomics"
-  | "epigenomics"
-  | "proteomics"
-  | "microbiome"
+/** Left-to-right evidence pipeline the map lays out in columns. */
+export type EvidenceStage =
+  | "omics"
   | "samples"
-  | "tools"
+  | "analysis"
   | "findings"
   | "reports"
+
+/** What a node represents. Drives its colour identity and scientific glyph. */
+export type EvidenceNodeKind =
+  | "variants"
+  | "expression"
+  | "methylation"
+  | "peaks"
+  | "proteomics"
+  | "microbiome"
+  | "sample"
+  | "analysis"
+  | "finding"
+  | "report"
+
+/**
+ * Epistemic status, never fabricated:
+ * - observed: measured directly from a dataset
+ * - derived: computed by an analysis run
+ * - inferred: a candidate interpretation, not yet validated
+ */
+export type EvidenceCertainty = "observed" | "derived" | "inferred"
+
+/** How two nodes relate, used for edge styling and the legend. */
+export type EvidenceEdgeKind =
+  | "membership"
+  | "provenance"
+  | "support"
+  | "citation"
 
 export type FixtureGraphNode = {
   id: string
   label: string
-  type: FixtureGraphNodeType
-  x: number
-  y: number
+  kind: EvidenceNodeKind
+  stage: EvidenceStage
+  certainty: EvidenceCertainty
   detail: string
 }
 
@@ -42,6 +67,7 @@ export type FixtureGraphEdge = {
   id: string
   from: string
   to: string
+  kind: EvidenceEdgeKind
   label: string
 }
 
@@ -125,78 +151,142 @@ export const dashboardFixtures: DashboardFixtures = {
   graph: {
     nodes: [
       {
-        id: "genomics",
-        label: "Genomics",
-        type: "genomics",
-        x: 60,
-        y: 60,
-        detail: "Fixture variant/coverage dataset",
+        id: "variants",
+        label: "Variant calls",
+        kind: "variants",
+        stage: "omics",
+        certainty: "observed",
+        detail: "Fixture VCF variant calls (synthetic).",
       },
       {
-        id: "transcriptomics",
-        label: "Transcriptomics",
-        type: "transcriptomics",
-        x: 320,
-        y: 60,
-        detail: "Fixture expression matrix",
+        id: "expression",
+        label: "Expression matrix",
+        kind: "expression",
+        stage: "omics",
+        certainty: "observed",
+        detail: "Fixture gene expression matrix (synthetic).",
       },
       {
-        id: "epigenomics",
-        label: "Epigenomics",
-        type: "epigenomics",
-        x: 60,
-        y: 200,
-        detail: "Fixture methylation matrix",
+        id: "methylation",
+        label: "Methylation matrix",
+        kind: "methylation",
+        stage: "omics",
+        certainty: "observed",
+        detail: "Fixture CpG methylation matrix (synthetic).",
+      },
+      {
+        id: "peaks",
+        label: "Peak calls",
+        kind: "peaks",
+        stage: "omics",
+        certainty: "observed",
+        detail: "Fixture ChIP/ATAC peak calls (synthetic).",
       },
       {
         id: "proteomics",
-        label: "Proteomics",
-        type: "proteomics",
-        x: 320,
-        y: 200,
-        detail: "Fixture protein abundance table",
+        label: "Protein abundance",
+        kind: "proteomics",
+        stage: "omics",
+        certainty: "observed",
+        detail: "Fixture protein abundance table (synthetic).",
       },
       {
-        id: "samples",
-        label: "Samples & Experiments",
-        type: "samples",
-        x: 190,
-        y: 130,
-        detail: "Fixture study design",
+        id: "sample-1",
+        label: "Study samples",
+        kind: "sample",
+        stage: "samples",
+        certainty: "observed",
+        detail: "Fixture study design — sample group (synthetic).",
       },
       {
-        id: "tools",
-        label: "Analysis Tools",
-        type: "tools",
-        x: 60,
-        y: 340,
-        detail: "Fixture analysis run",
+        id: "analysis-1",
+        label: "Differential expression run",
+        kind: "analysis",
+        stage: "analysis",
+        certainty: "derived",
+        detail: "Fixture differential-expression run (synthetic).",
       },
       {
         id: "finding-1",
-        label: "Candidate Finding",
-        type: "findings",
-        x: 190,
-        y: 300,
-        detail: "Fixture candidate finding (not real)",
+        label: "Candidate finding",
+        kind: "finding",
+        stage: "findings",
+        certainty: "inferred",
+        detail: "Fixture candidate finding (synthetic, not a real result).",
       },
       {
         id: "report-1",
-        label: "Report",
-        type: "reports",
-        x: 320,
-        y: 340,
-        detail: "Fixture report draft",
+        label: "Report draft",
+        kind: "report",
+        stage: "reports",
+        certainty: "derived",
+        detail: "Fixture report draft (synthetic).",
       },
     ],
     edges: [
-      { id: "e1", from: "genomics", to: "samples", label: "belongs to" },
-      { id: "e2", from: "transcriptomics", to: "samples", label: "belongs to" },
-      { id: "e3", from: "epigenomics", to: "samples", label: "belongs to" },
-      { id: "e4", from: "proteomics", to: "samples", label: "belongs to" },
-      { id: "e5", from: "samples", to: "finding-1", label: "supports" },
-      { id: "e6", from: "tools", to: "finding-1", label: "produced" },
-      { id: "e7", from: "finding-1", to: "report-1", label: "cited by" },
+      {
+        id: "e1",
+        from: "variants",
+        to: "sample-1",
+        kind: "membership",
+        label: "belongs to",
+      },
+      {
+        id: "e2",
+        from: "expression",
+        to: "sample-1",
+        kind: "membership",
+        label: "belongs to",
+      },
+      {
+        id: "e3",
+        from: "methylation",
+        to: "sample-1",
+        kind: "membership",
+        label: "belongs to",
+      },
+      {
+        id: "e4",
+        from: "peaks",
+        to: "sample-1",
+        kind: "membership",
+        label: "belongs to",
+      },
+      {
+        id: "e5",
+        from: "proteomics",
+        to: "sample-1",
+        kind: "membership",
+        label: "belongs to",
+      },
+      {
+        id: "e6",
+        from: "sample-1",
+        to: "analysis-1",
+        kind: "provenance",
+        label: "processed by",
+      },
+      {
+        id: "e7",
+        from: "analysis-1",
+        to: "finding-1",
+        kind: "provenance",
+        label: "produced",
+      },
+      {
+        id: "e8",
+        from: "sample-1",
+        to: "finding-1",
+        kind: "support",
+        label: "supports",
+      },
+      {
+        id: "e9",
+        from: "finding-1",
+        to: "report-1",
+        kind: "citation",
+        label: "cited by",
+      },
     ],
   },
   activity: [

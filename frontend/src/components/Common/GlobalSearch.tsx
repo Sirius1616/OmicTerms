@@ -1,22 +1,24 @@
 import { useNavigate } from "@tanstack/react-router"
-import type { LucideIcon } from "lucide-react"
 import {
   BookOpen,
-  Database,
   FileBarChart,
   FlaskConical,
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
-  Network,
   Plug,
   Route as RouteIcon,
   Search,
   TrendingUp,
-  Wrench,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 
+import {
+  AnalysisGlyph,
+  DataSourcesGlyph,
+  GraphGlyph,
+  type IconComponent,
+} from "@/components/Common/ScientificIcons"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -31,7 +33,7 @@ type Destination = {
   title: string
   path: string
   group: string
-  icon: LucideIcon
+  icon: IconComponent
 }
 
 const DESTINATIONS: Destination[] = [
@@ -51,7 +53,7 @@ const DESTINATIONS: Destination[] = [
     title: "Data Sources",
     path: "/documents",
     group: "Research Workspace",
-    icon: Database,
+    icon: DataSourcesGlyph,
   },
   {
     title: "Integrations",
@@ -63,13 +65,13 @@ const DESTINATIONS: Destination[] = [
     title: "Analysis Tools",
     path: "/analysis-tools",
     group: "Research Workspace",
-    icon: Wrench,
+    icon: AnalysisGlyph,
   },
   {
     title: "Evidence Graph",
     path: "/evidence",
     group: "Research Workspace",
-    icon: Network,
+    icon: GraphGlyph,
   },
   {
     title: "Reports",
@@ -150,7 +152,7 @@ export function GlobalSearch() {
       key: string
       title: string
       hint: string
-      icon: LucideIcon
+      icon: IconComponent
       run: () => void
     }> = matches.map((destination) => ({
       key: destination.path,
