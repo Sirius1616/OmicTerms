@@ -118,4 +118,4 @@ jobs:
           uv run alembic downgrade base
           uv run alembic upgrade head
       - name: Tests
-        run: bash scripts/test.sh
+        run: uv run bash scripts/test.sh
