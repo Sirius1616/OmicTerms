@@ -5,18 +5,17 @@ Revises:
 Create Date: 2026-09-07 00:43:35.561720
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
-import sqlmodel
 import sqlalchemy as sa
-
+import sqlmodel
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '3e2b9af38383'
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -145,4 +144,8 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_user_id'), table_name='user')
     op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
+    # Drop Postgres enum types left behind by dropped tables so that a
+    # downgrade -> upgrade round-trip does not fail with DuplicateObject.
+    op.execute('DROP TYPE IF EXISTS extractionstatus')
+    op.execute('DROP TYPE IF EXISTS messagerole')
     # ### end Alembic commands ###
