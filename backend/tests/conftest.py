@@ -1,6 +1,8 @@
 import os
 from collections.abc import Generator
 
+os.environ.setdefault("EXTRACTION_POLLER_ENABLED", "false")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine

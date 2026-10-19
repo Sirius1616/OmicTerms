@@ -25,6 +25,13 @@ class MessageRole(str, Enum):
     assistant = "assistant"
 
 
+class ExtractionJobStatus(str, Enum):
+    pending = "pending"
+    running = "running"
+    succeeded = "succeeded"
+    failed = "failed"
+
+
 # ------ USER   --------
 
 
@@ -133,6 +140,44 @@ class DocumentPublic(DocumentBase):
 class DocumentsPublic(SQLModel):
     data: list[DocumentPublic]
     count: int
+
+
+#  ------  EXTRACTION JOB  --------
+
+
+class ExtractionJob(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    document_id: uuid.UUID = Field(foreign_key="document.id", index=True)
+    status: ExtractionJobStatus = ExtractionJobStatus.pending
+    attempts: int = 0
+    last_error: str | None = Field(default=None)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    started_at: datetime | None = Field(default=None)
+    finished_at: datetime | None = Field(default=None)
+
+
+class ExtractionJobPublic(SQLModel):
+    id: uuid.UUID
+    document_id: uuid.UUID
+    status: ExtractionJobStatus
+    attempts: int
+    last_error: str | None = None
+    created_at: datetime
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+
+
+class ExtractionJobsPublic(SQLModel):
+    data: list[ExtractionJobPublic]
+    count: int
+
+
+class ExtractionJobStats(SQLModel):
+    pending: int = 0
+    running: int = 0
+    succeeded: int = 0
+    failed: int = 0
+    total: int = 0
 
 
 # ------  EXPLANATION  --------

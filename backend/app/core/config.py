@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     UPLOAD_MAX_SIZE: int = 1024 * 1024 * 10
     UPLOAD_DIR: str = "uploads"
+    EXTRACTION_JOB_MAX_ATTEMPTS: int = 3
+    EXTRACTION_JOB_BACKOFF_SECONDS: list[int] = [1, 2]
+    EXTRACTION_JOB_STALE_RUNNING_SECONDS: int = 300
+    EXTRACTION_POLLER_ENABLED: bool = True
+    EXTRACTION_POLL_INTERVAL: int = 15
     ENVIRONMENT: Literal["local", "development", "production"] = "local"
     BACKEND_CORS_ORIGIN: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = []
     FRONTEND_HOST: str = "http://localhost:5173"

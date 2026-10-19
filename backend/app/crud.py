@@ -13,6 +13,7 @@ from app.models import (
     Document,
     Experiment,
     Explanation,
+    ExtractionJob,
     Message,
     Project,
     Sample,
@@ -162,6 +163,9 @@ def delete_documents(session: Session, document_ids: list[uuid.UUID]) -> None:
             delete(Conversation).where(col(Conversation.document_id).in_(document_ids))
         )
     session.exec(delete(Explanation).where(col(Explanation.document_id).in_(document_ids)))
+    session.exec(
+        delete(ExtractionJob).where(col(ExtractionJob.document_id).in_(document_ids))
+    )
     session.exec(delete(Document).where(col(Document.id).in_(document_ids)))
 
 

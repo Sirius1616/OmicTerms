@@ -16,7 +16,10 @@ export type Body_auth_login_access_token = {
 export type Body_documents_create_document = {
     file: string;
     sample_id: string;
+    data_type?: string;
 };
+
+export type DataType = 'expression' | 'methylation' | 'variants' | 'peaks' | 'document';
 
 export type DocumentPublic = {
     file_url: string;
@@ -25,6 +28,7 @@ export type DocumentPublic = {
     sample_id: string;
     uploaded_at: string;
     extraction_status: ExtractionStatus;
+    data_type?: (DataType | null);
     sample_name?: (string | null);
     experiment_name?: (string | null);
     project_name?: (string | null);
@@ -66,6 +70,32 @@ export type ExperimentTreeNode = {
 export type ExperimentUpdate = {
     name?: (string | null);
 };
+
+export type ExtractionJobPublic = {
+    id: string;
+    document_id: string;
+    status: ExtractionJobStatus;
+    attempts: number;
+    last_error?: (string | null);
+    created_at: string;
+    started_at?: (string | null);
+    finished_at?: (string | null);
+};
+
+export type ExtractionJobsPublic = {
+    data: Array<ExtractionJobPublic>;
+    count: number;
+};
+
+export type ExtractionJobStats = {
+    pending?: number;
+    running?: number;
+    succeeded?: number;
+    failed?: number;
+    total?: number;
+};
+
+export type ExtractionJobStatus = 'pending' | 'running' | 'succeeded' | 'failed';
 
 export type ExtractionStatus = 'pending' | 'success' | 'failed';
 
@@ -263,6 +293,12 @@ export type DocumentsReadDocData = {
 
 export type DocumentsReadDocResponse = (DocumentPublic);
 
+export type DocumentsReadDocumentJobsData = {
+    id: string;
+};
+
+export type DocumentsReadDocumentJobsResponse = (ExtractionJobsPublic);
+
 export type ExperimentsCreateExperimentData = {
     projectId: string;
     requestBody: ExperimentCreate;
@@ -294,6 +330,8 @@ export type ExperimentsDeleteExperimentData = {
 };
 
 export type ExperimentsDeleteExperimentResponse = (void);
+
+export type JobsReadJobStatsResponse = (ExtractionJobStats);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;

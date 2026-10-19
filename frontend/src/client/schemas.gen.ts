@@ -79,11 +79,22 @@ export const Body_documents_create_documentSchema = {
         sample_id: {
             type: 'string',
             title: 'Sample Id'
+        },
+        data_type: {
+            type: 'string',
+            title: 'Data Type',
+            default: 'auto'
         }
     },
     type: 'object',
     required: ['file', 'sample_id'],
     title: 'Body_documents-create_document'
+} as const;
+
+export const DataTypeSchema = {
+    type: 'string',
+    enum: ['expression', 'methylation', 'variants', 'peaks', 'document'],
+    title: 'DataType'
 } as const;
 
 export const DocumentPublicSchema = {
@@ -120,6 +131,16 @@ export const DocumentPublicSchema = {
         },
         extraction_status: {
             '$ref': '#/components/schemas/ExtractionStatus'
+        },
+        data_type: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/DataType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         },
         sample_name: {
             anyOf: [
@@ -312,6 +333,128 @@ export const ExperimentsPublicSchema = {
     type: 'object',
     required: ['data', 'count'],
     title: 'ExperimentsPublic'
+} as const;
+
+export const ExtractionJobPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        document_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Document Id'
+        },
+        status: {
+            '$ref': '#/components/schemas/ExtractionJobStatus'
+        },
+        attempts: {
+            type: 'integer',
+            title: 'Attempts'
+        },
+        last_error: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Error'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        started_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Started At'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'document_id', 'status', 'attempts', 'created_at'],
+    title: 'ExtractionJobPublic'
+} as const;
+
+export const ExtractionJobStatsSchema = {
+    properties: {
+        pending: {
+            type: 'integer',
+            title: 'Pending',
+            default: 0
+        },
+        running: {
+            type: 'integer',
+            title: 'Running',
+            default: 0
+        },
+        succeeded: {
+            type: 'integer',
+            title: 'Succeeded',
+            default: 0
+        },
+        failed: {
+            type: 'integer',
+            title: 'Failed',
+            default: 0
+        },
+        total: {
+            type: 'integer',
+            title: 'Total',
+            default: 0
+        }
+    },
+    type: 'object',
+    title: 'ExtractionJobStats'
+} as const;
+
+export const ExtractionJobStatusSchema = {
+    type: 'string',
+    enum: ['pending', 'running', 'succeeded', 'failed'],
+    title: 'ExtractionJobStatus'
+} as const;
+
+export const ExtractionJobsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ExtractionJobPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ExtractionJobsPublic'
 } as const;
 
 export const ExtractionStatusSchema = {

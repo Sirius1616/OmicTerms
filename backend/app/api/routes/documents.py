@@ -18,11 +18,14 @@ from app.models import (
     DocumentsPublic,
     DocumentUpdate,
     Experiment,
+    ExtractionJob,
+    ExtractionJobPublic,
+    ExtractionJobsPublic,
     Filter,
     Project,
     Sample,
 )
-from app.services.extraction_job import run_document_extraction
+from app.services.extraction_job import enqueue_extraction_job, run_extraction_job
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 upload_router = APIRouter(prefix="/uploads", tags=["uploads"])
@@ -152,7 +155,10 @@ async def create_document(
     session.add(document)
     session.commit()
     session.refresh(document)
-    background_tasks.add_task(run_document_extraction, document.id)
+
+    job = enqueue_extraction_job(session, document.id)
+    background_tasks.add_task(run_extraction_job, job.id)
+
     return _to_public(document, _doc_names(session, document.sample_id))
 
 
@@ -261,6 +267,27 @@ def read_doc(
     if not crud.get_doc_owned_by(session, current_user.id, doc):
         raise HTTPException(status_code=403, detail="Forbidden")
     return _to_public(doc, _doc_names(session, doc.sample_id))
+
+
+@router.get("/{id}/jobs", response_model=ExtractionJobsPublic)
+def read_document_jobs(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> ExtractionJobsPublic:
+    doc = session.get(Document, id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="document not found")
+    if not crud.get_doc_owned_by(session, current_user.id, doc):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    jobs = session.exec(
+        select(ExtractionJob)
+        .where(ExtractionJob.document_id == id)
+        .order_by(col(ExtractionJob.created_at).desc())
+    ).all()
+    return ExtractionJobsPublic(
+        data=[ExtractionJobPublic.model_validate(job) for job in jobs],
+        count=len(jobs),
+    )
 
 
 def is_valid_uuid(value: str) -> bool:

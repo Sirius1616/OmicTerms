@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -207,6 +207,26 @@ export class DocumentsService {
             }
         });
     }
+    
+    /**
+     * Read Document Jobs
+     * @param data The data for the request.
+     * @param data.id
+     * @returns ExtractionJobsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readDocumentJobs(data: DocumentsReadDocumentJobsData): CancelablePromise<DocumentsReadDocumentJobsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{id}/jobs',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
 
 export class ExperimentsService {
@@ -313,6 +333,20 @@ export class ExperimentsService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+}
+
+export class JobsService {
+    /**
+     * Read Job Stats
+     * @returns ExtractionJobStats Successful Response
+     * @throws ApiError
+     */
+    public static readJobStats(): CancelablePromise<JobsReadJobStatsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/jobs/stats'
         });
     }
 }
