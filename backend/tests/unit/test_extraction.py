@@ -12,6 +12,8 @@ import pytest
 from app.services.extraction import ExtractionResult, extract_text
 from app.services.omics_parser import parse_omics
 
+pytestmark = pytest.mark.unit
+
 MATRIX_TSV = """gene\tS1\tS2\tS3
 TP53\t1.2\t3.4\t0.0
 BRCA1\t5.0\t0.0\t2.2

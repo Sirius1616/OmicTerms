@@ -5,8 +5,12 @@ original filename into a DataType. Matrix tables are the interesting case: the
 first header cell tells expression apart from methylation.
 """
 
+import pytest
+
 from app.models import DataType
 from app.services.classification import classify
+
+pytestmark = pytest.mark.unit
 
 VCF_STRUCTURE = {"kind": "vcf", "header": ["#CHROM", "POS", "ID", "REF", "ALT"]}
 BED_STRUCTURE = {"kind": "bed", "header": ["chrom", "start", "end", "name"]}
@@ -39,16 +43,12 @@ def test_bed_structure_classifies_as_peaks() -> None:
 
 
 def test_expression_matrix_header() -> None:
-    assert (
-        classify("counts.tsv", "matrix", EXPRESSION_MATRIX)
-        == DataType.expression
-    )
+    assert classify("counts.tsv", "matrix", EXPRESSION_MATRIX) == DataType.expression
 
 
 def test_methylation_matrix_header() -> None:
     assert (
-        classify("beta_tumor.tsv", "matrix", METHYLATION_MATRIX)
-        == DataType.methylation
+        classify("beta_tumor.tsv", "matrix", METHYLATION_MATRIX) == DataType.methylation
     )
 
 
