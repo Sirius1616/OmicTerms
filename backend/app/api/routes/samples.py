@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import func, select
+from sqlmodel import col, func, select
 
 from app import crud
 from app.api.deps import CurrentUser, SessionDep
@@ -32,7 +32,7 @@ def create_sample(
     session.add(sample)
     session.commit()
     session.refresh(sample)
-    return sample
+    return SamplePublic.model_validate(sample)
 
 
 @router.get("/experiments/{experiment_id}/samples", response_model=SamplesPublic)
@@ -50,7 +50,7 @@ def read_experiment_samples(
     samples = session.exec(
         select(Sample)
         .where(Sample.experiment_id == experiment.id)
-        .order_by(Sample.created_at)
+        .order_by(col(Sample.created_at))
     ).all()
     data = [SamplePublic.model_validate(sample) for sample in samples]
     return SamplesPublic(data=data, count=count)
@@ -63,7 +63,7 @@ def read_sample(
     sample = crud.get_sample_owned_by(session, current_user.id, sample_id)
     if not sample:
         raise HTTPException(status_code=404, detail="Sample not found")
-    return sample
+    return SamplePublic.model_validate(sample)
 
 
 @router.patch("/samples/{sample_id}", response_model=SamplePublic)
@@ -81,7 +81,7 @@ def update_sample(
     session.add(sample)
     session.commit()
     session.refresh(sample)
-    return sample
+    return SamplePublic.model_validate(sample)
 
 
 @router.delete("/samples/{sample_id}", status_code=204)

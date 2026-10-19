@@ -1,13 +1,16 @@
-import secrets
 import warnings
-from pathlib import Path
-from pydantic import EmailStr
-from pydantic import (AnyUrl, BeforeValidator, 
-                      computed_field, model_validator, 
-                      HttpUrl, PostgresDsn)
 from typing import Annotated, Literal, Self
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from pydantic import (
+    AnyUrl,
+    BeforeValidator,
+    EmailStr,
+    HttpUrl,
+    PostgresDsn,
+    computed_field,
+    model_validator,
+)
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def parse_cors(v: str) -> list[str] | str:
@@ -16,19 +19,17 @@ def parse_cors(v: str) -> list[str] | str:
     if isinstance(v, list | str):
         return v
     else:
-        raise ValueError
+        raise TypeError
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_ignore_empty=True,
-        extra="ignore"
+        env_file=".env", env_ignore_empty=True, extra="ignore"
     )
 
-    PROJECT_NAME: str = 'OmicTerms'
+    PROJECT_NAME: str = "OmicTerms"
     API_V1_STR: str = "/api/v1"
-    UPLOAD_MAX_SIZE: int = 1024*1024*10
+    UPLOAD_MAX_SIZE: int = 1024 * 1024 * 10
     UPLOAD_DIR: str = "uploads"
     ENVIRONMENT: Literal["local", "development", "production"] = "local"
     BACKEND_CORS_ORIGIN: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = []
@@ -39,15 +40,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE: int = 60 * 60 * 24 * 8
     RESET_TOKEN_EXPIRE: int = 60 * 15
 
-
-
-
     @computed_field
     @property
     def all_cors_origin(self) -> list[str]:
         return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGIN] + [
-            self.FRONTEND_HOST]
-
+            self.FRONTEND_HOST
+        ]
 
     DATABASE_PORT: int = 5432
     DATABASE_HOST: str
@@ -55,7 +53,6 @@ class Settings(BaseSettings):
     DATABASE_PASSWORD: str
     DATABASE_NAME: str
 
-    
     @computed_field
     @property
     def DATABASE_URI(self) -> PostgresDsn:
@@ -65,9 +62,8 @@ class Settings(BaseSettings):
             username=self.DATABASE_USERNAME,
             password=self.DATABASE_PASSWORD,
             port=self.DATABASE_PORT,
-            path=self.DATABASE_NAME
+            path=self.DATABASE_NAME,
         )
-
 
     SMTP_SSL: bool = True
     SMTP_TLS: bool = False
@@ -78,7 +74,6 @@ class Settings(BaseSettings):
     EMAIL_FROM_EMAIL: EmailStr | None = None
     EMAIL_FROM_NAME: str | None = None
 
-
     @model_validator(mode="after")
     def _set_default_email(self) -> Self:
         if not self.EMAIL_FROM_NAME:
@@ -88,7 +83,7 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def enable_email(self) -> bool:
-        return (self.SMTP_HOST, self.EMAIL_FROM_EMAIL)
+        return bool(self.SMTP_HOST and self.EMAIL_FROM_EMAIL)
 
     EMAIL_TEST_USER: EmailStr = "test@example.com"
     FIRST_SUPERUSER: EmailStr
@@ -99,11 +94,11 @@ class Settings(BaseSettings):
             message = (
                 f'The value of {var_name} is "change this"'
                 "for security please change it, at least for deployment"
-           )
+            )
             if self.ENVIRONMENT == "local":
                 warnings.warn(message=message, stacklevel=1)
-            else: 
-                raise ValueError(message)
+            else:
+                raise TypeError(message)
 
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
@@ -117,5 +112,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-

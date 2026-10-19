@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import select
+from sqlmodel import col, select
 
 from app import crud
 from app.api.deps import CurrentUser, SessionDep
@@ -22,7 +23,9 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 
 def _build_tree(
-    project: Project, experiments: list[Experiment], samples: list[Sample]
+    project: Project,
+    experiments: Sequence[Experiment],
+    samples: Sequence[Sample],
 ) -> ProjectTreeNode:
     samples_by_experiment: dict[UUID, list[SampleTreeNode]] = {}
     for sample in samples:
@@ -55,18 +58,18 @@ def read_projects_tree(
     projects = session.exec(
         select(Project)
         .where(Project.user_id == current_user.id)
-        .order_by(Project.created_at)
+        .order_by(col(Project.created_at))
     ).all()
     count = len(projects)
     experiments = session.exec(
         select(Experiment)
-        .join(Project, Project.id == Experiment.project_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
         .where(Project.user_id == current_user.id)
     ).all()
     samples = session.exec(
         select(Sample)
-        .join(Experiment, Experiment.id == Sample.experiment_id)
-        .join(Project, Project.id == Experiment.project_id)
+        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
         .where(Project.user_id == current_user.id)
     ).all()
     tree = [_build_tree(project, experiments, samples) for project in projects]
@@ -85,7 +88,7 @@ def create_project(
     session.add(project)
     session.commit()
     session.refresh(project)
-    return project
+    return ProjectPublic.model_validate(project)
 
 
 @router.get("/{project_id}", response_model=ProjectTreeNode)
@@ -98,11 +101,11 @@ def read_project_tree(
     experiments = session.exec(
         select(Experiment)
         .where(Experiment.project_id == project.id)
-        .order_by(Experiment.created_at)
+        .order_by(col(Experiment.created_at))
     ).all()
     samples = session.exec(
         select(Sample)
-        .join(Experiment, Experiment.id == Sample.experiment_id)
+        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
         .where(Experiment.project_id == project.id)
     ).all()
     return _build_tree(project, experiments, samples)
@@ -123,7 +126,7 @@ def update_project(
     session.add(project)
     session.commit()
     session.refresh(project)
-    return project
+    return ProjectPublic.model_validate(project)
 
 
 @router.delete("/{project_id}", status_code=204)

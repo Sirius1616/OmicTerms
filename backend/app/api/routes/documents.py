@@ -1,5 +1,6 @@
 import os
 import uuid
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated
 
@@ -50,23 +51,23 @@ def _doc_names(
 ) -> tuple[str, str, str] | None:
     return session.exec(
         select(Project.name, Experiment.name, Sample.name)
-        .join(Experiment, Experiment.id == Sample.experiment_id)
-        .join(Project, Project.id == Experiment.project_id)
+        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
         .where(Sample.id == sample_id)
     ).first()
 
 
 def _doc_names_map(
-    session: SessionDep, documents: list[Document]
+    session: SessionDep, documents: Sequence[Document]
 ) -> dict[uuid.UUID, tuple[str, str, str]]:
     if not documents:
         return {}
     sample_ids = {doc.sample_id for doc in documents}
     rows = session.exec(
         select(Sample.id, Project.name, Experiment.name, Sample.name)
-        .join(Experiment, Experiment.id == Sample.experiment_id)
-        .join(Project, Project.id == Experiment.project_id)
-        .where(Sample.id.in_(sample_ids))
+        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
+        .where(col(Sample.id).in_(sample_ids))
     ).all()
     return {row[0]: (row[1], row[2], row[3]) for row in rows}
 
@@ -93,7 +94,7 @@ async def create_document(
     matched_sig = next((sig for sig in MAGIC if sample.startswith(sig)), None)
 
     TEXT_EXT = {".txt", ".eml", ".tsv", ".csv", ".vcf", ".bed"}
-    stored_ext = os.path.splitext(file.filename)[1].lower()
+    stored_ext = os.path.splitext(file.filename or "")[1].lower()
     is_text = stored_ext in TEXT_EXT and b"\x00" not in sample
     if matched_sig is None and not is_text:
         raise HTTPException(status_code=415, detail="Invalid file format")
@@ -162,16 +163,16 @@ def read_documents(
     count = session.exec(
         select(func.count())
         .select_from(Document)
-        .join(Sample, Sample.id == Document.sample_id)
-        .join(Experiment, Experiment.id == Sample.experiment_id)
-        .join(Project, Project.id == Experiment.project_id)
+        .join(Sample, col(Sample.id) == Document.sample_id)
+        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
         .where(Project.user_id == current_user.id)
     ).one()
     statement = (
         select(Document)
-        .join(Sample, Sample.id == Document.sample_id)
-        .join(Experiment, Experiment.id == Sample.experiment_id)
-        .join(Project, Project.id == Experiment.project_id)
+        .join(Sample, col(Sample.id) == Document.sample_id)
+        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
         .where(Project.user_id == current_user.id)
         .order_by(col(Document.uploaded_at).desc())
         .offset(filters.skip)

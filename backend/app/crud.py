@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import Depends
 from pydantic import EmailStr
-from sqlmodel import Session, create_engine, delete, select
+from sqlmodel import Session, col, create_engine, delete, select
 
 from app.core.config import settings
 from app.core.security import hash_password, verify_password
@@ -37,7 +37,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$MjQyZWE1MzBjYjJlZTI0Yw$YTU4NGM5ZTZmYjE2NzZlZjY0ZWY3ZGRkY2U2OWFjNjk"
 
 
-def get_user_by_email(session: SessionDep, email: EmailStr) -> User:
+def get_user_by_email(session: SessionDep, email: EmailStr) -> User | None:
     user = session.exec(select(User).where(User.email == email)).first()
     if not user:
         return None
@@ -51,7 +51,7 @@ def create_user(create_user: UserCreate, session: SessionDep) -> UserPublic:
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
-    return new_user
+    return UserPublic.model_validate(new_user)
 
 
 def update_user_me(
@@ -64,7 +64,7 @@ def update_user_me(
     session.add(user_update)
     session.commit()
     session.refresh(user_update)
-    return user_update
+    return UserPublic.model_validate(user_update)
 
 
 def user_update(
@@ -77,7 +77,7 @@ def user_update(
     session.add(user_update)
     session.commit()
     session.refresh(user_update)
-    return user_update
+    return UserPublic.model_validate(user_update)
 
 
 def delete_user(session: SessionDep, email: EmailStr) -> None:
@@ -88,7 +88,7 @@ def delete_user(session: SessionDep, email: EmailStr) -> None:
     session.commit()
 
 
-def authenticate(session: SessionDep, email: EmailStr, password: str) -> User:
+def authenticate(session: SessionDep, email: EmailStr, password: str) -> User | None:
     user = get_user_by_email(session, email)
     if not user:
         verify_password(password, DUMMY_HASH)
@@ -122,7 +122,7 @@ def get_experiment_owned_by(
 ) -> Experiment | None:
     statement = (
         select(Experiment)
-        .join(Project, Project.id == Experiment.project_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
         .where(Experiment.id == experiment_id)
         .where(Project.user_id == user_id)
     )
@@ -135,8 +135,8 @@ def get_sample_owned_by(
 ) -> Sample | None:
     statement = (
         select(Sample)
-        .join(Experiment, Experiment.id == Sample.experiment_id)
-        .join(Project, Project.id == Experiment.project_id)
+        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
+        .join(Project, col(Project.id) == Experiment.project_id)
         .where(Sample.id == sample_id)
         .where(Project.user_id == user_id)
     )
@@ -152,17 +152,17 @@ def delete_documents(session: Session, document_ids: list[uuid.UUID]) -> None:
     if not document_ids:
         return
     conversation_ids = session.exec(
-        select(Conversation.id).where(Conversation.document_id.in_(document_ids))
+        select(Conversation.id).where(col(Conversation.document_id).in_(document_ids))
     ).all()
     if conversation_ids:
         session.exec(
-            delete(Message).where(Message.conversation_id.in_(conversation_ids))
+            delete(Message).where(col(Message.conversation_id).in_(conversation_ids))
         )
         session.exec(
-            delete(Conversation).where(Conversation.document_id.in_(document_ids))
+            delete(Conversation).where(col(Conversation.document_id).in_(document_ids))
         )
-    session.exec(delete(Explanation).where(Explanation.document_id.in_(document_ids)))
-    session.exec(delete(Document).where(Document.id.in_(document_ids)))
+    session.exec(delete(Explanation).where(col(Explanation.document_id).in_(document_ids)))
+    session.exec(delete(Document).where(col(Document.id).in_(document_ids)))
 
 
 def delete_sample_tree(session: Session, sample: Sample) -> None:

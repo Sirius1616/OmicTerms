@@ -22,9 +22,9 @@ def init() -> None:
         # Try to create session to check if DB is awake
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(e)
-        raise e
+        raise
 
 
 if __name__ == "__main__":

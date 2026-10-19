@@ -33,3 +33,21 @@ dev = [
     "ruff>=0.2.2",
     "coverage>=7.4.3",
 ]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+# mypy does not understand pydantic's `@computed_field` stacked on top of
+# `@property` (a documented limitation); pydantic requires that order.
+disable_error_code = ["prop-decorator"]
+
+[[tool.mypy.overrides]]
+module = ["pytesseract"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+markers = [
+    "unit: marks tests as unit tests (deselect with '-m \"not unit\"')",
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]

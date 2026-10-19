@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import func, select
+from sqlmodel import col, func, select
 
 from app import crud
 from app.api.deps import CurrentUser, SessionDep
@@ -34,7 +34,7 @@ def create_experiment(
     session.add(experiment)
     session.commit()
     session.refresh(experiment)
-    return experiment
+    return ExperimentPublic.model_validate(experiment)
 
 
 @router.get("/projects/{project_id}/experiments", response_model=ExperimentsPublic)
@@ -52,7 +52,7 @@ def read_project_experiments(
     experiments = session.exec(
         select(Experiment)
         .where(Experiment.project_id == project.id)
-        .order_by(Experiment.created_at)
+        .order_by(col(Experiment.created_at))
     ).all()
     data = [ExperimentPublic.model_validate(experiment) for experiment in experiments]
     return ExperimentsPublic(data=data, count=count)
@@ -65,7 +65,7 @@ def read_experiment(
     experiment = crud.get_experiment_owned_by(session, current_user.id, experiment_id)
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
-    return experiment
+    return ExperimentPublic.model_validate(experiment)
 
 
 @router.patch("/experiments/{experiment_id}", response_model=ExperimentPublic)
@@ -83,7 +83,7 @@ def update_experiment(
     session.add(experiment)
     session.commit()
     session.refresh(experiment)
-    return experiment
+    return ExperimentPublic.model_validate(experiment)
 
 
 @router.delete("/experiments/{experiment_id}", status_code=204)
