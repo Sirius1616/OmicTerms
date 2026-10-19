@@ -1,0 +1,121 @@
+# Story 5 — CI pipeline.
+# Notes on scope decisions:
+#   * Frontend uses npm (package-lock.json is the committed lockfile); the backlog
+#     text said "bun", but the repo is npm-based, so npm ci / npm run build are used.
+#   * No Playwright job here yet. The runner requires chromium_headless_shell-1228,
+#     which is not provisioned in this environment, so the job is deferred to
+#     Story 60 rather than added as a flaky continue-on-error job.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: frontend (biome + tsc + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint (biome)
+        run: npx biome check .
+      - name: Typecheck + build
+        run: npm run build
+
+  colour-literals:
+    name: colour-literal rule
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on hardcoded colour literals
+        run: |
+          set -euo pipefail
+          matches=$(grep -rEn \
+            -e '#[0-9a-fA-F]{3}\b' \
+            -e '#[0-9a-fA-F]{6}\b' \
+            -e '#[0-9a-fA-F]{8}\b' \
+            -e 'rgba?\(' \
+            src \
+            --include='*.ts' --include='*.tsx' \
+            2>/dev/null \
+            | grep -Ev '^\./?src/fixtures/' \
+            | grep -Ev 'src/index\.css' \
+            || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Hardcoded colour literals found (use design tokens):"
+            echo "$matches"
+            exit 1
+          fi
+          echo "No hardcoded colour literals in source."
+
+  backend:
+    name: backend (ruff + mypy + tests + migrations)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: omicterms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      ENVIRONMENT: local
+      SECRET_KEY: ci-only-secret-key-please-do-not-use-in-prod-1234567890
+      BACKEND_CORS_ORIGIN: http://localhost:5173
+      DATABASE_HOST: localhost
+      DATABASE_PORT: "5432"
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: omicterms_test
+      FIRST_SUPERUSER: admin@example.com
+      FIRST_SUPERUSER_PASSWORD: admin1234567890
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --frozen --dev
+      - name: Ruff check
+        run: uv run ruff check .
+      - name: Typecheck (mypy)
+        run: uv run mypy app
+      - name: Migration check (upgrade -> downgrade -> upgrade)
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+      - name: Tests
+        run: bash scripts/test.sh

@@ -5,6 +5,9 @@ job-search/
 cookies.txt
 *.pem
 
+# Saved-page assets (hero reference download)
+OmicTerm_files/
+
 # OS
 .DS_Store
 Thumbs.db

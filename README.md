@@ -1,5 +1,7 @@
 # OmicTerms — your genome, explained in plain English
 
+[![CI](https://github.com/Sirius1616/OmicTerms/actions/workflows/ci.yml/badge.svg)](https://github.com/Sirius1616/OmicTerms/actions/workflows/ci.yml)
+
 Your DNA is not destiny — but right now, the data that would prove it is locked inside `.vcf` files, methylation matrices, and peak calls that only bioinformaticians can read.
 
 **OmicTerms is the translator.** It takes omics data and re-explains it in plain language, one question at a time — no jargon, no gatekeeping. Upload a gene expression matrix or a variant call file, and OmicTerms extracts the content, tells you what kind of data it is, and walks you through what it actually means for your health, your family, or your research.
