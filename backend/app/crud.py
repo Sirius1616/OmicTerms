@@ -74,7 +74,11 @@ def user_update(
     db_user: User,
 ) -> UserPublic:
     update_data = user_in.model_dump(exclude_unset=True)
-    user_update = db_user.sqlmodel_update(update_data)
+    extra_data: dict[str, str] = {}
+    password = update_data.pop("password", None)
+    if password:
+        extra_data["hashed_password"] = hash_password(password)
+    user_update = db_user.sqlmodel_update(update_data, update=extra_data)
     session.add(user_update)
     session.commit()
     session.refresh(user_update)

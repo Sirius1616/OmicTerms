@@ -24,13 +24,13 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         token_data = TokenPayload(**payload)
     except InvalidTokenError:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credentials cannot be verified",
         )
     user_email = token_data.sub
     if not user_email:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credentials cannot be verified",
         )
     user = get_user_by_email(session, user_email)

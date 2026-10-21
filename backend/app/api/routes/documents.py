@@ -1,3 +1,4 @@
+import hashlib
 import os
 import uuid
 from collections.abc import Sequence
@@ -46,6 +47,8 @@ def _to_public(doc: Document, names: tuple[str, str, str] | None) -> DocumentPub
         project_name=project_name,
         experiment_name=experiment_name,
         sample_name=sample_name,
+        sha256=doc.sha256,
+        size_bytes=doc.size_bytes,
     )
 
 
@@ -133,15 +136,21 @@ async def create_document(
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
     size = 0
-    with filepath.open("wb") as buffer:
-        while chunk := await file.read(1024 * 1024):
-            buffer.write(chunk)
-            size += len(chunk)
+    sha256 = hashlib.sha256()
+    try:
+        with filepath.open("wb") as buffer:
+            while chunk := await file.read(1024 * 1024):
+                buffer.write(chunk)
+                sha256.update(chunk)
+                size += len(chunk)
+                if size > settings.UPLOAD_MAX_SIZE:
+                    break
             if size > settings.UPLOAD_MAX_SIZE:
-                break
-        if size > settings.UPLOAD_MAX_SIZE:
-            filepath.unlink(missing_ok=True)
-            raise HTTPException(status_code=413, detail="File too large")
+                filepath.unlink(missing_ok=True)
+                raise HTTPException(status_code=413, detail="File too large")
+    except Exception:
+        filepath.unlink(missing_ok=True)
+        raise
 
     file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{file_id}"
 
@@ -150,6 +159,8 @@ async def create_document(
         sample_id=sample_uuid,
         filename=file.filename,
         data_type=explicit_data_type,
+        sha256=sha256.hexdigest(),
+        size_bytes=size,
     )
 
     session.add(document)
@@ -166,21 +177,20 @@ async def create_document(
 def read_documents(
     session: SessionDep, current_user: CurrentUser, filters: Filters
 ) -> DocumentsPublic:
-    count = session.exec(
-        select(func.count())
-        .select_from(Document)
-        .join(Sample, col(Sample.id) == Document.sample_id)
-        .join(Experiment, col(Experiment.id) == Sample.experiment_id)
-        .join(Project, col(Project.id) == Experiment.project_id)
-        .where(Project.user_id == current_user.id)
-    ).one()
-    statement = (
+    query = (
         select(Document)
         .join(Sample, col(Sample.id) == Document.sample_id)
         .join(Experiment, col(Experiment.id) == Sample.experiment_id)
         .join(Project, col(Project.id) == Experiment.project_id)
         .where(Project.user_id == current_user.id)
-        .order_by(col(Document.uploaded_at).desc())
+    )
+    if filters.sha256:
+        query = query.where(Document.sha256 == filters.sha256)
+    count = session.exec(
+        select(func.count()).select_from(query.subquery())
+    ).one()
+    statement = (
+        query.order_by(col(Document.uploaded_at).desc())
         .offset(filters.skip)
         .limit(filters.limit)
     )

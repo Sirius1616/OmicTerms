@@ -55,6 +55,11 @@ test.describe("Application shell", () => {
 
   test("keyboard shortcut opens global search", async ({ page }) => {
     await page.goto("/")
+    // The shortcut is handled by a window listener mounted with the app shell,
+    // so wait for the shell before pressing the key.
+    await expect(
+      page.getByRole("button", { name: "Open global search" }),
+    ).toBeVisible()
 
     await page.keyboard.press("ControlOrMeta+k")
     await expect(page.getByRole("dialog")).toBeVisible()

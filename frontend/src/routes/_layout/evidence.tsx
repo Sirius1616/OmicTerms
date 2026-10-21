@@ -40,8 +40,8 @@ function EvidencePage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Evidence Graph"
-        description="Datasets, analysis runs, and findings, connected so every claim can be traced back to the data that supports it."
+        title="Multi-Omics Evidence Map"
+        description="Trace how datasets, analysis runs, and findings connect across omics layers with a clear, provenance-first view."
       />
 
       <div className="grid gap-4 xl:grid-cols-12">

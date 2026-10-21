@@ -32,6 +32,25 @@ class ExtractionJobStatus(str, Enum):
     failed = "failed"
 
 
+class ValidationSeverity(str, Enum):
+    error = "error"
+    warning = "warning"
+    info = "info"
+    skipped = "skipped"
+
+
+class ValidationSubjectType(str, Enum):
+    document = "document"
+    dataset = "dataset"
+    report = "report"
+
+
+class ValidationTrigger(str, Enum):
+    upload = "upload"
+    manual = "manual"
+    dependency = "dependency"
+
+
 # ------ USER   --------
 
 
@@ -111,10 +130,13 @@ class Document(DocumentBase, table=True):
     extraction_status: ExtractionStatus = ExtractionStatus.pending
     data_type: DataType | None = None
     raw_extracted_json: str | None = None
+    sha256: str | None = Field(nullable=True, max_length=64, min_length=64)
+    size_bytes: int | None = Field(nullable=True, ge=0)
 
     sample: Sample = Relationship(back_populates="documents")
     explanation: Explanation = Relationship(back_populates="document")
     conversations: list[Conversation] = Relationship(back_populates="document")
+    validation_runs: list["ValidationRun"] = Relationship(back_populates="document")
 
 
 class DocumentCreate(DocumentBase):
@@ -135,11 +157,85 @@ class DocumentPublic(DocumentBase):
     sample_name: str | None = None
     experiment_name: str | None = None
     project_name: str | None = None
+    sha256: str | None = None
+    size_bytes: int | None = None
 
 
 class DocumentsPublic(SQLModel):
     data: list[DocumentPublic]
     count: int
+
+
+#  ------  VALIDATION  --------
+
+
+class ValidationRun(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    subject_type: ValidationSubjectType = ValidationSubjectType.document
+    subject_id: uuid.UUID = Field(index=True)
+    document_id: uuid.UUID | None = Field(default=None, foreign_key="document.id", index=True)
+    trigger: ValidationTrigger = ValidationTrigger.upload
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    finished_at: datetime | None = Field(default=None)
+    status: str = "succeeded"
+    validator_set_version: str = "1.0"
+
+    document: Document | None = Relationship(back_populates="validation_runs")
+    issues: list["ValidationIssue"] = Relationship(back_populates="run")
+
+
+class ValidationIssue(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    run_id: uuid.UUID = Field(foreign_key="validationrun.id", index=True)
+    code: str = Field(max_length=64)
+    severity: ValidationSeverity = ValidationSeverity.info
+    message: str
+    detail: str | None = Field(default=None)
+    field: str | None = Field(default=None)
+    path: str | None = Field(default=None)
+    suggestion: str | None = Field(default=None)
+    dedup_key: str | None = Field(default=None, index=True)
+
+    run: ValidationRun = Relationship(back_populates="issues")
+
+
+class ValidationIssuePublic(SQLModel):
+    id: uuid.UUID
+    code: str
+    severity: ValidationSeverity
+    message: str
+    detail: str | None = None
+    field: str | None = None
+    path: str | None = None
+    suggestion: str | None = None
+    dedup_key: str | None = None
+
+
+class ValidationRunPublic(SQLModel):
+    id: uuid.UUID
+    subject_type: ValidationSubjectType
+    subject_id: uuid.UUID
+    document_id: uuid.UUID | None = None
+    trigger: ValidationTrigger
+    started_at: datetime
+    finished_at: datetime | None = None
+    status: str
+    validator_set_version: str
+    issues: list[ValidationIssuePublic] = []
+
+
+class ValidationRunsPublic(SQLModel):
+    data: list[ValidationRunPublic]
+    count: int
+
+
+class ValidationRunSummary(SQLModel):
+    run_id: uuid.UUID | None = None
+    errors: int = 0
+    warnings: int = 0
+    info: int = 0
+    skipped: int = 0
+    total: int = 0
 
 
 #  ------  EXTRACTION JOB  --------
@@ -273,6 +369,7 @@ class Filter(BaseModel):
     order_by: str | None = None
     search: str | None = None
     descending: bool = False
+    sha256: str | None = None
 
 
 class Project(SQLModel, table=True):

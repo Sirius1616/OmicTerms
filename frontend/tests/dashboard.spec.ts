@@ -47,7 +47,9 @@ test.describe("Dashboard", () => {
     await expect(
       page.getByText("Your evidence graph will appear here"),
     ).toBeVisible()
-    await expect(page.getByText("No findings yet")).toBeVisible()
+    await expect(
+      page.getByRole("heading", { name: "No findings yet" }),
+    ).toBeVisible()
     await expect(
       page.getByRole("heading", { name: "OmicTerms Academy" }),
     ).toBeVisible()
@@ -90,7 +92,7 @@ test.describe("Dashboard", () => {
 
     await expect(page.getByTestId("dev-fixture-badge")).toBeVisible()
     await expect(
-      page.getByText("Fixture — not real scientific data"),
+      page.getByText("Fixture — not real scientific data", { exact: true }),
     ).toBeVisible()
   })
 })

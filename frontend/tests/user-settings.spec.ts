@@ -197,7 +197,7 @@ test.describe("Change password validation", () => {
     await page.getByRole("button", { name: "Update Password" }).click()
 
     await expect(
-      page.getByText("New password cannot be the same as the current one"),
+      page.getByText("Please enter a different password"),
     ).toBeVisible()
   })
 })

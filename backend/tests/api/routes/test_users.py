@@ -156,6 +156,48 @@ def test_admin_user_crud(client, session):
     assert client.delete(f"/api/v1/users/{user_id}", headers=admin).status_code == 200
 
 
+def test_admin_update_user_password_rotates_credential(client, session):
+    admin_email = _email("admin")
+    create_user(session, admin_email, is_admin=True)
+    admin = login_headers(client, admin_email)
+
+    created_email = _email("created")
+    response = client.post(
+        "/api/v1/users/",
+        json={
+            "email": created_email,
+            "password": "testpass123",
+            "full_name": "Pw User",
+            "is_admin": False,
+        },
+        headers=admin,
+    )
+    assert response.status_code == 201, response.text
+    user_id = response.json()["id"]
+
+    response = client.patch(
+        f"/api/v1/users/{user_id}",
+        json={"password": "rotatedpass456"},
+        headers=admin,
+    )
+    assert response.status_code == 200, response.text
+
+    form_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    new_login = client.post(
+        "/api/v1/login/access-token",
+        data={"username": created_email, "password": "rotatedpass456"},
+        headers=form_headers,
+    )
+    assert new_login.status_code == 200, new_login.text
+
+    stale_login = client.post(
+        "/api/v1/login/access-token",
+        data={"username": created_email, "password": "testpass123"},
+        headers=form_headers,
+    )
+    assert stale_login.status_code == 401
+
+
 def test_non_admin_cannot_use_admin_user_endpoints(client, session):
     email = _email("regular")
     create_user(session, email)

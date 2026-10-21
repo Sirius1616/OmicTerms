@@ -21,7 +21,11 @@ OpenAPI.TOKEN = async () => {
 }
 
 const handleApiError = (error: Error) => {
-  if (error instanceof ApiError && [401, 403].includes(error.status)) {
+  // Only an actual session going away (401 while a token is stored) invalidates
+  // it. 403 means the request was refused for this resource and must not log
+  // the researcher out (e.g. an admin-only endpoint or a validation refusal).
+  const hasSession = localStorage.getItem("access_token") !== null
+  if (hasSession && error instanceof ApiError && error.status === 401) {
     localStorage.removeItem("access_token")
     window.location.href = "/login"
   }

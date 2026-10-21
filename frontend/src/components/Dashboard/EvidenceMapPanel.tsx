@@ -30,8 +30,8 @@ export function EvidenceMapPanel({ fixtures }: EvidenceMapPanelProps) {
             title="Your evidence graph will appear here"
             body="Once datasets are linked, this map will show how data, analysis runs, and findings connect. Planned for milestone M3."
             action={
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/evidence">Learn about the evidence graph</Link>
+              <Button size="sm" asChild>
+                <Link to="/documents">Go to Data Sources</Link>
               </Button>
             }
           />
