@@ -43,6 +43,7 @@ class ValidationSubjectType(str, Enum):
     document = "document"
     dataset = "dataset"
     report = "report"
+    experiment = "experiment"
 
 
 class ValidationTrigger(str, Enum):
@@ -136,7 +137,7 @@ class Document(DocumentBase, table=True):
     sample: Sample = Relationship(back_populates="documents")
     explanation: Explanation = Relationship(back_populates="document")
     conversations: list[Conversation] = Relationship(back_populates="document")
-    validation_runs: list["ValidationRun"] = Relationship(back_populates="document")
+    validation_runs: list[ValidationRun] = Relationship(back_populates="document")
 
 
 class DocumentCreate(DocumentBase):
@@ -181,7 +182,7 @@ class ValidationRun(SQLModel, table=True):
     validator_set_version: str = "1.0"
 
     document: Document | None = Relationship(back_populates="validation_runs")
-    issues: list["ValidationIssue"] = Relationship(back_populates="run")
+    issues: list[ValidationIssue] = Relationship(back_populates="run")
 
 
 class ValidationIssue(SQLModel, table=True):
@@ -224,11 +225,6 @@ class ValidationRunPublic(SQLModel):
     issues: list[ValidationIssuePublic] = []
 
 
-class ValidationRunsPublic(SQLModel):
-    data: list[ValidationRunPublic]
-    count: int
-
-
 class ValidationRunSummary(SQLModel):
     run_id: uuid.UUID | None = None
     errors: int = 0
@@ -236,6 +232,12 @@ class ValidationRunSummary(SQLModel):
     info: int = 0
     skipped: int = 0
     total: int = 0
+
+
+class ValidationRunsPublic(SQLModel):
+    data: list[ValidationRunPublic]
+    count: int
+    latest_summary: ValidationRunSummary | None = None
 
 
 #  ------  EXTRACTION JOB  --------
@@ -493,3 +495,52 @@ class ProjectTreeNode(SQLModel):
 class ProjectTreePublic(SQLModel):
     data: list[ProjectTreeNode]
     count: int
+
+
+#  ------  DATASET METADATA  --------
+
+
+class CoordinateSystem(str, Enum):
+    zero_based = "0-based"
+    one_based = "1-based"
+    unknown = "unknown"
+
+
+class DatasetMetadataBase(SQLModel):
+    genome_assembly: str | None = Field(
+        default=None, max_length=64
+    )
+    coordinate_system: CoordinateSystem = CoordinateSystem.unknown
+    source_tool: str | None = Field(default=None, max_length=128)
+    source_tool_version: str | None = Field(default=None, max_length=64)
+    reference_database: str | None = Field(default=None, max_length=128)
+    declared_by: uuid.UUID | None = None
+
+
+class DatasetMetadata(DatasetMetadataBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    document_id: uuid.UUID = Field(foreign_key="document.id", unique=True, index=True)
+    recorded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    document: Document = Relationship()
+
+
+class DatasetMetadataCreate(DatasetMetadataBase):
+    pass
+
+
+class DatasetMetadataUpdate(SQLModel):
+    genome_assembly: str | None = Field(
+        default=None, max_length=64
+    )
+    coordinate_system: CoordinateSystem | None = None
+    source_tool: str | None = Field(default=None, max_length=128)
+    source_tool_version: str | None = Field(default=None, max_length=64)
+    reference_database: str | None = Field(default=None, max_length=128)
+
+
+class DatasetMetadataPublic(DatasetMetadataBase):
+    id: uuid.UUID
+    document_id: uuid.UUID
+    recorded_at: datetime
+    declared_by: uuid.UUID | None = None
