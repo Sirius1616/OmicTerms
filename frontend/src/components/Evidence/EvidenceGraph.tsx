@@ -143,7 +143,7 @@ function buildEdges(graph: GraphData | null): Edge[] {
     },
     markerEnd: {
       type: "arrowclosed" as const,
-      color: "rgba(148,167,196,0.8)",
+      color: "var(--evidence-edge-membership)",
     },
   }))
 }
@@ -312,7 +312,7 @@ export function EvidenceGraph({
         </div>
       </div>
 
-      <div className="relative flex flex-1 min-h-0 overflow-hidden rounded-xl border border-border/70 bg-[#070B18] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_40px_120px_-60px_rgba(66,217,245,0.9)]">
+      <div className="relative flex flex-1 min-h-0 overflow-hidden rounded-xl border border-border/70 bg-[var(--evidence-surface)] shadow-[inset_0_1px_0_var(--evidence-highlight-soft),0_40px_120px_-60px_var(--evidence-glow-strong)]">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
         <div className="flex-1 min-h-0" data-testid="evidence-graph-canvas">
@@ -333,18 +333,18 @@ export function EvidenceGraph({
             maxZoom={1.2}
             proOptions={{ hideAttribution: true }}
             attributionPosition="bottom-left"
-            className="bg-gradient-to-br from-[#070B18] via-[#0B1224] to-[#070B18]"
+            className="bg-gradient-to-br from-[var(--evidence-surface)] via-[var(--evidence-surface-alt)] to-[var(--evidence-surface)]"
           >
             <Background
               variant={BackgroundVariant.Lines}
               gap={32}
               size={1}
-              color="rgba(148,167,196,0.08)"
+              color="var(--evidence-grid-line)"
             />
             <Controls className="bg-card/80 border-border/70" />
             <MiniMap
               className="bg-card/80 border-border/70"
-              maskColor="rgba(11,18,36,0.6)"
+              maskColor="var(--evidence-minimap-mask)"
             />
           </ReactFlow>
         </div>

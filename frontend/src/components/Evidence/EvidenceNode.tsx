@@ -120,12 +120,12 @@ function EvidenceNodeComponent({ data, selected }: NodeProps) {
   return (
     <div
       className={cn(
-        "group relative flex w-[240px] items-center gap-3 rounded-lg border px-3 py-2 shadow-[0_10px_60px_-30px_rgba(66,217,245,0.9)] transition-all",
+        "group relative flex w-[240px] items-center gap-3 rounded-lg border px-3 py-2 shadow-[0_10px_60px_-30px_var(--evidence-glow-strong)] transition-all",
         classes.border,
         classes.bg,
         selected
-          ? "shadow-[0_0_0_1px_rgba(66,217,245,0.45),0_30px_80px_-40px_rgba(66,217,245,0.9)]"
-          : "hover:shadow-[0_0_0_1px_rgba(148,167,196,0.25)]",
+          ? "shadow-[0_0_0_1px_var(--evidence-glow-ring),0_30px_80px_-40px_var(--evidence-glow-strong)]"
+          : "hover:shadow-[0_0_0_1px_var(--evidence-glow-soft)]",
         selected ? ring : "",
       )}
       style={{

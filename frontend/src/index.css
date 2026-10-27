@@ -125,6 +125,20 @@
   --omics-analysis: oklch(0.5 0.14 285);
   --omics-finding: oklch(0.6 0.15 58);
   --omics-document: oklch(0.52 0.02 250);
+  /* evidence-graph canvas + edge palette (identical in both themes:
+     the canvas is always the dark instrument panel) */
+  --evidence-surface: #070b18;
+  --evidence-surface-alt: #0b1224;
+  --evidence-edge-membership: rgba(148, 167, 196, 0.8);
+  --evidence-edge-provenance: rgba(66, 217, 245, 0.9);
+  --evidence-edge-support: rgba(167, 139, 250, 0.9);
+  --evidence-edge-citation: rgba(245, 185, 66, 0.9);
+  --evidence-grid-line: rgba(148, 167, 196, 0.08);
+  --evidence-minimap-mask: rgba(11, 18, 36, 0.6);
+  --evidence-glow-ring: rgba(66, 217, 245, 0.45);
+  --evidence-glow-soft: rgba(148, 167, 196, 0.25);
+  --evidence-glow-strong: rgba(66, 217, 245, 0.9);
+  --evidence-highlight-soft: rgba(255, 255, 255, 0.05);
 }
 
 /* Dark instrument lab — default theme */

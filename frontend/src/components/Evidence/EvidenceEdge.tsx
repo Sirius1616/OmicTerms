@@ -3,10 +3,10 @@ import { memo } from "react"
 import { cn } from "@/lib/utils"
 
 const EDGE_COLORS: Record<string, string> = {
-  membership: "rgba(148, 167, 196, 0.8)",
-  provenance: "rgba(66, 217, 245, 0.9)",
-  support: "rgba(167, 139, 250, 0.9)",
-  citation: "rgba(245, 185, 66, 0.9)",
+  membership: "var(--evidence-edge-membership)",
+  provenance: "var(--evidence-edge-provenance)",
+  support: "var(--evidence-edge-support)",
+  citation: "var(--evidence-edge-citation)",
 }
 
 function EvidenceEdgeComponent({
