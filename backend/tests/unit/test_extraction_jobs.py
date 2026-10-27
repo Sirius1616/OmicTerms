@@ -9,7 +9,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from sqlmodel import Session
+from sqlmodel import Session, col, select
 
 from app.models import (
     Document,
@@ -20,6 +20,8 @@ from app.models import (
     Project,
     Sample,
     User,
+    ValidationRun,
+    ValidationTrigger,
 )
 from app.services.extraction_job import (
     enqueue_extraction_job,
@@ -188,3 +190,39 @@ def test_recover_resets_stale_running(session: Session) -> None:
     refreshed = session.get(ExtractionJob, job.id)
     assert refreshed.status == ExtractionJobStatus.pending
     assert refreshed.started_at is None
+
+
+def test_success_triggers_upload_validation(session: Session) -> None:
+    document = _make_document(session)
+    job = enqueue_extraction_job(session, document.id)
+
+    process_job(session, job.id, extractor=_succeeding, sleep=lambda _: None)
+
+    runs = session.exec(
+        select(ValidationRun).where(col(ValidationRun.document_id) == document.id)
+    ).all()
+    assert len(runs) == 1
+    assert runs[0].trigger == ValidationTrigger.upload
+    assert runs[0].document_id == document.id
+
+
+def test_validation_failure_does_not_fail_extraction(
+    session: Session, monkeypatch
+) -> None:
+    import app.services.validation as validation_service
+
+    def explode(*args, **kwargs):
+        raise RuntimeError("validation exploded")
+
+    monkeypatch.setattr(validation_service, "run_validation_for_document", explode)
+
+    document = _make_document(session)
+    job = enqueue_extraction_job(session, document.id)
+
+    process_job(session, job.id, extractor=_succeeding, sleep=lambda _: None)
+
+    job = session.get(ExtractionJob, job.id)
+    assert job.status == ExtractionJobStatus.succeeded
+    assert session.get(Document, document.id).extraction_status == (
+        ExtractionStatus.success
+    )

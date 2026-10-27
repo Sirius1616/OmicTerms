@@ -13,6 +13,10 @@ from app import crud
 from app.api.deps import CurrentUser, SessionDep
 from app.core.config import settings
 from app.models import (
+    DatasetMetadata,
+    DatasetMetadataCreate,
+    DatasetMetadataPublic,
+    DatasetMetadataUpdate,
     DataType,
     Document,
     DocumentPublic,
@@ -26,6 +30,7 @@ from app.models import (
     Project,
     Sample,
 )
+from app.services import provenance
 from app.services.extraction_job import enqueue_extraction_job, run_extraction_job
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -306,3 +311,56 @@ def is_valid_uuid(value: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+@router.get("/{id}/metadata", response_model=DatasetMetadataPublic)
+def get_document_metadata(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> DatasetMetadataPublic:
+    document = session.get(Document, id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if not crud.get_doc_owned_by(session, current_user.id, document):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    meta = session.exec(
+        select(DatasetMetadata).where(col(DatasetMetadata.document_id) == id)
+    ).first()
+    if not meta:
+        raise HTTPException(status_code=404, detail="Metadata not found")
+    return DatasetMetadataPublic.model_validate(meta)
+
+
+@router.put("/{id}/metadata", response_model=DatasetMetadataPublic)
+def put_document_metadata(
+    session: SessionDep,
+    current_user: CurrentUser,
+    id: uuid.UUID,
+    meta_in: DatasetMetadataCreate | DatasetMetadataUpdate,
+) -> DatasetMetadataPublic:
+    document = session.get(Document, id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if not crud.get_doc_owned_by(session, current_user.id, document):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    meta = session.exec(
+        select(DatasetMetadata).where(col(DatasetMetadata.document_id) == id)
+    ).first()
+    if not meta:
+        meta = DatasetMetadata(document_id=id, declared_by=current_user.id)
+        session.add(meta)
+    data = meta_in.model_dump(exclude_unset=True)
+    for key, value in data.items():
+        if key == "declared_by":
+            continue
+        setattr(meta, key, value)
+    meta.declared_by = current_user.id
+    session.add(meta)
+    session.commit()
+    session.refresh(meta)
+    provenance.record(
+        action="dataset_metadata.upsert",
+        document_id=str(id),
+        actor_id=str(current_user.id),
+        fields=sorted(data),
+    )
+    return DatasetMetadataPublic.model_validate(meta)

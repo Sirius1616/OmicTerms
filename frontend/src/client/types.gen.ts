@@ -19,6 +19,37 @@ export type Body_documents_create_document = {
     data_type?: string;
 };
 
+export type CoordinateSystem = '0-based' | '1-based' | 'unknown';
+
+export type DatasetMetadataCreate = {
+    genome_assembly?: (string | null);
+    coordinate_system?: CoordinateSystem;
+    source_tool?: (string | null);
+    source_tool_version?: (string | null);
+    reference_database?: (string | null);
+    declared_by?: (string | null);
+};
+
+export type DatasetMetadataPublic = {
+    genome_assembly?: (string | null);
+    coordinate_system?: CoordinateSystem;
+    source_tool?: (string | null);
+    source_tool_version?: (string | null);
+    reference_database?: (string | null);
+    declared_by?: (string | null);
+    id: string;
+    document_id: string;
+    recorded_at: string;
+};
+
+export type DatasetMetadataUpdate = {
+    genome_assembly?: (string | null);
+    coordinate_system?: (CoordinateSystem | null);
+    source_tool?: (string | null);
+    source_tool_version?: (string | null);
+    reference_database?: (string | null);
+};
+
 export type DataType = 'expression' | 'methylation' | 'variants' | 'peaks' | 'document';
 
 export type DocumentPublic = {
@@ -32,6 +63,8 @@ export type DocumentPublic = {
     sample_name?: (string | null);
     experiment_name?: (string | null);
     project_name?: (string | null);
+    sha256?: (string | null);
+    size_bytes?: (number | null);
 };
 
 export type DocumentsPublic = {
@@ -232,6 +265,52 @@ export type ValidationError = {
     };
 };
 
+export type ValidationIssuePublic = {
+    id: string;
+    code: string;
+    severity: ValidationSeverity;
+    message: string;
+    detail?: (string | null);
+    field?: (string | null);
+    path?: (string | null);
+    suggestion?: (string | null);
+    dedup_key?: (string | null);
+};
+
+export type ValidationRunPublic = {
+    id: string;
+    subject_type: ValidationSubjectType;
+    subject_id: string;
+    document_id?: (string | null);
+    trigger: ValidationTrigger;
+    started_at: string;
+    finished_at?: (string | null);
+    status: string;
+    validator_set_version: string;
+    issues?: Array<ValidationIssuePublic>;
+};
+
+export type ValidationRunsPublic = {
+    data: Array<ValidationRunPublic>;
+    count: number;
+    latest_summary?: (ValidationRunSummary | null);
+};
+
+export type ValidationRunSummary = {
+    run_id?: (string | null);
+    errors?: number;
+    warnings?: number;
+    info?: number;
+    skipped?: number;
+    total?: number;
+};
+
+export type ValidationSeverity = 'error' | 'warning' | 'info' | 'skipped';
+
+export type ValidationSubjectType = 'document' | 'dataset' | 'report';
+
+export type ValidationTrigger = 'upload' | 'manual' | 'dependency';
+
 export type AuthLoginAccessTokenData = {
     formData: Body_auth_login_access_token;
 };
@@ -269,6 +348,7 @@ export type DocumentsReadDocumentsData = {
     limit?: number;
     orderBy?: (string | null);
     search?: (string | null);
+    sha256?: (string | null);
     skip?: number;
 };
 
@@ -298,6 +378,31 @@ export type DocumentsReadDocumentJobsData = {
 };
 
 export type DocumentsReadDocumentJobsResponse = (ExtractionJobsPublic);
+
+export type DocumentsGetDocumentMetadataData = {
+    id: string;
+};
+
+export type DocumentsGetDocumentMetadataResponse = (DatasetMetadataPublic);
+
+export type DocumentsPutDocumentMetadataData = {
+    id: string;
+    requestBody: (DatasetMetadataCreate | DatasetMetadataUpdate);
+};
+
+export type DocumentsPutDocumentMetadataResponse = (DatasetMetadataPublic);
+
+export type DocumentsValidateDocumentData = {
+    id: string;
+};
+
+export type DocumentsValidateDocumentResponse = (ValidationRunPublic);
+
+export type DocumentsListDocumentValidationsData = {
+    id: string;
+};
+
+export type DocumentsListDocumentValidationsResponse = (ValidationRunsPublic);
 
 export type ExperimentsCreateExperimentData = {
     projectId: string;
@@ -415,6 +520,7 @@ export type UserReadUsersData = {
     limit?: number;
     orderBy?: (string | null);
     search?: (string | null);
+    sha256?: (string | null);
     skip?: number;
 };
 
@@ -468,3 +574,9 @@ export type UtilsTestEmailData = {
 export type UtilsTestEmailResponse = (AuthMessage);
 
 export type UtilsHealthCheckResponse = (boolean);
+
+export type ValidationsGetValidationRunData = {
+    runId: string;
+};
+
+export type ValidationsGetValidationRunResponse = (ValidationRunPublic);

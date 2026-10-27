@@ -1,9 +1,12 @@
+import { AxiosError } from "axios"
 import type { Body_documents_create_document, DocumentPublic } from "@/client"
 import { DocumentsService } from "@/client"
 import { OpenAPI } from "@/client/core/OpenAPI"
 
 import type {
   ConversationPublic,
+  DatasetMetadata,
+  DatasetMetadataUpdate,
   DocumentsPublic,
   ExplanationPublic,
   MessageCreate,
@@ -45,6 +48,29 @@ export const documentsApi = {
 
   async deleteDocument(id: string): Promise<void> {
     return DocumentsService.deleteFile({ id })
+  },
+
+  async getMetadata(id: string): Promise<DatasetMetadata | null> {
+    try {
+      return (await DocumentsService.getDocumentMetadata({
+        id,
+      })) as DatasetMetadata
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        return null
+      }
+      throw error
+    }
+  },
+
+  async updateMetadata(
+    id: string,
+    metadata: DatasetMetadataUpdate,
+  ): Promise<DatasetMetadata> {
+    return (await DocumentsService.putDocumentMetadata({
+      id,
+      requestBody: metadata,
+    })) as DatasetMetadata
   },
 
   async getFileBlob(filename: string): Promise<Blob> {

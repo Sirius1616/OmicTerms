@@ -1,122 +1,172 @@
 from __future__ import annotations
 
-from pathlib import Path
+from collections import Counter
 
 from app.validation.base import Issue, ValidationContext, Validator
+from app.validation.files import decode_text, read_document_bytes
 
-
-def _read_content(ctx: ValidationContext) -> bytes | None:
-    document = ctx.document
-    if document is None:
-        return None
-    file_url = getattr(document, "file_url", "")
-    candidates = [Path(file_url)] if file_url else []
-    for c in candidates:
-        if c.exists() and c.is_file():
-            try:
-                return c.read_bytes()
-            except Exception:
-                continue
-    return None
+MAX_CELLS_SCANNED = 100_000
 
 
 class MatrixValidator(Validator):
     name = "matrix_validator"
 
     def applies_to(self, ctx: ValidationContext) -> bool:
-        doc = ctx.document
-        if not doc:
+        document = ctx.document
+        if document is None:
             return False
-        filename = getattr(doc, "filename", "") or ""
-        data_type = getattr(doc, "data_type", None)
-        dt = getattr(data_type, "value", str(data_type)) if data_type else ""
-        if dt in ("expression", "methylation"):
+        data_type = getattr(document, "data_type", None)
+        data_type_value = getattr(data_type, "value", data_type)
+        if data_type_value in ("expression", "methylation"):
             return True
-        if filename.lower().endswith((".tsv", ".csv", ".txt", ".matrix")) and "counts" in filename.lower():
+        filename = (getattr(document, "filename", "") or "").lower()
+        if filename.endswith((".tsv", ".csv", ".txt", ".matrix")):
             return True
-        content = _read_content(ctx)
-        if content:
-            try:
-                text = content.decode("utf-8", errors="replace")
-                # has header with tabs/commas
-                for l in text.splitlines():
-                    if not l.strip():
-                        continue
-                    if "\t" in l or "," in l:
-                        return True
-                    break
-            except Exception:
-                pass
+        content = read_document_bytes(ctx)
+        if content is None:
+            return False
+        for line in decode_text(content).splitlines():
+            if not line.strip():
+                continue
+            return "\t" in line or "," in line
         return False
 
     def run(self, ctx: ValidationContext) -> list[Issue]:
-        issues: list[Issue] = []
-        content = _read_content(ctx)
+        content = read_document_bytes(ctx)
         if content is None:
-            issues.append(Issue(code="MAT-HEADER-001", severity="error", message="Matrix header parse error"))
-            return issues
-        try:
-            text = content.decode("utf-8", errors="replace")
-        except Exception:
-            issues.append(Issue(code="MAT-HEADER-001", severity="error", message="Matrix header parse error"))
-            return issues
-        # detect delimiter
-        first_line = None
-        for l in text.splitlines():
-            if l.strip():
-                first_line = l
-                break
-        if not first_line:
-            issues.append(Issue(code="MAT-HEADER-001", severity="error", message="Matrix header parse error"))
-            return issues
-        delim = "\t" if "\t" in first_line else ","
-        header = first_line.split(delim)
+            return [
+                Issue(
+                    code="MAT-READ-001",
+                    severity="error",
+                    message="Matrix file could not be read for validation",
+                    suggestion="Re-upload the matrix and re-run validation",
+                )
+            ]
+
+        lines = [line for line in decode_text(content).splitlines() if line.strip()]
+        if not lines:
+            return [
+                Issue(
+                    code="MAT-HEADER-001",
+                    severity="error",
+                    message="Matrix header parse error",
+                    suggestion="Provide a matrix with a header row",
+                )
+            ]
+
+        header_line = lines[0]
+        delimiter = "\t" if "\t" in header_line else ","
+        header = header_line.split(delimiter)
         if len(header) < 2:
-            issues.append(Issue(code="MAT-HEADER-001", severity="error", message="Matrix header parse error"))
+            return [
+                Issue(
+                    code="MAT-HEADER-001",
+                    severity="error",
+                    message="Matrix header parse error",
+                    suggestion=(
+                        "The header row needs a feature identifier column plus at "
+                        "least one sample column"
+                    ),
+                )
+            ]
+
+        rows = [line.split(delimiter) for line in lines[1:]]
+        if not rows:
+            return [
+                Issue(
+                    code="MAT-SHAPE-001",
+                    severity="error",
+                    message="Matrix row/column count agreement issue",
+                    suggestion="Provide at least one data row",
+                )
+            ]
+
+        issues: list[Issue] = []
+
+        if any(len(row) != len(header) for row in rows):
+            issues.append(
+                Issue(
+                    code="MAT-SHAPE-001",
+                    severity="error",
+                    message="Matrix row/column count agreement issue",
+                    detail=(
+                        f"Header declares {len(header)} columns but some rows "
+                        "declare a different count"
+                    ),
+                    suggestion="Every data row must have the same number of columns",
+                )
+            )
             return issues
-        rows = []
-        for l in text.splitlines():
-            if not l.strip() or l == first_line:
-                continue
-            rows.append(l.split(delim))
-        # shape
-        if len(rows) == 0:
-            issues.append(Issue(code="MAT-SHAPE-001", severity="error", message="Matrix row/column count agreement issue"))
-            return issues
-        # check consistent columns
-        for r in rows:
-            if len(r) != len(header):
-                issues.append(Issue(code="MAT-SHAPE-001", severity="error", message="Matrix row/column count agreement issue"))
-                break
-        if any(i.code == "MAT-SHAPE-001" and i.severity == "error" for i in issues):
-            return issues
-        # duplicates
-        feats = [r[0] for r in rows]
-        if len(feats) != len(set(feats)):
-            issues.append(Issue(code="MAT-DUP-001", severity="warning", message="Duplicate feature IDs detected"))
-        # numeric check (first N sampled conceptually - do full pass under cap but small here)
-        doc = ctx.document
-        dt = getattr(getattr(doc, "data_type", None), "value", str(getattr(doc, "data_type", ""))) if doc else ""
-        is_meth = dt == "methylation" or "methyl" in (getattr(doc, "filename", "") or "").lower()
-        for r in rows:
-            for val in r[1:]:
-                v = val.strip()
-                # try number
-                try:
-                    # int or float
-                    float(v)
-                except Exception:
-                    issues.append(Issue(code="MAT-NONNUM-001", severity="error", message="Non-numeric cell detected"))
+
+        feature_counts = Counter(row[0] for row in rows)
+        duplicates = {fid for fid, count in feature_counts.items() if count > 1}
+        if duplicates:
+            issues.append(
+                Issue(
+                    code="MAT-DUP-001",
+                    severity="warning",
+                    message="Duplicate feature IDs detected",
+                    detail="Duplicated IDs: " + ", ".join(sorted(duplicates)[:10]),
+                    suggestion="Aggregate or rename duplicated feature identifiers",
+                )
+            )
+
+        is_methylation = self._is_methylation(ctx)
+        scanned_cells = 0
+        for row_index, row in enumerate(rows):
+            for column_index, value in enumerate(row[1:], start=1):
+                if scanned_cells >= MAX_CELLS_SCANNED:
                     break
-                else:
-                    if is_meth:
-                        try:
-                            fv = float(v)
-                            if fv < 0.0 or fv > 1.0:
-                                issues.append(Issue(code="MAT-METH-001", severity="error", message="Methylation beta values must be in [0,1] when typed as methylation"))
-                                break
-                        except Exception:
-                            pass
-            if any(i.severity == "error" for i in issues):
+                scanned_cells += 1
+                cell = value.strip()
+                try:
+                    number = float(cell)
+                except ValueError:
+                    issues.append(
+                        Issue(
+                            code="MAT-NONNUM-001",
+                            severity="error",
+                            message="Non-numeric cell detected",
+                            path=f"row {row_index + 2}, column {column_index + 1}",
+                            suggestion="Expression and methylation matrices must be numeric",
+                        )
+                    )
+                    break
+                if is_methylation and not 0.0 <= number <= 1.0:
+                    issues.append(
+                        Issue(
+                            code="MAT-METH-001",
+                            severity="error",
+                            message=(
+                                "Methylation beta values must be in [0,1] when typed "
+                                "as methylation"
+                            ),
+                            path=f"row {row_index + 2}, column {column_index + 1}",
+                            suggestion="Store methylation levels as beta values in [0,1]",
+                        )
+                    )
+                    break
+            if any(issue.severity == "error" for issue in issues):
                 break
-        return issues if issues else [Issue(code="DOC-OK-001", severity="info", message="Matrix validation completed with no errors")]
+
+        if not issues:
+            issues.append(
+                Issue(
+                    code="MAT-OK-001",
+                    severity="info",
+                    message="Matrix validation completed with no errors",
+                )
+            )
+        return issues
+
+    @staticmethod
+    def _is_methylation(ctx: ValidationContext) -> bool:
+        document = ctx.document
+        if document is None:
+            return False
+        data_type = getattr(document, "data_type", None)
+        data_type_value = getattr(data_type, "value", data_type)
+        if data_type_value == "methylation":
+            return True
+        filename = (getattr(document, "filename", "") or "").lower()
+        return "methyl" in filename or "beta" in filename

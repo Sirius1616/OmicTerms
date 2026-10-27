@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { AnalyzingIndicator } from "@/components/Common/GenomicsMotif"
 
 import { DocumentChat } from "@/components/Documents/DocumentChat"
+import DocumentMetadataPanel from "@/components/Documents/DocumentMetadataPanel"
 import { DocumentViewer } from "@/components/Documents/DocumentViewer"
 import { ExplanationPanel } from "@/components/Documents/ExplanationPanel"
 import { Button } from "@/components/ui/button"
@@ -103,6 +104,7 @@ function DocumentDetailContent() {
             documentId={document.id}
             fileUrl={document.file_url}
           />
+          <DocumentMetadataPanel documentId={document.id} />
           <ExplanationPanel documentId={document.id} />
         </div>
         <DocumentChat documentId={document.id} />

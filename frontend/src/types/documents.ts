@@ -56,3 +56,27 @@ export type MessagePublic = {
 export type MessageCreate = {
   content: string
 }
+
+export const COORDINATE_SYSTEMS = ["0-based", "1-based", "unknown"] as const
+
+export type CoordinateSystem = (typeof COORDINATE_SYSTEMS)[number]
+
+export type DatasetMetadata = {
+  id: string
+  document_id: string
+  genome_assembly?: string | null
+  coordinate_system: CoordinateSystem
+  source_tool?: string | null
+  source_tool_version?: string | null
+  reference_database?: string | null
+  declared_by?: string | null
+  recorded_at: string
+}
+
+export type DatasetMetadataUpdate = {
+  genome_assembly?: string | null
+  coordinate_system?: CoordinateSystem | null
+  source_tool?: string | null
+  source_tool_version?: string | null
+  reference_database?: string | null
+}

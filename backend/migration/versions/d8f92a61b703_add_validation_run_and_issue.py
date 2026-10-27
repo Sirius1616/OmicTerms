@@ -5,17 +5,16 @@ Revises: cb4966256490
 Create Date: 2026-10-21 12:00:00.000000
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'd8f92a61b703'
-down_revision: Union[str, None] = 'cb4966256490'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'cb4966256490'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -30,7 +29,6 @@ def upgrade() -> None:
         sa.Column('finished_at', sa.DateTime(), nullable=True),
         sa.Column('status', sa.String(), nullable=False),
         sa.Column('validator_set_version', sa.String(), nullable=False),
-        sa.Column('document_id', sa.Uuid(), nullable=True),
         sa.ForeignKeyConstraint(['document_id'], ['document.id'], ),
         sa.PrimaryKeyConstraint('id')
     )

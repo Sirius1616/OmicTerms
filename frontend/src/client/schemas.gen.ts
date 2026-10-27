@@ -91,10 +91,239 @@ export const Body_documents_create_documentSchema = {
     title: 'Body_documents-create_document'
 } as const;
 
+export const CoordinateSystemSchema = {
+    type: 'string',
+    enum: ['0-based', '1-based', 'unknown'],
+    title: 'CoordinateSystem'
+} as const;
+
 export const DataTypeSchema = {
     type: 'string',
     enum: ['expression', 'methylation', 'variants', 'peaks', 'document'],
     title: 'DataType'
+} as const;
+
+export const DatasetMetadataCreateSchema = {
+    properties: {
+        genome_assembly: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Genome Assembly'
+        },
+        coordinate_system: {
+            '$ref': '#/components/schemas/CoordinateSystem',
+            default: 'unknown'
+        },
+        source_tool: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Tool'
+        },
+        source_tool_version: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Tool Version'
+        },
+        reference_database: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reference Database'
+        },
+        declared_by: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Declared By'
+        }
+    },
+    type: 'object',
+    title: 'DatasetMetadataCreate'
+} as const;
+
+export const DatasetMetadataPublicSchema = {
+    properties: {
+        genome_assembly: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Genome Assembly'
+        },
+        coordinate_system: {
+            '$ref': '#/components/schemas/CoordinateSystem',
+            default: 'unknown'
+        },
+        source_tool: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Tool'
+        },
+        source_tool_version: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Tool Version'
+        },
+        reference_database: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reference Database'
+        },
+        declared_by: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Declared By'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        document_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Document Id'
+        },
+        recorded_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Recorded At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'document_id', 'recorded_at'],
+    title: 'DatasetMetadataPublic'
+} as const;
+
+export const DatasetMetadataUpdateSchema = {
+    properties: {
+        genome_assembly: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Genome Assembly'
+        },
+        coordinate_system: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/CoordinateSystem'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        source_tool: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Tool'
+        },
+        source_tool_version: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Tool Version'
+        },
+        reference_database: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reference Database'
+        }
+    },
+    type: 'object',
+    title: 'DatasetMetadataUpdate'
 } as const;
 
 export const DocumentPublicSchema = {
@@ -174,6 +403,28 @@ export const DocumentPublicSchema = {
                 }
             ],
             title: 'Project Name'
+        },
+        sha256: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sha256'
+        },
+        size_bytes: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Size Bytes'
         }
     },
     type: 'object',
@@ -1086,4 +1337,243 @@ export const ValidationErrorSchema = {
     type: 'object',
     required: ['loc', 'msg', 'type'],
     title: 'ValidationError'
+} as const;
+
+export const ValidationIssuePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        code: {
+            type: 'string',
+            title: 'Code'
+        },
+        severity: {
+            '$ref': '#/components/schemas/ValidationSeverity'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        detail: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Detail'
+        },
+        field: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Field'
+        },
+        path: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Path'
+        },
+        suggestion: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Suggestion'
+        },
+        dedup_key: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Dedup Key'
+        }
+    },
+    type: 'object',
+    required: ['id', 'code', 'severity', 'message'],
+    title: 'ValidationIssuePublic'
+} as const;
+
+export const ValidationRunPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        subject_type: {
+            '$ref': '#/components/schemas/ValidationSubjectType'
+        },
+        subject_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Subject Id'
+        },
+        document_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Document Id'
+        },
+        trigger: {
+            '$ref': '#/components/schemas/ValidationTrigger'
+        },
+        started_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Started At'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        validator_set_version: {
+            type: 'string',
+            title: 'Validator Set Version'
+        },
+        issues: {
+            items: {
+                '$ref': '#/components/schemas/ValidationIssuePublic'
+            },
+            type: 'array',
+            title: 'Issues',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'subject_type', 'subject_id', 'trigger', 'started_at', 'status', 'validator_set_version'],
+    title: 'ValidationRunPublic'
+} as const;
+
+export const ValidationRunSummarySchema = {
+    properties: {
+        run_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Run Id'
+        },
+        errors: {
+            type: 'integer',
+            title: 'Errors',
+            default: 0
+        },
+        warnings: {
+            type: 'integer',
+            title: 'Warnings',
+            default: 0
+        },
+        info: {
+            type: 'integer',
+            title: 'Info',
+            default: 0
+        },
+        skipped: {
+            type: 'integer',
+            title: 'Skipped',
+            default: 0
+        },
+        total: {
+            type: 'integer',
+            title: 'Total',
+            default: 0
+        }
+    },
+    type: 'object',
+    title: 'ValidationRunSummary'
+} as const;
+
+export const ValidationRunsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ValidationRunPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        },
+        latest_summary: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ValidationRunSummary'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ValidationRunsPublic'
+} as const;
+
+export const ValidationSeveritySchema = {
+    type: 'string',
+    enum: ['error', 'warning', 'info', 'skipped'],
+    title: 'ValidationSeverity'
+} as const;
+
+export const ValidationSubjectTypeSchema = {
+    type: 'string',
+    enum: ['document', 'dataset', 'report'],
+    title: 'ValidationSubjectType'
+} as const;
+
+export const ValidationTriggerSchema = {
+    type: 'string',
+    enum: ['upload', 'manual', 'dependency'],
+    title: 'ValidationTrigger'
 } as const;

@@ -123,6 +123,29 @@ def _require_job(session: Session, job_id: uuid.UUID) -> ExtractionJob:
     return job
 
 
+def _trigger_upload_validation(session: Session, document_id: uuid.UUID) -> None:
+    """Run the upload-triggered validation pass for a document.
+
+    Validation must never turn a successful extraction into a failed job, so
+    errors here are logged and swallowed. The run itself is committed by the
+    validation service.
+    """
+    from app.models import ValidationTrigger
+    from app.services.validation import run_validation_for_document
+
+    try:
+        document = session.get(Document, document_id)
+        if document is None:
+            return
+        run_validation_for_document(
+            session, document, trigger=ValidationTrigger.upload
+        )
+    except Exception:
+        logger.exception(
+            "upload-triggered validation failed for document %s", document_id
+        )
+
+
 def process_job(
     session: Session,
     job_id: uuid.UUID,
@@ -200,6 +223,7 @@ def process_job(
             job.finished_at = _now()
             session.add(job)
             session.commit()
+            _trigger_upload_validation(session, job.document_id)
             logger.info("extraction job %s succeeded", job.id)
             return
 

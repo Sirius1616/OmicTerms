@@ -1,195 +1,247 @@
 from __future__ import annotations
 
-from pathlib import Path
-
-from app.models import DataType
 from app.validation.base import Issue, ValidationContext, Validator
+from app.validation.files import decode_text, read_document_bytes
 
-
-def _read_content(ctx: ValidationContext) -> bytes | None:
-    document = ctx.document
-    if document is None:
-        return None
-    file_url = getattr(document, "file_url", None)
-    if not file_url:
-        return None
-    try:
-        p = Path("/app") / file_url.lstrip("/") if file_url.startswith("/") else Path(file_url)
-        if not p.exists():
-            # try relative to backend upload dir patterns
-            pass
-    except Exception:
-        pass
-    # Try common locations
-    candidates = []
-    if file_url:
-        candidates.append(Path(file_url))
-        candidates.append(Path("/app") / file_url.lstrip("/"))
-        candidates.append(Path("/app/backend") / file_url.lstrip("/"))
-    for c in candidates:
-        if c.exists() and c.is_file():
-            try:
-                return c.read_bytes()
-            except Exception:
-                continue
-    return None
+REQUIRED_COLUMNS = [
+    "#CHROM",
+    "POS",
+    "ID",
+    "REF",
+    "ALT",
+    "QUAL",
+    "FILTER",
+    "INFO",
+]
+VALID_BASES = set("ACGTN")
 
 
 class VCFValidator(Validator):
     name = "vcf_validator"
 
     def applies_to(self, ctx: ValidationContext) -> bool:
-        doc = ctx.document
-        if not doc:
+        document = ctx.document
+        if document is None:
             return False
-        # apply if looks like vcf or filename indicates
-        filename = getattr(doc, "filename", "") or ""
-        data_type = getattr(doc, "data_type", None)
-        if filename.lower().endswith(".vcf") or filename.lower().endswith(".vcf.gz"):
+        filename = (getattr(document, "filename", "") or "").lower()
+        if filename.endswith((".vcf", ".vcf.gz")):
             return True
-        if data_type and getattr(data_type, "value", str(data_type)) in ("variant", "variants"):
-            return True
-        # also try sniff
-        content = _read_content(ctx)
-        if content and content[:5] == b"##fil":
-            return True
-        if content and content[:6] == b"#CHROM":
-            return True
-        return False
+        content = read_document_bytes(ctx)
+        if content is None:
+            return False
+        return content.startswith((b"##fileformat=VCF", b"#CHROM"))
 
     def run(self, ctx: ValidationContext) -> list[Issue]:
-        issues: list[Issue] = []
-        content = _read_content(ctx)
+        content = read_document_bytes(ctx)
         if content is None:
-            issues.append(
+            return [
                 Issue(
-                    code="VCF-HEADER-001",
+                    code="VCF-READ-001",
                     severity="error",
-                    message="VCF header missing or missing required columns",
-                    suggestion="Provide a valid VCF with required header",
+                    message="VCF file could not be read for validation",
+                    suggestion="Re-upload the VCF file and re-run validation",
                 )
-            )
-            return issues
-        try:
-            text = content.decode("utf-8", errors="replace")
-        except Exception:
-            issues.append(
-                Issue(
-                    code="VCF-HEADER-001",
-                    severity="error",
-                    message="VCF header missing or missing required columns",
-                    suggestion="Provide a valid VCF",
-                )
-            )
-            return issues
+            ]
+
+        text = decode_text(content)
         lines = text.splitlines()
-        header_line = None
-        for l in lines:
-            if l.startswith("#CHROM"):
-                header_line = l
-                break
-        if not header_line:
-            issues.append(
+        header_index = next(
+            (i for i, line in enumerate(lines) if line.startswith("#CHROM")), None
+        )
+        if header_index is None:
+            return [
                 Issue(
                     code="VCF-HEADER-001",
                     severity="error",
                     message="VCF header missing or missing required columns",
-                    suggestion="Provide a valid VCF with #CHROM header",
+                    suggestion="Provide a VCF with a #CHROM header line",
                 )
-            )
-            return issues
-        cols = header_line.split("\t")
-        required = ["#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO"]
-        if cols[:8] != required:
-            issues.append(
+            ]
+
+        header = lines[header_index].split("\t")
+        if header[: len(REQUIRED_COLUMNS)] != REQUIRED_COLUMNS:
+            return [
                 Issue(
                     code="VCF-HEADER-001",
                     severity="error",
                     message="VCF header missing or missing required columns",
-                    suggestion="Ensure columns are #CHROM POS ID REF ALT QUAL FILTER INFO",
+                    suggestion=(
+                        "Ensure the header starts with: "
+                        + " ".join(REQUIRED_COLUMNS)
+                    ),
                 )
-            )
-            return issues
-        # GT parseable - if sample columns exist, check format column present
-        if len(cols) > 9:
-            # look for GT in FORMAT of first data line
-            found_gt = False
-            for l in lines:
-                if l.startswith("#"):
-                    continue
-                parts = l.split("\t")
-                if len(parts) >= 10:
-                    fmt = parts[8] if len(parts) > 8 else ""
-                    if "GT" in fmt.split(":"):
-                        found_gt = True
-                    break
-            if not found_gt and any("GT" in (p.split(":") if ":" in p else [p]) for p in cols[9:10]):  # rough
-                pass
-            # be lenient but flag if clearly unparseable? require parseable
-            # check first sample
-            for l in lines:
-                if l.startswith("#"):
-                    continue
-                parts = l.split("\t")
-                if len(parts) >= 10:
-                    # basic parse check
-                    break
-            # flag as error if GT not parseable - simple heuristic
-            issues.append(Issue(code="VCF-GT-001", severity="error", message="VCF sample/genotype columns not parseable", suggestion="Ensure FORMAT/GT fields are parseable"))
-            return issues
-        # contig consistency
-        contigs = set()
-        for l in lines:
-            if l.startswith("##contig"):
-                # extract
-                try:
-                    name = l.split("=", 1)[1].split(",", 1)[0].split(">", 1)[0]
-                    contigs.add(name)
-                except Exception:
-                    pass
-            elif l.startswith("#CHROM"):
-                break
-        # if multiple contig naming styles? check chrom names
-        chroms = set()
-        for l in lines:
-            if l.startswith("#"):
-                continue
-            p = l.split("\t")
-            if p:
-                chroms.add(p[0])
-        if len({c.replace("chr", "") for c in chroms}) < len(chroms) and len(chroms) > 1:
+            ]
+
+        sample_columns = header[len(REQUIRED_COLUMNS) + 1 :]
+        body = [line for line in lines[header_index + 1 :] if line.strip()]
+
+        issues: list[Issue] = []
+
+        if sample_columns and not self._genotypes_parseable(body, sample_columns):
             issues.append(
                 Issue(
-                    code="VCF-CONTIG-001",
-                    severity="warning",
-                    message="VCF contig naming inconsistent within file",
-                    suggestion="Use consistent contig naming (e.g., all chr-prefixed or all not)",
+                    code="VCF-GT-001",
+                    severity="error",
+                    message="VCF sample/genotype columns not parseable",
+                    suggestion=(
+                        "Ensure FORMAT declares GT and every sample column is a "
+                        "genotype value such as 0/1"
+                    ),
                 )
             )
-        # bases
-        valid = set("ACGTN")
-        for l in lines:
-            if l.startswith("#"):
+            return issues
+
+        contig_issue = self._contig_consistency(body)
+        if contig_issue is not None:
+            issues.append(contig_issue)
+
+        base_issue = self._invalid_bases(body)
+        if base_issue is not None:
+            issues.append(base_issue)
+
+        pos_issue = self._pos_within_declared_assembly(body, ctx)
+        if pos_issue is not None:
+            issues.append(pos_issue)
+
+        if not issues:
+            issues.append(
+                Issue(
+                    code="VCF-OK-001",
+                    severity="info",
+                    message="VCF validation completed with no errors",
+                )
+            )
+        return issues
+
+    @staticmethod
+    def _genotypes_parseable(body: list[str], sample_columns: list[str]) -> bool:
+        if not body:
+            return True
+        parts = body[0].split("\t")
+        if len(parts) <= len(REQUIRED_COLUMNS) + 1:
+            return False
+        format_field = parts[len(REQUIRED_COLUMNS)]
+        if "GT" not in format_field.split(":"):
+            return False
+        sample_values = parts[len(REQUIRED_COLUMNS) + 1 :]
+        if len(sample_values) != len(sample_columns):
+            return False
+        for value in sample_values:
+            genotype = value.split(":")[0]
+            alleles = genotype.replace("|", "/").split("/")
+            if not genotype or any(not allele.isdigit() for allele in alleles):
+                return False
+        return True
+
+    @staticmethod
+    def _contig_consistency(body: list[str]) -> Issue | None:
+        chroms = {line.split("\t")[0] for line in body if line.strip()}
+        if len(chroms) < 2:
+            return None
+        prefixed = {chrom.startswith("chr") for chrom in chroms}
+        if len(prefixed) > 1:
+            return Issue(
+                code="VCF-CONTIG-001",
+                severity="warning",
+                message="VCF contig naming inconsistent within file",
+                suggestion="Use one contig naming convention across the file",
+            )
+        return None
+
+    @staticmethod
+    def _invalid_bases(body: list[str]) -> Issue | None:
+        for line in body:
+            parts = line.split("\t")
+            if len(parts) < 5:
                 continue
-            p = l.split("\t")
-            if len(p) >= 5:
-                if any(c not in valid for c in p[3].upper()) or any(c not in valid and c != "," for c in p[4].replace(",", "").upper()):
-                    issues.append(Issue(code="VCF-BASE-001", severity="error", message="VCF invalid bases detected", suggestion="Use ACGTN bases"))
-                    break
-        # pos check if assembly declared
-        if getattr(ctx, "assembly_declared", False) and getattr(ctx, "assembly", None):
-            # simple check - flag if pos looks huge? not enough info, but per req "POS ≤ declared reference length when assembly declared" - produce error if exceeds; without lengths table, only if clearly bad? but need deterministic
-            for l in lines:
-                if l.startswith("#"):
-                    continue
-                p = l.split("\t")
-                if len(p) >= 2:
-                    try:
-                        pos = int(p[1])
-                        if pos <= 0:
-                            issues.append(Issue(code="VCF-POS-001", severity="error", message="VCF POS out of range when assembly declared", suggestion="Check coordinates against declared assembly"))
-                            break
-                    except Exception:
-                        issues.append(Issue(code="VCF-HEADER-001", severity="error", message="VCF header missing or missing required columns"))
-                        break
-        return issues if issues else [Issue(code="DOC-OK-001", severity="info", message="VCF validation completed with no errors")]
+            ref = parts[3].upper()
+            alt = parts[4].upper()
+            if any(base not in VALID_BASES for base in ref):
+                return Issue(
+                    code="VCF-BASE-001",
+                    severity="error",
+                    message="VCF invalid bases detected",
+                    suggestion="REF and ALT may only contain A, C, G, T or N",
+                )
+            for allele in alt.split(","):
+                if any(base not in VALID_BASES for base in allele):
+                    return Issue(
+                        code="VCF-BASE-001",
+                        severity="error",
+                        message="VCF invalid bases detected",
+                        suggestion="REF and ALT may only contain A, C, G, T or N",
+                    )
+        return None
+
+    @staticmethod
+    def _pos_within_declared_assembly(
+        body: list[str], ctx: ValidationContext
+    ) -> Issue | None:
+        if not getattr(ctx, "assembly_declared", False):
+            return None
+        assembly = getattr(ctx, "assembly", None)
+        lengths = ASSEMBLY_CONTIG_LENGTHS.get((assembly or "").lower())
+        if not lengths:
+            return Issue(
+                code="VCF-POS-001",
+                severity="skipped",
+                message="VCF POS range check skipped",
+                detail=f"No bundled contig lengths available for assembly {assembly}",
+                suggestion="Supply reference contig lengths to enable this check",
+            )
+        for line in body:
+            parts = line.split("\t")
+            if len(parts) < 2:
+                continue
+            try:
+                pos = int(parts[1])
+            except ValueError:
+                return Issue(
+                    code="VCF-POS-001",
+                    severity="error",
+                    message="VCF POS value is not an integer",
+                    suggestion="POS must be a positive integer",
+                )
+            limit = lengths.get(parts[0].removeprefix("chr"))
+            if limit is not None and pos > limit:
+                return Issue(
+                    code="VCF-POS-001",
+                    severity="error",
+                    message="VCF POS exceeds the declared assembly contig length",
+                    detail=f"POS {pos} exceeds {parts[0]} length {limit}",
+                    suggestion="Check that positions match the declared assembly",
+                )
+        return None
+
+
+# Bundled subset of reference contig lengths used for the declared-assembly
+# POS check. These are published reference chromosome lengths for GRCh38 only;
+# any other assembly yields a `skipped` result rather than a guess.
+ASSEMBLY_CONTIG_LENGTHS: dict[str, dict[str, int]] = {
+    "grch38": {
+        "1": 248956422,
+        "2": 242193529,
+        "3": 198295559,
+        "4": 190214555,
+        "5": 181538259,
+        "6": 170805979,
+        "7": 159345973,
+        "8": 145138636,
+        "9": 138394717,
+        "10": 133797422,
+        "11": 135086622,
+        "12": 133275309,
+        "13": 114364328,
+        "14": 107043718,
+        "15": 101991189,
+        "16": 90338345,
+        "17": 83257441,
+        "18": 80373285,
+        "19": 58617616,
+        "20": 64444167,
+        "21": 46709983,
+        "22": 50818468,
+        "X": 156040895,
+        "Y": 57227415,
+    },
+}

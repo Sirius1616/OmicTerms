@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -125,6 +125,7 @@ export class DocumentsService {
      * @param data.orderBy
      * @param data.search
      * @param data.descending
+     * @param data.sha256
      * @returns DocumentsPublic Successful Response
      * @throws ApiError
      */
@@ -137,7 +138,8 @@ export class DocumentsService {
                 limit: data.limit,
                 order_by: data.orderBy,
                 search: data.search,
-                descending: data.descending
+                descending: data.descending,
+                sha256: data.sha256
             },
             errors: {
                 422: 'Validation Error'
@@ -219,6 +221,89 @@ export class DocumentsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/documents/{id}/jobs',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Document Metadata
+     * @param data The data for the request.
+     * @param data.id
+     * @returns DatasetMetadataPublic Successful Response
+     * @throws ApiError
+     */
+    public static getDocumentMetadata(data: DocumentsGetDocumentMetadataData): CancelablePromise<DocumentsGetDocumentMetadataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{id}/metadata',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Put Document Metadata
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.requestBody
+     * @returns DatasetMetadataPublic Successful Response
+     * @throws ApiError
+     */
+    public static putDocumentMetadata(data: DocumentsPutDocumentMetadataData): CancelablePromise<DocumentsPutDocumentMetadataResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/documents/{id}/metadata',
+            path: {
+                id: data.id
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Validate Document
+     * @param data The data for the request.
+     * @param data.id
+     * @returns ValidationRunPublic Successful Response
+     * @throws ApiError
+     */
+    public static validateDocument(data: DocumentsValidateDocumentData): CancelablePromise<DocumentsValidateDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/documents/{id}/validate',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Document Validations
+     * @param data The data for the request.
+     * @param data.id
+     * @returns ValidationRunsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listDocumentValidations(data: DocumentsListDocumentValidationsData): CancelablePromise<DocumentsListDocumentValidationsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{id}/validations',
             path: {
                 id: data.id
             },
@@ -627,6 +712,7 @@ export class UserService {
      * @param data.orderBy
      * @param data.search
      * @param data.descending
+     * @param data.sha256
      * @returns UsersPublic Successful Response
      * @throws ApiError
      */
@@ -639,7 +725,8 @@ export class UserService {
                 limit: data.limit,
                 order_by: data.orderBy,
                 search: data.search,
-                descending: data.descending
+                descending: data.descending,
+                sha256: data.sha256
             },
             errors: {
                 422: 'Validation Error'
@@ -823,6 +910,28 @@ export class UtilsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/utils/health-check/'
+        });
+    }
+}
+
+export class ValidationsService {
+    /**
+     * Get Validation Run
+     * @param data The data for the request.
+     * @param data.runId
+     * @returns ValidationRunPublic Successful Response
+     * @throws ApiError
+     */
+    public static getValidationRun(data: ValidationsGetValidationRunData): CancelablePromise<ValidationsGetValidationRunResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/validations/{run_id}',
+            path: {
+                run_id: data.runId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
         });
     }
 }

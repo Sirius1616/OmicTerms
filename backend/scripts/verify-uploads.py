@@ -23,7 +23,7 @@ def main() -> int:
     if MANIFEST.exists():
         try:
             manifest = json.loads(MANIFEST.read_text())
-        except Exception:
+        except (OSError, json.JSONDecodeError):
             manifest = []
 
     expected = {entry["file_id"]: entry for entry in manifest if "file_id" in entry}

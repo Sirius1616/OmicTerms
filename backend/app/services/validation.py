@@ -35,11 +35,19 @@ def run_validation_for_document(
     document: Document,
     trigger: ValidationTrigger = ValidationTrigger.manual,
 ) -> ValidationRun:
+    from app.models import DatasetMetadata
+
+    metadata = session.exec(
+        select(DatasetMetadata).where(col(DatasetMetadata.document_id) == document.id)
+    ).first()
+    assembly = metadata.genome_assembly if metadata and metadata.genome_assembly else None
     ctx = ValidationContext(
         document_id=str(document.id),
         document=document,
         session=session,
         trigger=trigger.value if hasattr(trigger, "value") else str(trigger),
+        assembly_declared=assembly is not None and assembly.strip() != "",
+        assembly=assembly,
     )
     registry = get_registry()
     domain_issues = registry.run_all(ctx)
