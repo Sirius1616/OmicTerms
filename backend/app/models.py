@@ -52,6 +52,29 @@ class ValidationTrigger(str, Enum):
     dependency = "dependency"
 
 
+class ExternalRepoType(str, Enum):
+    geo = "geo"
+    ena = "ena"
+    sra = "sra"
+    pride = "pride"
+
+
+class RepositoryImportStatus(str, Enum):
+    pending = "pending"
+    running = "running"
+    succeeded = "succeeded"
+    failed = "failed"
+    cancelled = "cancelled"
+
+
+class ImportJobStatus(str, Enum):
+    pending = "pending"
+    running = "running"
+    succeeded = "succeeded"
+    failed = "failed"
+    cancelled = "cancelled"
+
+
 # ------ USER   --------
 
 
@@ -133,6 +156,10 @@ class Document(DocumentBase, table=True):
     raw_extracted_json: str | None = None
     sha256: str | None = Field(nullable=True, max_length=64, min_length=64)
     size_bytes: int | None = Field(nullable=True, ge=0)
+    source_repo: ExternalRepoType | None = None
+    source_id: str | None = Field(default=None, max_length=256)
+    source_url: str | None = Field(default=None, max_length=1024)
+    fetched_at: datetime | None = Field(default=None)
 
     sample: Sample = Relationship(back_populates="documents")
     explanation: Explanation = Relationship(back_populates="document")
@@ -160,6 +187,10 @@ class DocumentPublic(DocumentBase):
     project_name: str | None = None
     sha256: str | None = None
     size_bytes: int | None = None
+    source_repo: ExternalRepoType | None = None
+    source_id: str | None = None
+    source_url: str | None = None
+    fetched_at: datetime | None = None
 
 
 class DocumentsPublic(SQLModel):
@@ -544,3 +575,77 @@ class DatasetMetadataPublic(DatasetMetadataBase):
     document_id: uuid.UUID
     recorded_at: datetime
     declared_by: uuid.UUID | None = None
+
+
+#  ------  PUBLIC REPOSITORY IMPORT  --------
+
+
+class RepositoryImport(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    project_id: uuid.UUID | None = Field(default=None, foreign_key="project.id", index=True)
+    experiment_id: uuid.UUID | None = Field(default=None, foreign_key="experiment.id", index=True)
+    repo: ExternalRepoType
+    accession: str = Field(max_length=256)
+    query: str | None = Field(default=None, max_length=512)
+    status: RepositoryImportStatus = RepositoryImportStatus.pending
+    metadata_json: str | None = Field(default=None)
+    provenance_json: str | None = Field(default=None)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    owner: User = Relationship()
+    project: Project | None = Relationship()
+    experiment: Experiment | None = Relationship()
+    import_jobs: list[ImportJob] = Relationship(back_populates="import_")
+
+
+class ImportJob(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    import_id: uuid.UUID = Field(foreign_key="repositoryimport.id", index=True)
+    status: ImportJobStatus = ImportJobStatus.pending
+    attempts: int = Field(default=0, ge=0)
+    last_error: str | None = Field(default=None)
+    started_at: datetime | None = Field(default=None)
+    finished_at: datetime | None = Field(default=None)
+    downloaded_bytes: int = Field(default=0, ge=0)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    import_: RepositoryImport = Relationship(back_populates="import_jobs")
+
+
+class RepositoryImportPublic(SQLModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    project_id: uuid.UUID | None = None
+    experiment_id: uuid.UUID | None = None
+    repo: ExternalRepoType
+    accession: str
+    query: str | None = None
+    status: RepositoryImportStatus
+    metadata_json: str | None = None
+    provenance_json: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class RepositoryImportsPublic(SQLModel):
+    data: list[RepositoryImportPublic]
+    count: int
+
+
+class ImportJobPublic(SQLModel):
+    id: uuid.UUID
+    import_id: uuid.UUID
+    status: ImportJobStatus
+    attempts: int
+    last_error: str | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    downloaded_bytes: int
+    created_at: datetime
+
+
+class ImportJobsPublic(SQLModel):
+    data: list[ImportJobPublic]
+    count: int

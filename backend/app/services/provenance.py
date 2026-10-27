@@ -15,3 +15,25 @@ logger = logging.getLogger(__name__)
 def record(**event: Any) -> None:
     """Record a provenance event (currently a no-op)."""
     logger.debug("provenance.record %s", event)
+
+
+def record_import_origin(
+    *,
+    repo: str,
+    accession: str,
+    source_urls: list[str] | None = None,
+    import_id: str | None = None,
+    job_id: str | None = None,
+    fetched_at: str | None = None,
+    **extra: Any,
+) -> None:
+    record(
+        type="import.origin",
+        repo=repo,
+        accession=accession,
+        source_urls=source_urls or [],
+        import_id=import_id,
+        job_id=job_id,
+        fetched_at=fetched_at,
+        **extra,
+    )

@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     documents,
     experiments,
+    imports,
     jobs,
     login,
     private,
@@ -28,3 +29,4 @@ api_router.include_router(validations.validation_router)
 api_router.include_router(projects.router)
 api_router.include_router(experiments.router)
 api_router.include_router(samples.router)
+api_router.include_router(imports.router)
