@@ -85,6 +85,8 @@ export type FixtureGraphEdge = {
   to: string
   kind: EvidenceEdgeKind
   label: string
+  /** Manual edges (supports/contradicts) render dashed per Story 29. */
+  manual?: boolean
 }
 
 export type FixtureActivityEvent = {
@@ -295,6 +297,7 @@ export const dashboardFixtures: DashboardFixtures = {
         to: "finding-1",
         kind: "support",
         label: "supports",
+        manual: true,
       },
       {
         id: "e9",

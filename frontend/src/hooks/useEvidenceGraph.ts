@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
-import type { RealGraphResult } from "@/components/Evidence/realGraph"
-import { buildRealGraph } from "@/components/Evidence/realGraph"
+
+import type { MergedGraphResult } from "@/components/Evidence/mergeGraph"
+import { mergeProjectGraphs } from "@/components/Evidence/mergeGraph"
 import type { DashboardFixtures } from "@/fixtures/dashboard"
 import { isFixtureModeEnabled } from "@/lib/fixtures"
 import { documentsApi } from "@/services/documents"
+import { evidenceGraphApi } from "@/services/evidenceGraph"
 import { hierarchyApi } from "@/services/hierarchy"
 import { useDevFixtures } from "./useDevFixtures"
 
@@ -19,7 +21,7 @@ export type EvidenceGraphMode = "real" | "fixture" | "none"
 export type EvidenceGraphData = {
   mode: EvidenceGraphMode
   /** Real workspace graph when mode==="real", fixture graph when "fixture". */
-  graph: RealGraphResult["graph"] | DashboardFixtures["graph"] | null
+  graph: MergedGraphResult["graph"] | DashboardFixtures["graph"] | null
   /**
    * Notice shown under the canvas. Real data gets a factual line;
    * fixtures get the mandatory synthetic-data label.
@@ -30,17 +32,42 @@ export type EvidenceGraphData = {
   isLoading: boolean
 }
 
+async function loadRealEvidenceGraph(): Promise<{
+  merged: MergedGraphResult
+}> {
+  const documents = await documentsApi.listDocuments({ limit: 500 })
+  const tree = await hierarchyApi.listProjectsTree()
+  const projectIds = (tree.data ?? []).map((project) => project.id)
+  const graphs = await Promise.all(
+    projectIds.map((projectId) =>
+      evidenceGraphApi.getProjectGraph(projectId).then((graph) => ({
+        projectId,
+        graph,
+      })),
+    ),
+  )
+  return {
+    merged: mergeProjectGraphs(
+      graphs.map((result) => result.graph),
+      documents,
+    ),
+  }
+}
+
 export function useEvidenceGraph(): EvidenceGraphData {
   const { enabled: fixturesEnabled } = useDevFixtures()
-
-  const documentsQuery = useQuery({
-    queryKey: ["documents", "evidence"],
-    queryFn: () => documentsApi.listDocuments({ limit: 500 }),
-  })
 
   const projectsQuery = useQuery({
     queryKey: ["projectsTree", "evidence"],
     queryFn: () => hierarchyApi.listProjectsTree(),
+  })
+
+  const hasProjects = (projectsQuery.data?.data ?? []).length > 0
+
+  const graphsQuery = useQuery({
+    queryKey: ["evidenceGraphs"],
+    queryFn: loadRealEvidenceGraph,
+    enabled: hasProjects,
   })
 
   const fixturesQuery = useQuery({
@@ -50,13 +77,11 @@ export function useEvidenceGraph(): EvidenceGraphData {
   })
 
   const isLoading =
-    documentsQuery.isLoading ||
-    projectsQuery.isLoading ||
-    fixturesQuery.isLoading
+    projectsQuery.isLoading || (hasProjects && graphsQuery.isLoading)
 
-  const real = buildRealGraph(projectsQuery.data, documentsQuery.data)
+  const real = graphsQuery.data?.merged ?? null
 
-  if (real.graph.nodes.length > 0) {
+  if (real && real.graph.nodes.length > 0) {
     return {
       mode: "real",
       graph: real.graph,

@@ -192,24 +192,89 @@ test("real workspace data drives the graph with traceable sources", async ({
             name: "Prostate study",
             description: "Multi-omics pilot",
             created_at: "2026-10-01T00:00:00Z",
-            experiments: [
-              {
-                id: "e1",
-                project_id: "p1",
-                name: "Baseline",
-                created_at: "2026-10-01T00:00:00Z",
-                samples: [
-                  {
-                    id: "s1",
-                    name: "Sample A",
-                    created_at: "2026-10-01T00:00:00Z",
-                  },
-                ],
-              },
-            ],
+            experiments: [],
           },
         ],
         count: 1,
+      }),
+    }),
+  )
+
+  // The evidence graph itself comes from the Story 28 endpoint; the payer of
+  // document-kind identity and inspector facts is the documents listing.
+  await page.route(/\/api\/v1\/projects\/p1\/graph(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        nodes: [
+          {
+            id: "n1",
+            entity_type: "project",
+            entity_id: "p1",
+            label: "Prostate study",
+            project_id: "p1",
+            created_at: "2026-10-01T00:00:00Z",
+          },
+          {
+            id: "n2",
+            entity_type: "experiment",
+            entity_id: "e1",
+            label: "Baseline",
+            project_id: "p1",
+            created_at: "2026-10-01T00:00:00Z",
+          },
+          {
+            id: "n3",
+            entity_type: "sample",
+            entity_id: "s1",
+            label: "Sample A",
+            project_id: "p1",
+            created_at: "2026-10-01T00:00:00Z",
+          },
+          {
+            id: "n4",
+            entity_type: "document",
+            entity_id: "d1",
+            label: "calls.vcf",
+            project_id: "p1",
+            created_at: "2026-10-02T00:00:00Z",
+          },
+        ],
+        edges: [
+          {
+            id: "eg1",
+            source_id: "n4",
+            target_id: "n3",
+            relation: "belongs_to",
+            created_at: "2026-10-02T00:00:00Z",
+          },
+          {
+            id: "eg2",
+            source_id: "n3",
+            target_id: "n2",
+            relation: "belongs_to",
+            created_at: "2026-10-02T00:00:00Z",
+          },
+          {
+            id: "eg3",
+            source_id: "n2",
+            target_id: "n1",
+            relation: "belongs_to",
+            created_at: "2026-10-02T00:00:00Z",
+          },
+          {
+            id: "eg4",
+            source_id: "n3",
+            target_id: "n1",
+            relation: "supports",
+            evidence_ref: { sha256: "b".repeat(64) },
+            note: "promoter hypothesis",
+            created_by: "u1",
+            created_at: "2026-10-03T00:00:00Z",
+          },
+        ],
+        truncated: false,
       }),
     }),
   )
@@ -231,21 +296,8 @@ test("real workspace data drives the graph with traceable sources", async ({
             sha256: "a".repeat(64),
             size_bytes: 1024,
           },
-          {
-            id: "d2",
-            file_url: "notes.txt",
-            filename: "notes.txt",
-            // Orphan document: its sample is not in the tree, so it must get
-            // no drawn edge rather than a fabricated one.
-            sample_id: "s404",
-            uploaded_at: "2026-10-03T00:00:00Z",
-            extraction_status: "pending",
-            data_type: "document",
-            sha256: null,
-            size_bytes: 500,
-          },
         ],
-        count: 2,
+        count: 1,
       }),
     }),
   )
@@ -255,27 +307,36 @@ test("real workspace data drives the graph with traceable sources", async ({
   await expect(page.getByText(/Real workspace data/).first()).toBeVisible()
 
   const nodes = page.locator(NODE_SELECTOR)
-  await expect(nodes).toHaveCount(5)
+  await expect(nodes).toHaveCount(4)
 
   const project = page.locator(NODE_SELECTOR, { hasText: "Prostate study" })
   const experiment = page.locator(NODE_SELECTOR, { hasText: "Baseline" })
   const sample = page.locator(NODE_SELECTOR, { hasText: "Sample A" })
   const variantDoc = page.locator(NODE_SELECTOR, { hasText: "calls.vcf" })
-  const orphanDoc = page.locator(NODE_SELECTOR, { hasText: "notes.txt" })
 
   await expect(project).toBeVisible()
   await expect(experiment).toBeVisible()
   await expect(sample).toBeVisible()
   await expect(variantDoc).toBeVisible()
-  await expect(orphanDoc).toBeVisible()
 
-  // Every drawn edge comes from the intercepted API: exactly 3 membership
-  // edges (documents → sample → experiment → project); the orphan document
-  // contributes none.
+  // Every drawn edge comes from the intercepted graph API: exactly the four
+  // relations the server returned (3 structural belongs_to + 1 manual
+  // supports); nothing is invented on the client.
   await expect(
     page.locator(EDGE_SELECTOR),
     "edges must exist in the API response only",
-  ).toHaveCount(3)
+  ).toHaveCount(4)
+
+  // Manual supports edges render dashed.
+  await expect(
+    page
+      .locator(EDGE_SELECTOR)
+      .evaluateAll(
+        (paths) =>
+          paths.filter((p) => p.getAttribute("stroke-dasharray") !== null)
+            .length,
+      ),
+  ).resolves.toBeGreaterThanOrEqual(1)
 
   await variantDoc.click()
   await expect(

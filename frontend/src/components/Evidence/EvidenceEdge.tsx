@@ -30,6 +30,8 @@ function EvidenceEdgeComponent({
     targetPosition,
   })
   const kind = (data?.kind as string) || "membership"
+  /** User-created relations (supports/contradicts) render dashed per Story 29. */
+  const manual = (data?.manual as boolean) === true
   const label = (data?.label as string) || ""
   const stroke = EDGE_COLORS[kind] || EDGE_COLORS.membership
 
@@ -44,6 +46,7 @@ function EvidenceEdgeComponent({
         d={edgePath}
         stroke={stroke}
         strokeWidth={selected ? 2.2 : 1.6}
+        strokeDasharray={manual ? "6 5" : undefined}
         markerEnd={markerEnd}
       />
       {label && selected ? (

@@ -191,6 +191,13 @@ function buildNodes(graph: GraphData | null): Node[] {
   }))
 }
 
+const EDGE_MARKER_COLORS: Record<string, string> = {
+  membership: "var(--evidence-edge-membership)",
+  provenance: "var(--evidence-edge-provenance)",
+  support: "var(--evidence-edge-support)",
+  citation: "var(--evidence-edge-citation)",
+}
+
 function buildEdges(graph: GraphData | null): Edge[] {
   if (!graph) return []
   return graph.edges.map((edge) => ({
@@ -201,10 +208,11 @@ function buildEdges(graph: GraphData | null): Edge[] {
     data: {
       kind: edge.kind,
       label: edge.label,
+      manual: (edge as { manual?: boolean }).manual === true,
     },
     markerEnd: {
       type: "arrowclosed" as const,
-      color: "var(--evidence-edge-membership)",
+      color: EDGE_MARKER_COLORS[edge.kind] || EDGE_MARKER_COLORS.membership,
     },
   }))
 }
