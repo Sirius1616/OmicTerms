@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, DocumentsValidateExperimentCrossData, DocumentsValidateExperimentCrossResponse, DocumentsListExperimentCrossValidationsData, DocumentsListExperimentCrossValidationsResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, ImportsCreateImportData, ImportsCreateImportResponse, ImportsListImportsResponse, ImportsGetImportData, ImportsGetImportResponse, ImportsListImportJobsData, ImportsListImportJobsResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, ProjectsReadProjectEventsData, ProjectsReadProjectEventsResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -312,6 +312,46 @@ export class DocumentsService {
             }
         });
     }
+    
+    /**
+     * Validate Experiment Cross
+     * @param data The data for the request.
+     * @param data.id
+     * @returns ValidationRunPublic Successful Response
+     * @throws ApiError
+     */
+    public static validateExperimentCross(data: DocumentsValidateExperimentCrossData): CancelablePromise<DocumentsValidateExperimentCrossResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/documents/experiments/{id}/validate-cross',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Experiment Cross Validations
+     * @param data The data for the request.
+     * @param data.id
+     * @returns ValidationRunsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listExperimentCrossValidations(data: DocumentsListExperimentCrossValidationsData): CancelablePromise<DocumentsListExperimentCrossValidationsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/experiments/{id}/validations-cross',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
 
 export class ExperimentsService {
@@ -414,6 +454,88 @@ export class ExperimentsService {
             url: '/api/v1/experiments/{experiment_id}',
             path: {
                 experiment_id: data.experimentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ImportsService {
+    /**
+     * Create Import
+     * @param data The data for the request.
+     * @param data.repo
+     * @param data.accession
+     * @param data.projectId
+     * @param data.experimentId
+     * @param data.query
+     * @returns RepositoryImportPublic Successful Response
+     * @throws ApiError
+     */
+    public static createImport(data: ImportsCreateImportData): CancelablePromise<ImportsCreateImportResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/imports/',
+            query: {
+                repo: data.repo,
+                accession: data.accession,
+                project_id: data.projectId,
+                experiment_id: data.experimentId,
+                query: data.query
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Imports
+     * @returns RepositoryImportsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listImports(): CancelablePromise<ImportsListImportsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/imports/'
+        });
+    }
+    
+    /**
+     * Get Import
+     * @param data The data for the request.
+     * @param data.id
+     * @returns RepositoryImportPublic Successful Response
+     * @throws ApiError
+     */
+    public static getImport(data: ImportsGetImportData): CancelablePromise<ImportsGetImportResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/imports/{id}',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Import Jobs
+     * @param data The data for the request.
+     * @param data.id
+     * @returns ImportJobsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listImportJobs(data: ImportsListImportJobsData): CancelablePromise<ImportsListImportJobsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/imports/{id}/jobs',
+            path: {
+                id: data.id
             },
             errors: {
                 422: 'Validation Error'
@@ -546,6 +668,34 @@ export class ProjectsService {
             url: '/api/v1/projects/{project_id}',
             path: {
                 project_id: data.projectId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Project Events
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.action
+     * @param data.skip
+     * @param data.limit
+     * @returns ProvenanceEventsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readProjectEvents(data: ProjectsReadProjectEventsData): CancelablePromise<ProjectsReadProjectEventsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/events',
+            path: {
+                project_id: data.projectId
+            },
+            query: {
+                action: data.action,
+                skip: data.skip,
+                limit: data.limit
             },
             errors: {
                 422: 'Validation Error'

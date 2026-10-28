@@ -11,7 +11,9 @@ from app.models import (
     ExperimentPublic,
     ExperimentsPublic,
     ExperimentUpdate,
+    ProvenanceActorType,
 )
+from app.services import provenance
 
 router = APIRouter(tags=["experiments"])
 
@@ -34,6 +36,16 @@ def create_experiment(
     session.add(experiment)
     session.commit()
     session.refresh(experiment)
+    provenance.record(
+        session,
+        project_id=project.id,
+        action="experiment.created",
+        entity_type="experiment",
+        entity_id=str(experiment.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"name": experiment.name},
+    )
     return ExperimentPublic.model_validate(experiment)
 
 
@@ -79,10 +91,21 @@ def update_experiment(
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
     experiment_data = experiment_in.model_dump(exclude_unset=True)
+    before_name = experiment.name
     experiment.sqlmodel_update(experiment_data)
     session.add(experiment)
     session.commit()
     session.refresh(experiment)
+    provenance.record(
+        session,
+        project_id=experiment.project_id,
+        action="experiment.updated",
+        entity_type="experiment",
+        entity_id=str(experiment.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"before": before_name, "after": experiment.name},
+    )
     return ExperimentPublic.model_validate(experiment)
 
 
@@ -93,5 +116,15 @@ def delete_experiment(
     experiment = crud.get_experiment_owned_by(session, current_user.id, experiment_id)
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
+    provenance.record(
+        session,
+        project_id=experiment.project_id,
+        action="experiment.deleted",
+        entity_type="experiment",
+        entity_id=str(experiment.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"name": experiment.name},
+    )
     crud.delete_experiment_tree(session, experiment)
     session.commit()

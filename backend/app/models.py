@@ -1,8 +1,10 @@
 import uuid
 from datetime import UTC, datetime
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import JSON, Column, Index
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -73,6 +75,57 @@ class ImportJobStatus(str, Enum):
     succeeded = "succeeded"
     failed = "failed"
     cancelled = "cancelled"
+
+
+class ProvenanceActorType(str, Enum):
+    user = "user"
+    system = "system"
+    job = "job"
+
+
+class ProvenanceEvent(SQLModel, table=True):
+    """Append-only audit record of who did what to what, and when.
+
+    ``project_id`` is intentionally a plain indexed UUID, not a foreign key:
+    the audit trail must survive deletion of the project (and of users, whose
+    ``actor_id`` is anonymised rather than history rewritten). Rows are never
+    updated or deleted through the API; retention is documented in Story 61.
+    """
+
+    __table_args__ = (
+        Index("ix_provenanceevent_project_occurred", "project_id", "occurred_at"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    project_id: uuid.UUID | None = Field(default=None, index=True)
+    actor_type: ProvenanceActorType
+    actor_id: uuid.UUID | None = Field(default=None, index=True)
+    action: str = Field(max_length=64)
+    entity_type: str = Field(max_length=64)
+    entity_id: str = Field(max_length=64)
+    payload: dict[str, Any] = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False)
+    )
+    occurred_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    request_id: str | None = Field(default=None, max_length=64)
+
+
+class ProvenanceEventPublic(SQLModel):
+    id: uuid.UUID
+    project_id: uuid.UUID | None = None
+    actor_type: ProvenanceActorType
+    actor_id: uuid.UUID | None = None
+    action: str
+    entity_type: str
+    entity_id: str
+    payload: dict[str, Any] = {}
+    occurred_at: datetime
+    request_id: str | None = None
+
+
+class ProvenanceEventsPublic(SQLModel):
+    data: list[ProvenanceEventPublic]
+    count: int
 
 
 # ------ USER   --------

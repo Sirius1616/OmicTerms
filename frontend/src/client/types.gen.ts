@@ -65,6 +65,10 @@ export type DocumentPublic = {
     project_name?: (string | null);
     sha256?: (string | null);
     size_bytes?: (number | null);
+    source_repo?: (ExternalRepoType | null);
+    source_id?: (string | null);
+    source_url?: (string | null);
+    fetched_at?: (string | null);
 };
 
 export type DocumentsPublic = {
@@ -104,6 +108,8 @@ export type ExperimentUpdate = {
     name?: (string | null);
 };
 
+export type ExternalRepoType = 'geo' | 'ena' | 'sra' | 'pride';
+
 export type ExtractionJobPublic = {
     id: string;
     document_id: string;
@@ -135,6 +141,25 @@ export type ExtractionStatus = 'pending' | 'success' | 'failed';
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
+
+export type ImportJobPublic = {
+    id: string;
+    import_id: string;
+    status: ImportJobStatus;
+    attempts: number;
+    last_error?: (string | null);
+    started_at?: (string | null);
+    finished_at?: (string | null);
+    downloaded_bytes: number;
+    created_at: string;
+};
+
+export type ImportJobsPublic = {
+    data: Array<ImportJobPublic>;
+    count: number;
+};
+
+export type ImportJobStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
 export type NewPassword = {
     token: string;
@@ -177,6 +202,50 @@ export type ProjectUpdate = {
     name?: (string | null);
     description?: (string | null);
 };
+
+export type ProvenanceActorType = 'user' | 'system' | 'job';
+
+export type ProvenanceEventPublic = {
+    id: string;
+    project_id?: (string | null);
+    actor_type: ProvenanceActorType;
+    actor_id?: (string | null);
+    action: string;
+    entity_type: string;
+    entity_id: string;
+    payload?: {
+        [key: string]: unknown;
+    };
+    occurred_at: string;
+    request_id?: (string | null);
+};
+
+export type ProvenanceEventsPublic = {
+    data: Array<ProvenanceEventPublic>;
+    count: number;
+};
+
+export type RepositoryImportPublic = {
+    id: string;
+    owner_id: string;
+    project_id?: (string | null);
+    experiment_id?: (string | null);
+    repo: ExternalRepoType;
+    accession: string;
+    query?: (string | null);
+    status: RepositoryImportStatus;
+    metadata_json?: (string | null);
+    provenance_json?: (string | null);
+    created_at: string;
+    updated_at: string;
+};
+
+export type RepositoryImportsPublic = {
+    data: Array<RepositoryImportPublic>;
+    count: number;
+};
+
+export type RepositoryImportStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
 export type SampleCreate = {
     name: string;
@@ -307,7 +376,7 @@ export type ValidationRunSummary = {
 
 export type ValidationSeverity = 'error' | 'warning' | 'info' | 'skipped';
 
-export type ValidationSubjectType = 'document' | 'dataset' | 'report';
+export type ValidationSubjectType = 'document' | 'dataset' | 'report' | 'experiment';
 
 export type ValidationTrigger = 'upload' | 'manual' | 'dependency';
 
@@ -404,6 +473,18 @@ export type DocumentsListDocumentValidationsData = {
 
 export type DocumentsListDocumentValidationsResponse = (ValidationRunsPublic);
 
+export type DocumentsValidateExperimentCrossData = {
+    id: string;
+};
+
+export type DocumentsValidateExperimentCrossResponse = (ValidationRunPublic);
+
+export type DocumentsListExperimentCrossValidationsData = {
+    id: string;
+};
+
+export type DocumentsListExperimentCrossValidationsResponse = (ValidationRunsPublic);
+
 export type ExperimentsCreateExperimentData = {
     projectId: string;
     requestBody: ExperimentCreate;
@@ -435,6 +516,30 @@ export type ExperimentsDeleteExperimentData = {
 };
 
 export type ExperimentsDeleteExperimentResponse = (void);
+
+export type ImportsCreateImportData = {
+    accession: string;
+    experimentId?: (string | null);
+    projectId?: (string | null);
+    query?: (string | null);
+    repo: string;
+};
+
+export type ImportsCreateImportResponse = (RepositoryImportPublic);
+
+export type ImportsListImportsResponse = (RepositoryImportsPublic);
+
+export type ImportsGetImportData = {
+    id: string;
+};
+
+export type ImportsGetImportResponse = (RepositoryImportPublic);
+
+export type ImportsListImportJobsData = {
+    id: string;
+};
+
+export type ImportsListImportJobsResponse = (ImportJobsPublic);
 
 export type JobsReadJobStatsResponse = (ExtractionJobStats);
 
@@ -470,6 +575,15 @@ export type ProjectsDeleteProjectData = {
 };
 
 export type ProjectsDeleteProjectResponse = (void);
+
+export type ProjectsReadProjectEventsData = {
+    action?: (string | null);
+    limit?: number;
+    projectId: string;
+    skip?: number;
+};
+
+export type ProjectsReadProjectEventsResponse = (ProvenanceEventsPublic);
 
 export type SamplesCreateSampleData = {
     experimentId: string;

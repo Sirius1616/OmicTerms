@@ -10,12 +10,14 @@ from app.models import (
     DatasetMetadata,
     Document,
     Experiment,
+    ProvenanceActorType,
     Sample,
     ValidationIssue,
     ValidationRun,
     ValidationSubjectType,
     ValidationTrigger,
 )
+from app.services import provenance
 from app.validation.files import read_document_bytes
 
 
@@ -55,6 +57,22 @@ def run_cross_validation_for_experiment(
     experiment: Experiment,
     trigger: ValidationTrigger = ValidationTrigger.manual,
 ) -> ValidationRun:
+    def _emit_run(run: ValidationRun, issues: list[ValidationIssue]) -> None:
+        provenance.record(
+            session,
+            project_id=experiment.project_id,
+            action="validation.run",
+            entity_type="experiment",
+            entity_id=str(experiment.id),
+            actor_type=ProvenanceActorType.system,
+            payload={
+                "run_id": str(run.id),
+                "trigger": trigger.value if hasattr(trigger, "value") else str(trigger),
+                "status": run.status,
+                "total": len(issues),
+            },
+        )
+
     samples = session.exec(select(Sample).where(col(Sample.experiment_id) == experiment.id)).all()
     sample_map = {str(s.id): s for s in samples}
     documents: list[Document] = []
@@ -107,6 +125,7 @@ def run_cross_validation_for_experiment(
         session.add(run)
         session.commit()
         session.refresh(run)
+        _emit_run(run, list(run.issues))
         return run
 
     # (a) sample identity
@@ -251,4 +270,5 @@ def run_cross_validation_for_experiment(
     session.add(run)
     session.commit()
     session.refresh(run)
+    _emit_run(run, list(run.issues))
     return run

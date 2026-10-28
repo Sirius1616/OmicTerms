@@ -34,7 +34,9 @@ from app.models import (
     ExtractionJob,
     ExtractionJobStatus,
     ExtractionStatus,
+    ProvenanceActorType,
 )
+from app.services import provenance
 from app.services.classification import classify
 from app.services.extraction import extract_text
 
@@ -174,9 +176,26 @@ def process_job(
     if not _claim_job(session, job_id):
         return
     session.refresh(job)
+    document_id = job.document_id
+
+    def _emit(action: str, **payload: Any) -> None:
+        project_id = provenance.project_id_for_document(session, document_id)
+        if project_id is None:
+            return
+        provenance.record(
+            session,
+            project_id=project_id,
+            action=action,
+            entity_type="document",
+            entity_id=str(document_id),
+            actor_type=ProvenanceActorType.job,
+            payload={"job_id": str(job_id), **payload},
+        )
+
+    _emit("extraction.started")
 
     while True:
-        document = session.get(Document, job.document_id)
+        document = session.get(Document, document_id)
         try:
             if document is None:
                 raise FileNotFoundError(f"document {job.document_id} no longer exists")
@@ -194,6 +213,7 @@ def process_job(
                     session.add(document)
                 session.add(job)
                 session.commit()
+                _emit("extraction.failed", error=job.last_error)
                 logger.error(
                     "extraction job %s failed after %s attempts: %s",
                     job.id,
@@ -224,6 +244,7 @@ def process_job(
             session.add(job)
             session.commit()
             _trigger_upload_validation(session, job.document_id)
+            _emit("extraction.succeeded")
             logger.info("extraction job %s succeeded", job.id)
             return
 

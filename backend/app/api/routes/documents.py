@@ -28,6 +28,7 @@ from app.models import (
     ExtractionJobsPublic,
     Filter,
     Project,
+    ProvenanceActorType,
     Sample,
 )
 from app.services import provenance
@@ -172,6 +173,24 @@ async def create_document(
     session.commit()
     session.refresh(document)
 
+    owned_project = session.get(Experiment, owned_sample.experiment_id)
+    project_id = owned_project.project_id if owned_project else owned_sample.experiment_id
+    provenance.record(
+        session,
+        project_id=project_id,
+        action="document.uploaded",
+        entity_type="document",
+        entity_id=str(document.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={
+            "filename": document.filename,
+            "sha256": document.sha256,
+            "size_bytes": document.size_bytes,
+            "data_type": data_type,
+        },
+    )
+
     job = enqueue_extraction_job(session, document.id)
     background_tasks.add_task(run_extraction_job, job.id)
 
@@ -248,6 +267,18 @@ def delete_file(session: SessionDep, current_user: CurrentUser, id: str) -> None
     if file_path.exists():
         file_path.unlink()
 
+    project_id = provenance.project_id_for_document(session, doc.id)
+    if project_id is not None:
+        provenance.record(
+            session,
+            project_id=project_id,
+            action="document.deleted",
+            entity_type="document",
+            entity_id=str(doc.id),
+            actor_type=ProvenanceActorType.user,
+            actor_id=current_user.id,
+            payload={"filename": doc.filename, "sha256": doc.sha256},
+        )
     crud.delete_documents(session, [doc.id])
     session.commit()
 
@@ -264,11 +295,24 @@ def change_filename(
         raise HTTPException(status_code=404, detail="Requested document not found")
     if not crud.get_doc_owned_by(session, current_user.id, doc):
         raise HTTPException(status_code=403, detail="Forbidden")
+    before_name = doc.filename
     document_data = document_in.model_dump(exclude_unset=True)
     document = doc.sqlmodel_update(document_data)
     session.add(document)
     session.commit()
     session.refresh(document)
+    project_id = provenance.project_id_for_document(session, document.id)
+    if project_id is not None:
+        provenance.record(
+            session,
+            project_id=project_id,
+            action="document.renamed",
+            entity_type="document",
+            entity_id=str(document.id),
+            actor_type=ProvenanceActorType.user,
+            actor_id=current_user.id,
+            payload={"before": before_name, "after": document.filename},
+        )
     return _to_public(document, _doc_names(session, document.sample_id))
 
 
@@ -357,10 +401,17 @@ def put_document_metadata(
     session.add(meta)
     session.commit()
     session.refresh(meta)
+    event_project_id = provenance.project_id_for_document(session, id)
+    if event_project_id is None:
+        raise HTTPException(status_code=404, detail="Document not found")
     provenance.record(
-        action="dataset_metadata.upsert",
-        document_id=str(id),
-        actor_id=str(current_user.id),
-        fields=sorted(data),
+        session,
+        project_id=event_project_id,
+        action="metadata.updated",
+        entity_type="document",
+        entity_id=str(id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"fields": sorted(data)},
     )
     return DatasetMetadataPublic.model_validate(meta)

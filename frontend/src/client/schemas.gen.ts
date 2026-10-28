@@ -425,6 +425,50 @@ export const DocumentPublicSchema = {
                 }
             ],
             title: 'Size Bytes'
+        },
+        source_repo: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ExternalRepoType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        source_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Id'
+        },
+        source_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Source Url'
+        },
+        fetched_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fetched At'
         }
     },
     type: 'object',
@@ -586,6 +630,12 @@ export const ExperimentsPublicSchema = {
     title: 'ExperimentsPublic'
 } as const;
 
+export const ExternalRepoTypeSchema = {
+    type: 'string',
+    enum: ['geo', 'ena', 'sra', 'pride'],
+    title: 'ExternalRepoType'
+} as const;
+
 export const ExtractionJobPublicSchema = {
     properties: {
         id: {
@@ -726,6 +776,100 @@ export const HTTPValidationErrorSchema = {
     },
     type: 'object',
     title: 'HTTPValidationError'
+} as const;
+
+export const ImportJobPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        import_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Import Id'
+        },
+        status: {
+            '$ref': '#/components/schemas/ImportJobStatus'
+        },
+        attempts: {
+            type: 'integer',
+            title: 'Attempts'
+        },
+        last_error: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Error'
+        },
+        started_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Started At'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        },
+        downloaded_bytes: {
+            type: 'integer',
+            title: 'Downloaded Bytes'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'import_id', 'status', 'attempts', 'downloaded_bytes', 'created_at'],
+    title: 'ImportJobPublic'
+} as const;
+
+export const ImportJobStatusSchema = {
+    type: 'string',
+    enum: ['pending', 'running', 'succeeded', 'failed', 'cancelled'],
+    title: 'ImportJobStatus'
+} as const;
+
+export const ImportJobsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ImportJobPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ImportJobsPublic'
 } as const;
 
 export const NewPasswordSchema = {
@@ -918,6 +1062,225 @@ export const ProjectUpdateSchema = {
     },
     type: 'object',
     title: 'ProjectUpdate'
+} as const;
+
+export const ProvenanceActorTypeSchema = {
+    type: 'string',
+    enum: ['user', 'system', 'job'],
+    title: 'ProvenanceActorType'
+} as const;
+
+export const ProvenanceEventPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        project_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Project Id'
+        },
+        actor_type: {
+            '$ref': '#/components/schemas/ProvenanceActorType'
+        },
+        actor_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actor Id'
+        },
+        action: {
+            type: 'string',
+            title: 'Action'
+        },
+        entity_type: {
+            type: 'string',
+            title: 'Entity Type'
+        },
+        entity_id: {
+            type: 'string',
+            title: 'Entity Id'
+        },
+        payload: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Payload',
+            default: {}
+        },
+        occurred_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Occurred At'
+        },
+        request_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Request Id'
+        }
+    },
+    type: 'object',
+    required: ['id', 'actor_type', 'action', 'entity_type', 'entity_id', 'occurred_at'],
+    title: 'ProvenanceEventPublic'
+} as const;
+
+export const ProvenanceEventsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProvenanceEventPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ProvenanceEventsPublic'
+} as const;
+
+export const RepositoryImportPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        owner_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Owner Id'
+        },
+        project_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Project Id'
+        },
+        experiment_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Experiment Id'
+        },
+        repo: {
+            '$ref': '#/components/schemas/ExternalRepoType'
+        },
+        accession: {
+            type: 'string',
+            title: 'Accession'
+        },
+        query: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Query'
+        },
+        status: {
+            '$ref': '#/components/schemas/RepositoryImportStatus'
+        },
+        metadata_json: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Metadata Json'
+        },
+        provenance_json: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Provenance Json'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'owner_id', 'repo', 'accession', 'status', 'created_at', 'updated_at'],
+    title: 'RepositoryImportPublic'
+} as const;
+
+export const RepositoryImportStatusSchema = {
+    type: 'string',
+    enum: ['pending', 'running', 'succeeded', 'failed', 'cancelled'],
+    title: 'RepositoryImportStatus'
+} as const;
+
+export const RepositoryImportsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/RepositoryImportPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'RepositoryImportsPublic'
 } as const;
 
 export const SampleCreateSchema = {
@@ -1568,7 +1931,7 @@ export const ValidationSeveritySchema = {
 
 export const ValidationSubjectTypeSchema = {
     type: 'string',
-    enum: ['document', 'dataset', 'report'],
+    enum: ['document', 'dataset', 'report', 'experiment'],
     title: 'ValidationSubjectType'
 } as const;
 

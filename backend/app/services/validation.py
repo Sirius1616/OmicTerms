@@ -1,21 +1,25 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlmodel import Session, col, select
 
 from app.models import (
     Document,
+    ProvenanceActorType,
     ValidationIssue,
     ValidationRun,
     ValidationSubjectType,
     ValidationTrigger,
 )
+from app.services import provenance
 from app.validation import ValidationContext, get_registry
 
 
-def _count_issues(issues: list[ValidationIssue]) -> dict[str, int]:
+def _count_issues(issues: Sequence[Any]) -> dict[str, int]:
     counts = {"errors": 0, "warnings": 0, "info": 0, "skipped": 0, "total": len(issues)}
     for issue in issues:
         sev = issue.severity.value if hasattr(issue.severity, "value") else str(issue.severity)
@@ -85,6 +89,22 @@ def run_validation_for_document(
     session.add(run)
     session.commit()
     session.refresh(run)
+    project_id = provenance.project_id_for_document(session, document.id)
+    if project_id is not None:
+        provenance.record(
+            session,
+            project_id=project_id,
+            action="validation.run",
+            entity_type="document",
+            entity_id=str(document.id),
+            actor_type=ProvenanceActorType.system,
+            payload={
+                "run_id": str(run.id),
+                "trigger": run.trigger.value if hasattr(run.trigger, "value") else str(run.trigger),
+                "status": run.status,
+                **_count_issues(domain_issues),
+            },
+        )
     return run
 
 

@@ -9,6 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.request_id import RequestIDMiddleware
 from app.services.extraction_job import poll_extraction_jobs, stop_poller
 
 
@@ -49,4 +50,6 @@ if settings.all_cors_origin:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+app.add_middleware(RequestIDMiddleware)
 

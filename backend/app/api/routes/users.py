@@ -11,6 +11,7 @@ from app.core.security import hash_password, verify_password
 from app.models import (
     AuthMessage,
     Filter,
+    ProvenanceActorType,
     UpdatePassword,
     User,
     UserCreate,
@@ -20,6 +21,7 @@ from app.models import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.services import provenance
 from app.utils import generete_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["user"])
@@ -102,6 +104,16 @@ def update_user_me(
     session.add(user_update)
     session.commit()
     session.refresh(user_update)
+    provenance.record(
+        session,
+        project_id=None,
+        action="user.updated",
+        entity_type="user",
+        entity_id=str(current_user.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"fields": sorted(user_data)},
+    )
     return UserPublic.model_validate(user_update)
 
 
@@ -161,6 +173,16 @@ def update_password(
     session.add(user)
     session.commit()
     session.refresh(user)
+    provenance.record(
+        session,
+        project_id=None,
+        action="user.password_changed",
+        entity_type="user",
+        entity_id=str(current_user.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"fields": ["hashed_password"]},
+    )
     return AuthMessage(message="Password updated successfully")
 
 
@@ -170,6 +192,8 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> AuthMessag
         raise HTTPException(
             status_code=403, detail="Superuser is not allowed to delete themselves"
         )
+    provenance.anonymise_actor(session, current_user.id)
+    session.commit()
     session.delete(current_user)
     session.commit()
     return AuthMessage(message="User deleted successfully")
@@ -188,6 +212,8 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="A superuser cannot delete themselves"
         )
+    provenance.anonymise_actor(session, db_user.id)
+    session.commit()
     session.delete(db_user)
     session.commit()
     return AuthMessage(message="User deleted successfully")

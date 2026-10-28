@@ -6,12 +6,15 @@ from sqlmodel import col, func, select
 from app import crud
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
+    Experiment,
+    ProvenanceActorType,
     Sample,
     SampleCreate,
     SamplePublic,
     SamplesPublic,
     SampleUpdate,
 )
+from app.services import provenance
 
 router = APIRouter(tags=["samples"])
 
@@ -32,6 +35,16 @@ def create_sample(
     session.add(sample)
     session.commit()
     session.refresh(sample)
+    provenance.record(
+        session,
+        project_id=experiment.project_id,
+        action="sample.created",
+        entity_type="sample",
+        entity_id=str(sample.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"name": sample.name},
+    )
     return SamplePublic.model_validate(sample)
 
 
@@ -77,10 +90,22 @@ def update_sample(
     if not sample:
         raise HTTPException(status_code=404, detail="Sample not found")
     sample_data = sample_in.model_dump(exclude_unset=True)
+    before_name = sample.name
+    experiment = session.get(Experiment, sample.experiment_id)
     sample.sqlmodel_update(sample_data)
     session.add(sample)
     session.commit()
     session.refresh(sample)
+    provenance.record(
+        session,
+        project_id=experiment.project_id if experiment else sample.experiment_id,
+        action="sample.updated",
+        entity_type="sample",
+        entity_id=str(sample.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"before": before_name, "after": sample.name},
+    )
     return SamplePublic.model_validate(sample)
 
 
@@ -91,5 +116,16 @@ def delete_sample(
     sample = crud.get_sample_owned_by(session, current_user.id, sample_id)
     if not sample:
         raise HTTPException(status_code=404, detail="Sample not found")
+    experiment = session.get(Experiment, sample.experiment_id)
+    provenance.record(
+        session,
+        project_id=experiment.project_id if experiment else sample.experiment_id,
+        action="sample.deleted",
+        entity_type="sample",
+        entity_id=str(sample.id),
+        actor_type=ProvenanceActorType.user,
+        actor_id=current_user.id,
+        payload={"name": sample.name},
+    )
     crud.delete_sample_tree(session, sample)
     session.commit()

@@ -30,6 +30,7 @@ from app.models import (
     ExternalRepoType,
     ImportJob,
     Project,
+    ProvenanceActorType,
     Sample,
 )
 from app.services import import_jobs as jobsvc
@@ -291,6 +292,7 @@ def import_geo_series(
     if claimed is None:
         raise GeoImportError("Import job cannot be claimed")
 
+    imported_project_id: uuid.UUID | None = project_id
     try:
         matrix_text = client.fetch_series_matrix(accession)
         series = parse_series_matrix(matrix_text)
@@ -324,6 +326,7 @@ def import_geo_series(
         session.commit()
 
         _, experiment = _hierarchy_for(session, owner_id, series, project_id)
+        imported_project_id = experiment.project_id
         samples = _samples_for(session, experiment, series)
         if not samples:
             raise GeoImportError("No samples mapped")
@@ -369,6 +372,8 @@ def import_geo_series(
             raise GeoImportError("Import job could not be completed")
 
         provenance.record_import_origin(
+            session,
+            project_id=imported_project_id,
             repo="geo",
             accession=series.accession,
             source_urls=[processed_url],
@@ -376,10 +381,39 @@ def import_geo_series(
             job_id=str(job.id),
             fetched_at=fetched_at,
         )
+        provenance.record(
+            session,
+            project_id=imported_project_id,
+            action="import.succeeded",
+            entity_type="import",
+            entity_id=str(imp.id),
+            actor_type=ProvenanceActorType.job,
+            payload={"import_id": str(imp.id), "job_id": str(job.id), "document_id": str(document.id)},
+        )
         return document
     except GeoImportError as exc:
         jobsvc.fail_job(session, job.id, str(exc))
+        if imported_project_id is not None:
+            provenance.record(
+                session,
+                project_id=imported_project_id,
+                action="import.failed",
+                entity_type="import",
+                entity_id=str(imp.id),
+                actor_type=ProvenanceActorType.job,
+                payload={"import_id": str(imp.id), "error": str(exc)[:500]},
+            )
         raise
     except httpx.HTTPError as exc:
         jobsvc.fail_job(session, job.id, f"HTTP error: {exc}")
+        if imported_project_id is not None:
+            provenance.record(
+                session,
+                project_id=imported_project_id,
+                action="import.failed",
+                entity_type="import",
+                entity_id=str(imp.id),
+                actor_type=ProvenanceActorType.job,
+                payload={"import_id": str(imp.id), "error": f"HTTP error: {exc}"[:500]},
+            )
         raise GeoImportError(f"HTTP error: {exc}") from exc
