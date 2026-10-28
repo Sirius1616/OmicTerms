@@ -14,7 +14,7 @@ from app.models import (
     SamplesPublic,
     SampleUpdate,
 )
-from app.services import provenance
+from app.services import evidence, provenance
 
 router = APIRouter(tags=["samples"])
 
@@ -35,6 +35,7 @@ def create_sample(
     session.add(sample)
     session.commit()
     session.refresh(sample)
+    evidence.ensure_sample_node(session, sample)
     provenance.record(
         session,
         project_id=experiment.project_id,
@@ -96,6 +97,7 @@ def update_sample(
     session.add(sample)
     session.commit()
     session.refresh(sample)
+    evidence.ensure_sample_node(session, sample)
     provenance.record(
         session,
         project_id=experiment.project_id if experiment else sample.experiment_id,
@@ -128,4 +130,5 @@ def delete_sample(
         payload={"name": sample.name},
     )
     crud.delete_sample_tree(session, sample)
+    evidence.remove_sample_node(session, sample.id)
     session.commit()

@@ -49,6 +49,8 @@ ACTION_REGISTRY: set[str] = {
     "import.origin",
     "import.succeeded",
     "import.failed",
+    "evidence.edge_created",
+    "evidence.edge_deleted",
 }
 
 

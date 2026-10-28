@@ -22,7 +22,7 @@ from app.models import (
     Sample,
     SampleTreeNode,
 )
-from app.services import provenance
+from app.services import evidence, provenance
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -104,6 +104,7 @@ def create_project(
     session.add(project)
     session.commit()
     session.refresh(project)
+    evidence.ensure_project_node(session, project)
     provenance.record(
         session,
         project_id=project.id,
@@ -152,6 +153,7 @@ def update_project(
     session.add(project)
     session.commit()
     session.refresh(project)
+    evidence.ensure_project_node(session, project)
     provenance.record(
         session,
         project_id=project.id,
@@ -183,6 +185,7 @@ def delete_project(
         payload={"name": project.name},
     )
     crud.delete_project_tree(session, project)
+    evidence.purge_project_graph(session, project.id)
     session.commit()
 
 

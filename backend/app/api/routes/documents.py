@@ -31,7 +31,7 @@ from app.models import (
     ProvenanceActorType,
     Sample,
 )
-from app.services import provenance
+from app.services import evidence, provenance
 from app.services.extraction_job import enqueue_extraction_job, run_extraction_job
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -175,6 +175,7 @@ async def create_document(
 
     owned_project = session.get(Experiment, owned_sample.experiment_id)
     project_id = owned_project.project_id if owned_project else owned_sample.experiment_id
+    evidence.materialise_document(session, document, project_id=project_id)
     provenance.record(
         session,
         project_id=project_id,
@@ -280,6 +281,7 @@ def delete_file(session: SessionDep, current_user: CurrentUser, id: str) -> None
             payload={"filename": doc.filename, "sha256": doc.sha256},
         )
     crud.delete_documents(session, [doc.id])
+    evidence.remove_document_node(session, doc.id)
     session.commit()
 
 
@@ -301,6 +303,7 @@ def change_filename(
     session.add(document)
     session.commit()
     session.refresh(document)
+    evidence.rename_document_node(session, document)
     project_id = provenance.project_id_for_document(session, document.id)
     if project_id is not None:
         provenance.record(

@@ -13,7 +13,7 @@ from app.models import (
     ExperimentUpdate,
     ProvenanceActorType,
 )
-from app.services import provenance
+from app.services import evidence, provenance
 
 router = APIRouter(tags=["experiments"])
 
@@ -36,6 +36,7 @@ def create_experiment(
     session.add(experiment)
     session.commit()
     session.refresh(experiment)
+    evidence.ensure_experiment_node(session, experiment)
     provenance.record(
         session,
         project_id=project.id,
@@ -96,6 +97,7 @@ def update_experiment(
     session.add(experiment)
     session.commit()
     session.refresh(experiment)
+    evidence.ensure_experiment_node(session, experiment)
     provenance.record(
         session,
         project_id=experiment.project_id,
@@ -127,4 +129,5 @@ def delete_experiment(
         payload={"name": experiment.name},
     )
     crud.delete_experiment_tree(session, experiment)
+    evidence.remove_experiment_node(session, experiment.id)
     session.commit()

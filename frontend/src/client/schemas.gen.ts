@@ -515,6 +515,212 @@ export const DocumentsPublicSchema = {
     title: 'DocumentsPublic'
 } as const;
 
+export const EvidenceEdgeCreateSchema = {
+    properties: {
+        source_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Source Id'
+        },
+        target_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Target Id'
+        },
+        relation: {
+            '$ref': '#/components/schemas/EvidenceRelation'
+        },
+        note: {
+            type: 'string',
+            maxLength: 512,
+            minLength: 1,
+            title: 'Note'
+        },
+        evidence_ref: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Evidence Ref'
+        }
+    },
+    type: 'object',
+    required: ['source_id', 'target_id', 'relation', 'note'],
+    title: 'EvidenceEdgeCreate',
+    description: 'Manual linking between two existing nodes of the same project.'
+} as const;
+
+export const EvidenceEntityTypeSchema = {
+    type: 'string',
+    enum: ['document', 'run', 'sample', 'experiment', 'finding', 'report', 'artifact', 'project'],
+    title: 'EvidenceEntityType',
+    description: `What kind of record an evidence-graph node represents.
+
+\`\`run\`\`, \`\`finding\`\`, \`\`report\`\` and \`\`artifact\`\` are declared up front so
+the graph substrate is stable, but they are only materialised when their
+owning models exist (Stories 25, 30, 36). \`\`project\`\` is appended beyond
+the original Story 28 set because acceptance criterion (1) requires
+project nodes to auto-materialise and the enum could not represent them.`
+} as const;
+
+export const EvidenceGraphEdgePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        source_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Source Id'
+        },
+        target_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Target Id'
+        },
+        relation: {
+            '$ref': '#/components/schemas/EvidenceRelation'
+        },
+        evidence_ref: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Evidence Ref'
+        },
+        created_by: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created By'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        note: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Note'
+        }
+    },
+    type: 'object',
+    required: ['id', 'source_id', 'target_id', 'relation', 'created_at'],
+    title: 'EvidenceGraphEdgePublic'
+} as const;
+
+export const EvidenceGraphPublicSchema = {
+    properties: {
+        nodes: {
+            items: {
+                '$ref': '#/components/schemas/EvidenceNodePublic'
+            },
+            type: 'array',
+            title: 'Nodes',
+            default: []
+        },
+        edges: {
+            items: {
+                '$ref': '#/components/schemas/EvidenceGraphEdgePublic'
+            },
+            type: 'array',
+            title: 'Edges',
+            default: []
+        },
+        truncated: {
+            type: 'boolean',
+            title: 'Truncated',
+            default: false
+        }
+    },
+    type: 'object',
+    title: 'EvidenceGraphPublic',
+    description: `Bounded snapshot: the node cap is enforced server-side.
+
+\`\`truncated\`\` is true when the project has more nodes than fit into the
+response — callers must not silently assume they see everything.`
+} as const;
+
+export const EvidenceNodePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        entity_type: {
+            '$ref': '#/components/schemas/EvidenceEntityType'
+        },
+        entity_id: {
+            type: 'string',
+            title: 'Entity Id'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        project_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Project Id'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'entity_type', 'entity_id', 'label', 'created_at'],
+    title: 'EvidenceNodePublic'
+} as const;
+
+export const EvidenceRelationSchema = {
+    type: 'string',
+    enum: ['derived_from', 'produced_by', 'supports', 'contradicts', 'reports_on', 'same_sample_as', 'input_to', 'belongs_to'],
+    title: 'EvidenceRelation',
+    description: `Relations used by evidence-graph edges; each has one meaning only.
+
+The first seven are Story 28's contract. \`\`belongs_to\`\` is the structural
+containment edge (document→sample, sample→experiment, experiment→project):
+Story 28's acceptance criteria require auto-materialised containment edges
+on upload, which the original relation set could not express without
+misusing \`\`derived_from\`\`. Only \`\`supports\`\` and \`\`contradicts\`\` may be
+created manually by users.`
+} as const;
+
 export const ExperimentCreateSchema = {
     properties: {
         name: {

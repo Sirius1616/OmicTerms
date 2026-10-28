@@ -80,6 +80,76 @@ export type DocumentUpdate = {
     filename?: (string | null);
 };
 
+/**
+ * Manual linking between two existing nodes of the same project.
+ */
+export type EvidenceEdgeCreate = {
+    source_id: string;
+    target_id: string;
+    relation: EvidenceRelation;
+    note: string;
+    evidence_ref?: ({
+    [key: string]: unknown;
+} | null);
+};
+
+/**
+ * What kind of record an evidence-graph node represents.
+ *
+ * ``run``, ``finding``, ``report`` and ``artifact`` are declared up front so
+ * the graph substrate is stable, but they are only materialised when their
+ * owning models exist (Stories 25, 30, 36). ``project`` is appended beyond
+ * the original Story 28 set because acceptance criterion (1) requires
+ * project nodes to auto-materialise and the enum could not represent them.
+ */
+export type EvidenceEntityType = 'document' | 'run' | 'sample' | 'experiment' | 'finding' | 'report' | 'artifact' | 'project';
+
+export type EvidenceGraphEdgePublic = {
+    id: string;
+    source_id: string;
+    target_id: string;
+    relation: EvidenceRelation;
+    evidence_ref?: ({
+    [key: string]: unknown;
+} | null);
+    created_by?: (string | null);
+    created_at: string;
+    note?: (string | null);
+};
+
+/**
+ * Bounded snapshot: the node cap is enforced server-side.
+ *
+ * ``truncated`` is true when the project has more nodes than fit into the
+ * response — callers must not silently assume they see everything.
+ */
+export type EvidenceGraphPublic = {
+    nodes?: Array<EvidenceNodePublic>;
+    edges?: Array<EvidenceGraphEdgePublic>;
+    truncated?: boolean;
+};
+
+export type EvidenceNodePublic = {
+    id: string;
+    entity_type: EvidenceEntityType;
+    entity_id: string;
+    label: string;
+    project_id?: (string | null);
+    created_at: string;
+};
+
+/**
+ * Relations used by evidence-graph edges; each has one meaning only.
+ *
+ * The first seven are Story 28's contract. ``belongs_to`` is the structural
+ * containment edge (document→sample, sample→experiment, experiment→project):
+ * Story 28's acceptance criteria require auto-materialised containment edges
+ * on upload, which the original relation set could not express without
+ * misusing ``derived_from``. Only ``supports`` and ``contradicts`` may be
+ * created manually by users.
+ */
+export type EvidenceRelation = 'derived_from' | 'produced_by' | 'supports' | 'contradicts' | 'reports_on' | 'same_sample_as' | 'input_to' | 'belongs_to';
+
 export type ExperimentCreate = {
     name: string;
 };
@@ -490,6 +560,26 @@ export type DocumentsListExperimentCrossValidationsData = {
 };
 
 export type DocumentsListExperimentCrossValidationsResponse = (ValidationRunsPublic);
+
+export type EvidenceReadProjectGraphData = {
+    depth?: (number | null);
+    projectId: string;
+};
+
+export type EvidenceReadProjectGraphResponse = (EvidenceGraphPublic);
+
+export type EvidenceCreateGraphEdgeData = {
+    projectId: string;
+    requestBody: EvidenceEdgeCreate;
+};
+
+export type EvidenceCreateGraphEdgeResponse = (EvidenceGraphEdgePublic);
+
+export type EvidenceDeleteGraphEdgeData = {
+    edgeId: string;
+};
+
+export type EvidenceDeleteGraphEdgeResponse = (void);
 
 export type ExperimentsCreateExperimentData = {
     projectId: string;

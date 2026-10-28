@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.routes import (
     documents,
+    evidence,
     experiments,
     imports,
     jobs,
@@ -27,6 +28,8 @@ api_router.include_router(documents.upload_router)
 api_router.include_router(validations.router)
 api_router.include_router(validations.validation_router)
 api_router.include_router(projects.router)
+api_router.include_router(evidence.router)
+api_router.include_router(evidence.edge_router)
 api_router.include_router(experiments.router)
 api_router.include_router(samples.router)
 api_router.include_router(imports.router)

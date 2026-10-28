@@ -83,6 +83,135 @@ class ProvenanceActorType(str, Enum):
     job = "job"
 
 
+class EvidenceEntityType(str, Enum):
+    """What kind of record an evidence-graph node represents.
+
+    ``run``, ``finding``, ``report`` and ``artifact`` are declared up front so
+    the graph substrate is stable, but they are only materialised when their
+    owning models exist (Stories 25, 30, 36). ``project`` is appended beyond
+    the original Story 28 set because acceptance criterion (1) requires
+    project nodes to auto-materialise and the enum could not represent them.
+    """
+
+    document = "document"
+    run = "run"
+    sample = "sample"
+    experiment = "experiment"
+    finding = "finding"
+    report = "report"
+    artifact = "artifact"
+    project = "project"
+
+
+class EvidenceRelation(str, Enum):
+    """Relations used by evidence-graph edges; each has one meaning only.
+
+    The first seven are Story 28's contract. ``belongs_to`` is the structural
+    containment edge (document→sample, sample→experiment, experiment→project):
+    Story 28's acceptance criteria require auto-materialised containment edges
+    on upload, which the original relation set could not express without
+    misusing ``derived_from``. Only ``supports`` and ``contradicts`` may be
+    created manually by users.
+    """
+
+    derived_from = "derived_from"
+    produced_by = "produced_by"
+    supports = "supports"
+    contradicts = "contradicts"
+    reports_on = "reports_on"
+    same_sample_as = "same_sample_as"
+    input_to = "input_to"
+    belongs_to = "belongs_to"
+
+
+class EvidenceNode(SQLModel, table=True):
+    """Materialised graph node for one scientific record (Story 28).
+
+    Mirror rows: creation/removal happens in ``app/services/evidence.py``
+    hooks, never by direct writes elsewhere. No foreign key to the entity
+    tables — nodes and edges are derivable substrate, and the audit trail for
+    deleted entities stays in ``provenanceevent``.
+    """
+
+    __table_args__ = (
+        Index(
+            "ix_evidencenode_entity_type_entity_id",
+            "entity_type",
+            "entity_id",
+            unique=True,
+        ),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    entity_type: EvidenceEntityType
+    entity_id: str = Field(max_length=64)
+    label: str = Field(max_length=256)
+    project_id: uuid.UUID | None = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class EvidenceEdge(SQLModel, table=True):
+    """Typed relation between two evidence nodes (Story 28).
+
+    Automatic edges (``belongs_to`` and the future run hooks) are structural;
+    ``supports``/``contradicts`` are user-created, require an ``evidence_ref``
+    and a note, and audit ``created_by``.
+    """
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    source_id: uuid.UUID = Field(foreign_key="evidencenode.id", index=True)
+    target_id: uuid.UUID = Field(foreign_key="evidencenode.id", index=True)
+    relation: EvidenceRelation
+    evidence_ref: dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSON, nullable=True)
+    )
+    created_by: uuid.UUID | None = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    note: str | None = Field(default=None, max_length=512)
+
+
+class EvidenceNodePublic(SQLModel):
+    id: uuid.UUID
+    entity_type: EvidenceEntityType
+    entity_id: str
+    label: str
+    project_id: uuid.UUID | None = None
+    created_at: datetime
+
+
+class EvidenceGraphEdgePublic(SQLModel):
+    id: uuid.UUID
+    source_id: uuid.UUID
+    target_id: uuid.UUID
+    relation: EvidenceRelation
+    evidence_ref: dict[str, Any] | None = None
+    created_by: uuid.UUID | None = None
+    created_at: datetime
+    note: str | None = None
+
+
+class EvidenceGraphPublic(SQLModel):
+    """Bounded snapshot: the node cap is enforced server-side.
+
+    ``truncated`` is true when the project has more nodes than fit into the
+    response — callers must not silently assume they see everything.
+    """
+
+    nodes: list[EvidenceNodePublic] = []
+    edges: list[EvidenceGraphEdgePublic] = []
+    truncated: bool = False
+
+
+class EvidenceEdgeCreate(SQLModel):
+    """Manual linking between two existing nodes of the same project."""
+
+    source_id: uuid.UUID
+    target_id: uuid.UUID
+    relation: EvidenceRelation
+    note: str = Field(max_length=512, min_length=1)
+    evidence_ref: dict[str, Any] | None = None
+
+
 class ProvenanceEvent(SQLModel, table=True):
     """Append-only audit record of who did what to what, and when.
 
