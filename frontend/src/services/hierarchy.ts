@@ -1,6 +1,7 @@
 import type {
   ExperimentPublic,
   ProjectPublic,
+  ProjectTreeNode,
   ProjectTreePublic,
   SamplePublic,
 } from "@/client"
@@ -9,6 +10,10 @@ import { ExperimentsService, ProjectsService, SamplesService } from "@/client"
 export const hierarchyApi = {
   async listProjectsTree(): Promise<ProjectTreePublic> {
     return ProjectsService.readProjectsTree()
+  },
+
+  async getProjectTree(projectId: string): Promise<ProjectTreeNode> {
+    return ProjectsService.readProjectTree({ projectId })
   },
 
   async createProject(

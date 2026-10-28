@@ -31,6 +31,8 @@ import { Route as LayoutAcademyPathRouteImport } from './routes/_layout/academy.
 import { Route as LayoutAcademyProgressRouteImport } from './routes/_layout/academy.progress'
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents.index'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents.$documentId'
+import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects.index'
+import { Route as LayoutProjectsProjectIdActivityRouteImport } from './routes/_layout/projects.$projectId.activity'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -142,6 +144,17 @@ const LayoutDocumentsDocumentIdRoute =
     path: '/$documentId',
     getParentRoute: () => LayoutDocumentsRoute,
   } as any)
+const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutProjectsRoute,
+} as any)
+const LayoutProjectsProjectIdActivityRoute =
+  LayoutProjectsProjectIdActivityRouteImport.update({
+    id: '/$projectId/activity',
+    path: '/$projectId/activity',
+    getParentRoute: () => LayoutProjectsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
@@ -155,7 +168,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof LayoutDocumentsRouteWithChildren
   '/evidence': typeof LayoutEvidenceRoute
   '/integrations': typeof LayoutIntegrationsRoute
-  '/projects': typeof LayoutProjectsRoute
+  '/projects': typeof LayoutProjectsRouteWithChildren
   '/reports': typeof LayoutReportsRoute
   '/settings': typeof LayoutSettingsRoute
   '/academy/concepts': typeof LayoutAcademyConceptsRoute
@@ -165,6 +178,8 @@ export interface FileRoutesByFullPath {
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/academy/': typeof LayoutAcademyIndexRoute
   '/documents/': typeof LayoutDocumentsIndexRoute
+  '/projects/': typeof LayoutProjectsIndexRoute
+  '/projects/$projectId/activity': typeof LayoutProjectsProjectIdActivityRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -175,7 +190,6 @@ export interface FileRoutesByTo {
   '/analysis-tools': typeof LayoutAnalysisToolsRoute
   '/evidence': typeof LayoutEvidenceRoute
   '/integrations': typeof LayoutIntegrationsRoute
-  '/projects': typeof LayoutProjectsRoute
   '/reports': typeof LayoutReportsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
@@ -186,6 +200,8 @@ export interface FileRoutesByTo {
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/academy': typeof LayoutAcademyIndexRoute
   '/documents': typeof LayoutDocumentsIndexRoute
+  '/projects': typeof LayoutProjectsIndexRoute
+  '/projects/$projectId/activity': typeof LayoutProjectsProjectIdActivityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -200,7 +216,7 @@ export interface FileRoutesById {
   '/_layout/documents': typeof LayoutDocumentsRouteWithChildren
   '/_layout/evidence': typeof LayoutEvidenceRoute
   '/_layout/integrations': typeof LayoutIntegrationsRoute
-  '/_layout/projects': typeof LayoutProjectsRoute
+  '/_layout/projects': typeof LayoutProjectsRouteWithChildren
   '/_layout/reports': typeof LayoutReportsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
@@ -211,6 +227,8 @@ export interface FileRoutesById {
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/_layout/academy/': typeof LayoutAcademyIndexRoute
   '/_layout/documents/': typeof LayoutDocumentsIndexRoute
+  '/_layout/projects/': typeof LayoutProjectsIndexRoute
+  '/_layout/projects/$projectId/activity': typeof LayoutProjectsProjectIdActivityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -236,6 +254,8 @@ export interface FileRouteTypes {
     | '/documents/$documentId'
     | '/academy/'
     | '/documents/'
+    | '/projects/'
+    | '/projects/$projectId/activity'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -246,7 +266,6 @@ export interface FileRouteTypes {
     | '/analysis-tools'
     | '/evidence'
     | '/integrations'
-    | '/projects'
     | '/reports'
     | '/settings'
     | '/'
@@ -257,6 +276,8 @@ export interface FileRouteTypes {
     | '/documents/$documentId'
     | '/academy'
     | '/documents'
+    | '/projects'
+    | '/projects/$projectId/activity'
   id:
     | '__root__'
     | '/_layout'
@@ -281,6 +302,8 @@ export interface FileRouteTypes {
     | '/_layout/documents/$documentId'
     | '/_layout/academy/'
     | '/_layout/documents/'
+    | '/_layout/projects/'
+    | '/_layout/projects/$projectId/activity'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -447,6 +470,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDocumentsDocumentIdRouteImport
       parentRoute: typeof LayoutDocumentsRoute
     }
+    '/_layout/projects/': {
+      id: '/_layout/projects/'
+      path: '/'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof LayoutProjectsIndexRouteImport
+      parentRoute: typeof LayoutProjectsRoute
+    }
+    '/_layout/projects/$projectId/activity': {
+      id: '/_layout/projects/$projectId/activity'
+      path: '/$projectId/activity'
+      fullPath: '/projects/$projectId/activity'
+      preLoaderRoute: typeof LayoutProjectsProjectIdActivityRouteImport
+      parentRoute: typeof LayoutProjectsRoute
+    }
   }
 }
 
@@ -484,6 +521,20 @@ const LayoutDocumentsRouteWithChildren = LayoutDocumentsRoute._addFileChildren(
   LayoutDocumentsRouteChildren,
 )
 
+interface LayoutProjectsRouteChildren {
+  LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
+  LayoutProjectsProjectIdActivityRoute: typeof LayoutProjectsProjectIdActivityRoute
+}
+
+const LayoutProjectsRouteChildren: LayoutProjectsRouteChildren = {
+  LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
+  LayoutProjectsProjectIdActivityRoute: LayoutProjectsProjectIdActivityRoute,
+}
+
+const LayoutProjectsRouteWithChildren = LayoutProjectsRoute._addFileChildren(
+  LayoutProjectsRouteChildren,
+)
+
 interface LayoutRouteChildren {
   LayoutAcademyRoute: typeof LayoutAcademyRouteWithChildren
   LayoutAdminRoute: typeof LayoutAdminRoute
@@ -491,7 +542,7 @@ interface LayoutRouteChildren {
   LayoutDocumentsRoute: typeof LayoutDocumentsRouteWithChildren
   LayoutEvidenceRoute: typeof LayoutEvidenceRoute
   LayoutIntegrationsRoute: typeof LayoutIntegrationsRoute
-  LayoutProjectsRoute: typeof LayoutProjectsRoute
+  LayoutProjectsRoute: typeof LayoutProjectsRouteWithChildren
   LayoutReportsRoute: typeof LayoutReportsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
@@ -504,7 +555,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutDocumentsRoute: LayoutDocumentsRouteWithChildren,
   LayoutEvidenceRoute: LayoutEvidenceRoute,
   LayoutIntegrationsRoute: LayoutIntegrationsRoute,
-  LayoutProjectsRoute: LayoutProjectsRoute,
+  LayoutProjectsRoute: LayoutProjectsRouteWithChildren,
   LayoutReportsRoute: LayoutReportsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,

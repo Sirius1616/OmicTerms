@@ -4,16 +4,33 @@ import type { DashboardFixtures } from "@/fixtures/dashboard"
 import { isFixtureModeEnabled } from "@/lib/fixtures"
 import { documentsApi } from "@/services/documents"
 import { hierarchyApi } from "@/services/hierarchy"
-import type { DocumentPublic } from "@/types/documents"
+import type { ProvenanceEventPublic } from "@/services/provenance"
 import { useDevFixtures } from "./useDevFixtures"
 
-export type ActivityEvent = {
-  id: string
-  kind: "upload" | "failed" | "validation" | "analysis" | "finding"
-  text: string
-  timestamp: string
-  href?: string
-  isFixture?: boolean
+const FIXTURE_ACTION_BY_KIND: Record<string, string> = {
+  upload: "document.uploaded",
+  failed: "extraction.failed",
+  validation: "validation.run",
+  analysis: "extraction.started",
+  finding: "metadata.updated",
+}
+
+function fixtureEvents(
+  fixtures: DashboardFixtures | null,
+): ProvenanceEventPublic[] {
+  if (!fixtures) return []
+  return fixtures.activity.map((event) => ({
+    id: event.id,
+    project_id: null,
+    actor_type: "system",
+    actor_id: null,
+    action: FIXTURE_ACTION_BY_KIND[event.kind] ?? "metadata.updated",
+    entity_type: "document",
+    entity_id: "",
+    payload: { fixtureText: event.text },
+    occurred_at: event.timestamp,
+    request_id: null,
+  }))
 }
 
 export type IntegrityMetric = {
@@ -32,38 +49,6 @@ async function loadDashboardFixtures(): Promise<DashboardFixtures | null> {
   if (!isFixtureModeEnabled()) return null
   const mod = await import("@/fixtures/dashboard")
   return mod.dashboardFixtures
-}
-
-function buildActivity(documents: DocumentPublic[]): ActivityEvent[] {
-  const events: ActivityEvent[] = []
-
-  for (const document of documents) {
-    const name =
-      document.filename || document.file_url.split("/").pop() || "file"
-    events.push({
-      id: `${document.id}-upload`,
-      kind: "upload",
-      text: `You uploaded ${name}`,
-      timestamp: document.uploaded_at,
-      href: `/documents/${document.id}`,
-    })
-    if (document.extraction_status === "failed") {
-      events.push({
-        id: `${document.id}-failed`,
-        kind: "failed",
-        text: `Extraction failed for ${name}`,
-        timestamp: document.uploaded_at,
-        href: `/documents/${document.id}`,
-      })
-    }
-  }
-
-  return events
-    .sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    )
-    .slice(0, 10)
 }
 
 export function useDashboardData() {
@@ -118,8 +103,6 @@ export function useDashboardData() {
     )
     .slice(0, 5)
 
-  const activity = buildActivity(documents)
-
   const fixtures = fixturesQuery.data ?? null
 
   const integrity: Record<string, IntegrityMetric> = {
@@ -134,17 +117,17 @@ export function useDashboardData() {
           value: 0,
           numerator: 0,
           denominator: documentCount,
-          context: "checksums arrive in M2",
+          context: "checksums recorded on upload",
         },
     validationRuns: fixtures
       ? { value: fixtures.integrity.validationRuns, context: "fixture data" }
-      : { value: null, context: "validation engine lands in M2" },
+      : { value: null, context: "validation runs recorded on document" },
     provenanceCoverage: fixtures
       ? {
           value: fixtures.integrity.provenanceCoverage,
           context: "fixture data",
         }
-      : { value: null, context: "provenance log arrives in M2" },
+      : { value: null, context: "provenance coverage tracking planned" },
   }
 
   return {
@@ -154,6 +137,7 @@ export function useDashboardData() {
     projectsQuery,
     fixtures,
     fixturesEnabled,
+    fixtureActivity: fixtureEvents(fixtures),
     counts: {
       projects: projectsCount,
       experiments: experimentsCount,
@@ -163,7 +147,6 @@ export function useDashboardData() {
       failed: failedCount,
     },
     recentFiles,
-    activity,
     integrity,
   }
 }

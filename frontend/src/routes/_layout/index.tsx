@@ -59,11 +59,12 @@ function Dashboard() {
         <EvidenceMapPanel fixtures={dashboard.fixtures} />
         <KeyFindingsPanel fixtures={dashboard.fixtures} />
         <ActivityTimelinePanel
-          events={dashboard.activity}
+          projects={dashboard.projects.map((project) => ({
+            id: project.id,
+            name: project.name,
+          }))}
           actorName={actorName}
-          fixtures={dashboard.fixtures}
-          error={dashboard.documentsQuery.isError}
-          onRetry={() => dashboard.documentsQuery.refetch()}
+          fixtureEvents={dashboard.fixtureActivity}
         />
         <div className="flex flex-col gap-4 xl:col-span-4">
           <EvidenceQualityPanel integrity={dashboard.integrity} />
