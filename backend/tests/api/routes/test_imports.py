@@ -143,8 +143,13 @@ def test_create_import_rejects_foreign_experiment(upload_env, client, session):
     assert response.status_code == 403
 
 
+def _owner_id(session) -> uuid.UUID:
+    user = create_user(session, _email("import-owner"))
+    return user.id
+
+
 def test_job_state_machine_lifecycle(session):
-    owner_id = uuid.uuid4()
+    owner_id = _owner_id(session)
     imp = svc.create_import(
         session, owner_id=owner_id, repo=ExternalRepoType.geo, accession="GSE1"
     )
@@ -164,7 +169,7 @@ def test_job_state_machine_lifecycle(session):
 
 
 def test_illegal_job_transitions_rejected(session):
-    owner_id = uuid.uuid4()
+    owner_id = _owner_id(session)
     imp = svc.create_import(
         session, owner_id=owner_id, repo=ExternalRepoType.geo, accession="GSE2"
     )
@@ -180,7 +185,7 @@ def test_illegal_job_transitions_rejected(session):
 
 
 def test_fail_job_records_error_and_propagates(session):
-    owner_id = uuid.uuid4()
+    owner_id = _owner_id(session)
     imp = svc.create_import(
         session, owner_id=owner_id, repo=ExternalRepoType.geo, accession="GSE3"
     )
@@ -194,8 +199,8 @@ def test_fail_job_records_error_and_propagates(session):
 
 
 def test_get_import_owned_is_tenant_scoped(session):
-    owner_id = uuid.uuid4()
-    other_id = uuid.uuid4()
+    owner_id = _owner_id(session)
+    other_id = create_user(session, _email("import-other")).id
     imp = svc.create_import(
         session, owner_id=owner_id, repo=ExternalRepoType.geo, accession="GSE4"
     )

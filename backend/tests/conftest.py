@@ -5,6 +5,7 @@ os.environ.setdefault("EXTRACTION_POLLER_ENABLED", "false")
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
@@ -18,6 +19,15 @@ connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite")
 engine = create_engine(
     DATABASE_URL, connect_args=connect_args, poolclass=StaticPool, echo=False
 )
+
+if DATABASE_URL.startswith("sqlite"):
+    # Enforce the same FK constraints Postgres does, so cascade gaps surface
+    # in tests instead of only in production deployments.
+    @event.listens_for(engine, "connect")
+    def _enable_sqlite_foreign_keys(dbapi_connection, _record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -30,11 +30,7 @@ async function apiUpload(
   content: string,
 ): Promise<Record<string, unknown>> {
   const form = new FormData()
-  form.append(
-    "file",
-    new Blob([content], { type: "text/plain" }),
-    filename,
-  )
+  form.append("file", new Blob([content], { type: "text/plain" }), filename)
   form.append("sample_id", sampleId)
   const response = await fetch(`${API_BASE}/api/v1/documents/`, {
     method: "POST",
@@ -47,12 +43,22 @@ async function apiUpload(
 
 async function seedHierarchy(token: string, name: string) {
   const project = await api(token, "POST", "/projects/", { name })
-  const experiment = await api(token, "POST", `/projects/${project.id}/experiments`, {
-    name: `${name} Experiment`,
-  })
-  const sample = await api(token, "POST", `/experiments/${experiment.id}/samples`, {
-    name: `${name} Sample`,
-  })
+  const experiment = await api(
+    token,
+    "POST",
+    `/projects/${project.id}/experiments`,
+    {
+      name: `${name} Experiment`,
+    },
+  )
+  const sample = await api(
+    token,
+    "POST",
+    `/experiments/${experiment.id}/samples`,
+    {
+      name: `${name} Sample`,
+    },
+  )
   return { project, experiment, sample }
 }
 
@@ -69,8 +75,15 @@ test("upload then rename then validate renders newest-first with correct actors"
   const token = await superuserToken(page)
 
   const { project, sample } = await seedHierarchy(token!, "Timeline")
-  const doc = await apiUpload(token!, sample.id as string, "timeline.tsv", "gene\tS1\nTP53\t1\n")
-  await api(token!, "PATCH", `/documents/${doc.id}`, { filename: "renamed-timeline.tsv" })
+  const doc = await apiUpload(
+    token!,
+    sample.id as string,
+    "timeline.tsv",
+    "gene\tS1\nTP53\t1\n",
+  )
+  await api(token!, "PATCH", `/documents/${doc.id}`, {
+    filename: "renamed-timeline.tsv",
+  })
   await api(token!, "POST", `/documents/${doc.id}/validate`)
 
   await page.goto(`/projects/${project.id}/activity`)
@@ -90,15 +103,19 @@ test("upload then rename then validate renders newest-first with correct actors"
 
   // Messages come from the payload.
   await expect(
-    page.getByText('uploaded timeline.tsv', { exact: true }).first(),
+    page.getByText("uploaded timeline.tsv", { exact: true }).first(),
   ).toBeVisible()
   await expect(
-    page.getByText('renamed document “timeline.tsv” → “renamed-timeline.tsv”').first(),
+    page
+      .getByText("renamed document “timeline.tsv” → “renamed-timeline.tsv”")
+      .first(),
   ).toBeVisible()
 
   // User events show the researcher; system/job events are visually distinct.
   await expect(page.getByTestId("event-actor-job").first()).toBeVisible()
-  await expect(page.getByText("validation run found", { exact: false }).first()).toBeVisible()
+  await expect(
+    page.getByText("validation run found", { exact: false }).first(),
+  ).toBeVisible()
 
   // Deep link from a document event to the document detail page.
   await page.getByRole("link", { name: "View" }).first().click()
@@ -115,7 +132,9 @@ test("category filter narrows the timeline", async ({ page }) => {
   await expect(page.getByTestId("provenance-row")).toHaveCount(0)
 })
 
-test("pagination loads more than the first page of events", async ({ page }) => {
+test("pagination loads more than the first page of events", async ({
+  page,
+}) => {
   const token = await superuserToken(page)
   const { project, sample } = await seedHierarchy(token!, "Pagination")
 
@@ -158,7 +177,9 @@ test("fresh project shows its creation event; no fixtures mixed in", async ({
   await page.goto(`/projects/${project.id}/activity`)
   await expect(page.getByText("No activity yet")).toHaveCount(0)
   await expect(
-    page.locator('[data-testid="provenance-row"][data-action="project.created"]'),
+    page.locator(
+      '[data-testid="provenance-row"][data-action="project.created"]',
+    ),
   ).toHaveCount(1)
   // AC4: no fixture markers when the API returns real data.
   await expect(page.getByText("fixture", { exact: true })).toHaveCount(0)

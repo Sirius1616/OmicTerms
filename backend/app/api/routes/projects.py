@@ -77,7 +77,18 @@ def read_projects_tree(
         .join(Project, col(Project.id) == Experiment.project_id)
         .where(Project.user_id == current_user.id)
     ).all()
-    tree = [_build_tree(project, experiments, samples) for project in projects]
+    tree = []
+    for project in projects:
+        # Scope each node to its own experiments/samples — the flat lists are
+        # user-wide queries, so filter them per project.
+        project_experiments = [
+            experiment for experiment in experiments if experiment.project_id == project.id
+        ]
+        experiment_ids = {experiment.id for experiment in project_experiments}
+        project_samples = [
+            sample for sample in samples if sample.experiment_id in experiment_ids
+        ]
+        tree.append(_build_tree(project, project_experiments, project_samples))
     return ProjectTreePublic(data=tree, count=count)
 
 

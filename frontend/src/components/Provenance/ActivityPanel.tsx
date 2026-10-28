@@ -51,10 +51,9 @@ export function ActionFilterBar({
   onChange: (value: string | undefined) => void
 }) {
   return (
-    <div
-      role="group"
+    <fieldset
       aria-label="Filter by action category"
-      className="flex flex-wrap gap-2"
+      className="m-0 flex flex-wrap gap-2 border-0 p-0"
     >
       <FilterChip
         active={value === undefined}
@@ -69,7 +68,7 @@ export function ActionFilterBar({
           onClick={() => onChange(category)}
         />
       ))}
-    </div>
+    </fieldset>
   )
 }
 

@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.security import hash_password, verify_password
 from app.models import (
     Conversation,
+    DatasetMetadata,
     Document,
     Experiment,
     Explanation,
@@ -22,6 +23,8 @@ from app.models import (
     UserPublic,
     UserUpdate,
     UserUpdateMe,
+    ValidationIssue,
+    ValidationRun,
 )
 
 engine = create_engine(str(settings.DATABASE_URI))
@@ -167,6 +170,19 @@ def delete_documents(session: Session, document_ids: list[uuid.UUID]) -> None:
             delete(Conversation).where(col(Conversation.document_id).in_(document_ids))
         )
     session.exec(delete(Explanation).where(col(Explanation.document_id).in_(document_ids)))
+    run_ids = session.exec(
+        select(ValidationRun.id).where(col(ValidationRun.document_id).in_(document_ids))
+    ).all()
+    if run_ids:
+        session.exec(
+            delete(ValidationIssue).where(col(ValidationIssue.run_id).in_(run_ids))
+        )
+    session.exec(
+        delete(ValidationRun).where(col(ValidationRun.document_id).in_(document_ids))
+    )
+    session.exec(
+        delete(DatasetMetadata).where(col(DatasetMetadata.document_id).in_(document_ids))
+    )
     session.exec(
         delete(ExtractionJob).where(col(ExtractionJob.document_id).in_(document_ids))
     )

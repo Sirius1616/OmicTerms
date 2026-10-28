@@ -32,7 +32,8 @@ import { Route as LayoutAcademyProgressRouteImport } from './routes/_layout/acad
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents.index'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents.$documentId'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects.index'
-import { Route as LayoutProjectsProjectIdActivityRouteImport } from './routes/_layout/projects.$projectId.activity'
+import { Route as LayoutProjectsProjectIdRouteImport } from './routes/_layout/projects.$projectId'
+import { Route as LayoutProjectsProjectIdActivityRouteImport } from './routes/_layout/projects.$projectId_.activity'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -149,9 +150,14 @@ const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutProjectsRoute,
 } as any)
+const LayoutProjectsProjectIdRoute = LayoutProjectsProjectIdRouteImport.update({
+  id: '/$projectId',
+  path: '/$projectId',
+  getParentRoute: () => LayoutProjectsRoute,
+} as any)
 const LayoutProjectsProjectIdActivityRoute =
   LayoutProjectsProjectIdActivityRouteImport.update({
-    id: '/$projectId/activity',
+    id: '/$projectId_/activity',
     path: '/$projectId/activity',
     getParentRoute: () => LayoutProjectsRoute,
   } as any)
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/academy/path': typeof LayoutAcademyPathRoute
   '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/academy/': typeof LayoutAcademyIndexRoute
   '/documents/': typeof LayoutDocumentsIndexRoute
   '/projects/': typeof LayoutProjectsIndexRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/academy/path': typeof LayoutAcademyPathRoute
   '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/academy': typeof LayoutAcademyIndexRoute
   '/documents': typeof LayoutDocumentsIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
@@ -225,10 +233,11 @@ export interface FileRoutesById {
   '/_layout/academy/path': typeof LayoutAcademyPathRoute
   '/_layout/academy/progress': typeof LayoutAcademyProgressRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/_layout/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/_layout/academy/': typeof LayoutAcademyIndexRoute
   '/_layout/documents/': typeof LayoutDocumentsIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
-  '/_layout/projects/$projectId/activity': typeof LayoutProjectsProjectIdActivityRoute
+  '/_layout/projects/$projectId_/activity': typeof LayoutProjectsProjectIdActivityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/academy/path'
     | '/academy/progress'
     | '/documents/$documentId'
+    | '/projects/$projectId'
     | '/academy/'
     | '/documents/'
     | '/projects/'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/academy/path'
     | '/academy/progress'
     | '/documents/$documentId'
+    | '/projects/$projectId'
     | '/academy'
     | '/documents'
     | '/projects'
@@ -300,10 +311,11 @@ export interface FileRouteTypes {
     | '/_layout/academy/path'
     | '/_layout/academy/progress'
     | '/_layout/documents/$documentId'
+    | '/_layout/projects/$projectId'
     | '/_layout/academy/'
     | '/_layout/documents/'
     | '/_layout/projects/'
-    | '/_layout/projects/$projectId/activity'
+    | '/_layout/projects/$projectId_/activity'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -477,8 +489,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProjectsIndexRouteImport
       parentRoute: typeof LayoutProjectsRoute
     }
-    '/_layout/projects/$projectId/activity': {
-      id: '/_layout/projects/$projectId/activity'
+    '/_layout/projects/$projectId': {
+      id: '/_layout/projects/$projectId'
+      path: '/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof LayoutProjectsProjectIdRouteImport
+      parentRoute: typeof LayoutProjectsRoute
+    }
+    '/_layout/projects/$projectId_/activity': {
+      id: '/_layout/projects/$projectId_/activity'
       path: '/$projectId/activity'
       fullPath: '/projects/$projectId/activity'
       preLoaderRoute: typeof LayoutProjectsProjectIdActivityRouteImport
@@ -522,11 +541,13 @@ const LayoutDocumentsRouteWithChildren = LayoutDocumentsRoute._addFileChildren(
 )
 
 interface LayoutProjectsRouteChildren {
+  LayoutProjectsProjectIdRoute: typeof LayoutProjectsProjectIdRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
   LayoutProjectsProjectIdActivityRoute: typeof LayoutProjectsProjectIdActivityRoute
 }
 
 const LayoutProjectsRouteChildren: LayoutProjectsRouteChildren = {
+  LayoutProjectsProjectIdRoute: LayoutProjectsProjectIdRoute,
   LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
   LayoutProjectsProjectIdActivityRoute: LayoutProjectsProjectIdActivityRoute,
 }

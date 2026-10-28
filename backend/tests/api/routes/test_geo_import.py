@@ -108,7 +108,7 @@ def test_invalid_accession_rejected():
 
 
 def test_series_mismatch_fails_job(upload_env, session):
-    owner_id = uuid.uuid4()
+    owner_id = _create_user_row(session).id
     client = _mock_client()
     with pytest.raises(geo.GeoImportError):
         geo.import_geo_series(
@@ -135,7 +135,7 @@ def test_http_error_fails_job(upload_env, session):
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(404)
 
-    owner_id = uuid.uuid4()
+    owner_id = _create_user_row(session).id
     with pytest.raises(geo.GeoImportError):
         geo.import_geo_series(
             session,
@@ -163,7 +163,7 @@ def test_download_size_cap_enforced(upload_env, session):
             )
         return httpx.Response(200, content=big_payload)
 
-    owner_id = uuid.uuid4()
+    owner_id = _create_user_row(session).id
     with pytest.raises(geo.GeoImportError):
         geo.import_geo_series(
             session,
@@ -185,7 +185,6 @@ def test_download_size_cap_enforced(upload_env, session):
 
 
 def test_import_creates_project_experiment_samples_document(upload_env, session):
-    owner_id = uuid.uuid4()
     user = _create_user_row(session)
     owner_id = user.id
     client = _mock_client()

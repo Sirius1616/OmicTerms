@@ -14,7 +14,7 @@ type ActivitySearch = {
   action?: string
 }
 
-export const Route = createFileRoute("/_layout/projects/$projectId/activity")({
+export const Route = createFileRoute("/_layout/projects/$projectId_/activity")({
   component: ProjectActivity,
   validateSearch: (search: Record<string, unknown>): ActivitySearch => ({
     action:
