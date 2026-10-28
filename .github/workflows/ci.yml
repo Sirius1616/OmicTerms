@@ -97,6 +97,11 @@ jobs:
       DATABASE_NAME: omicterms_test
       FIRST_SUPERUSER: admin@example.com
       FIRST_SUPERUSER_PASSWORD: admin1234567890
+      # Email settings required by send_email() asserts; the SMTP send itself
+      # fails harmlessly (no server on the runner) and tests never inspect it.
+      EMAIL_FROM_EMAIL: noreply@example.com
+      SMTP_HOST: localhost
+      SMTP_PORT: "25"
     defaults:
       run:
         working-directory: backend
