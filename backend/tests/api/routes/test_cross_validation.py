@@ -178,6 +178,35 @@ def test_mixed_namespaces_warning(upload_env, client, session):
     assert any(i["code"] == "CROSS-ID-NS-001" and i["severity"] == "warning" for i in issues)
 
 
+def test_document_cross_results_listable(upload_env, client, session):
+    """Story 19: document detail can show experiment-level cross-file results."""
+    headers, experiment = _setup_experiment(client, session)
+    sample = client.post(
+        f"/api/v1/experiments/{experiment['id']}/samples",
+        json={"name": "Sam1"},
+        headers=headers,
+    ).json()
+    doc = _upload_to_sample(client, headers, sample["id"], "a.tsv", b"gene\tS1\nTP53\t1\n")
+    _upload_to_sample(client, headers, sample["id"], "b.tsv", b"gene\tS1\nTP53\t2\n")
+
+    client.post(
+        f"/api/v1/documents/experiments/{experiment['id']}/validate-cross",
+        headers=headers,
+    )
+    r = client.get(f"/api/v1/documents/{doc['id']}/validations-cross", headers=headers)
+    assert r.status_code == 200
+    assert r.json()["count"] >= 1
+    assert r.json()["data"][0]["subject_type"] == "experiment"
+
+    e = _email("intruder")
+    create_user(session, e)
+    intruder = login_headers(client, e)
+    assert (
+        client.get(f"/api/v1/documents/{doc['id']}/validations-cross", headers=intruder).status_code
+        == 403
+    )
+
+
 def test_cross_user_denied(upload_env, client, session):
     headers, experiment = _setup_experiment(client, session)
     sample = client.post(

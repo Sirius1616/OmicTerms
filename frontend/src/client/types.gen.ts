@@ -473,6 +473,12 @@ export type DocumentsListDocumentValidationsData = {
 
 export type DocumentsListDocumentValidationsResponse = (ValidationRunsPublic);
 
+export type DocumentsListDocumentCrossValidationsData = {
+    id: string;
+};
+
+export type DocumentsListDocumentCrossValidationsResponse = (ValidationRunsPublic);
+
 export type DocumentsValidateExperimentCrossData = {
     id: string;
 };

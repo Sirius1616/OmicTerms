@@ -8,6 +8,10 @@ import { DocumentChat } from "@/components/Documents/DocumentChat"
 import DocumentMetadataPanel from "@/components/Documents/DocumentMetadataPanel"
 import { DocumentViewer } from "@/components/Documents/DocumentViewer"
 import { ExplanationPanel } from "@/components/Documents/ExplanationPanel"
+import {
+  CrossValidationBanner,
+  ValidationPanel,
+} from "@/components/Documents/ValidationPanel"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -98,11 +102,17 @@ function DocumentDetailContent() {
         </div>
       </div>
 
+      <CrossValidationBanner documentId={document.id} />
+
       <div className={cn("grid gap-6", "lg:grid-cols-2")}>
         <div className="flex flex-col gap-6">
           <DocumentViewer
             documentId={document.id}
             fileUrl={document.file_url}
+          />
+          <ValidationPanel
+            documentId={document.id}
+            extractionPending={document.extraction_status === "pending"}
           />
           <DocumentMetadataPanel documentId={document.id} />
           <ExplanationPanel documentId={document.id} />

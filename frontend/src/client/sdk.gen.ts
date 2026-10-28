@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, DocumentsValidateExperimentCrossData, DocumentsValidateExperimentCrossResponse, DocumentsListExperimentCrossValidationsData, DocumentsListExperimentCrossValidationsResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, ImportsCreateImportData, ImportsCreateImportResponse, ImportsListImportsResponse, ImportsGetImportData, ImportsGetImportResponse, ImportsListImportJobsData, ImportsListImportJobsResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, ProjectsReadProjectEventsData, ProjectsReadProjectEventsResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, DocumentsListDocumentCrossValidationsData, DocumentsListDocumentCrossValidationsResponse, DocumentsValidateExperimentCrossData, DocumentsValidateExperimentCrossResponse, DocumentsListExperimentCrossValidationsData, DocumentsListExperimentCrossValidationsResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, ImportsCreateImportData, ImportsCreateImportResponse, ImportsListImportsResponse, ImportsGetImportData, ImportsGetImportResponse, ImportsListImportJobsData, ImportsListImportJobsResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, ProjectsReadProjectEventsData, ProjectsReadProjectEventsResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -304,6 +304,27 @@ export class DocumentsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/documents/{id}/validations',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Document Cross Validations
+     * Experiment-level cross-file validation runs for a document's experiment.
+     * @param data The data for the request.
+     * @param data.id
+     * @returns ValidationRunsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listDocumentCrossValidations(data: DocumentsListDocumentCrossValidationsData): CancelablePromise<DocumentsListDocumentCrossValidationsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{id}/validations-cross',
             path: {
                 id: data.id
             },

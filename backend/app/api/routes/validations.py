@@ -2,6 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from sqlmodel import col, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
@@ -126,6 +127,32 @@ def get_validation_run(
         raise HTTPException(status_code=404, detail="Validation run not found")
     _check_document_owner(session, document.id, current_user.id)
     return _to_public(run)
+
+
+@router.get("/{id}/validations-cross", response_model=ValidationRunsPublic)
+def list_document_cross_validations(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Any:
+    """Experiment-level cross-file validation runs for a document's experiment."""
+    document = _check_document_owner(session, id, current_user.id)
+    sample = session.get(Sample, document.sample_id)
+    if not sample:
+        return ValidationRunsPublic(data=[], count=0)
+    experiment = session.get(Experiment, sample.experiment_id)
+    if not experiment:
+        return ValidationRunsPublic(data=[], count=0)
+    runs = session.exec(
+        select(ValidationRun)
+        .where(col(ValidationRun.subject_type) == ValidationSubjectType.experiment)
+        .where(col(ValidationRun.subject_id) == experiment.id)
+        .order_by(col(ValidationRun.started_at).desc())
+    ).all()
+    data = [_to_public(run) for run in runs]
+    return ValidationRunsPublic(
+        data=data,
+        count=len(data),
+        latest_summary=_summarize(runs[0] if runs else None),
+    )
 
 
 def _check_experiment_owner(session: SessionDep, experiment_id: uuid.UUID, user_id: uuid.UUID) -> Experiment:

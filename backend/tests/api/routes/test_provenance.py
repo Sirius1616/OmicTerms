@@ -9,7 +9,6 @@ anonymisation on user deletion, and the closed action-code registry.
 import uuid
 
 import pytest
-from fastapi.testclient import TestClient
 from sqlmodel import col, select
 
 from app.models import ProvenanceEvent
@@ -168,10 +167,14 @@ def test_hierarchy_emission_matrix(client, session):
         ]
         assert len(matching) == count, f"expected {count} {action}, got {len(matching)}"
 
-    rename = [e for e in events if e.action == "project.updated" and e.entity_id == project_id][0]
+    rename = next(
+        e for e in events if e.action == "project.updated" and e.entity_id == project_id
+    )
     assert rename.payload["fields"] == ["name"]
 
-    deleted = [e for e in events if e.action == "project.deleted" and e.entity_id == project_id][0]
+    deleted = next(
+        e for e in events if e.action == "project.deleted" and e.entity_id == project_id
+    )
     assert deleted.payload["name"]  # project name preserved after deletion
 
 
@@ -256,7 +259,7 @@ def test_request_id_stamped_and_distinct(client, session):
     first_id = response.headers.get("X-Request-ID")
     assert first_id
 
-    event = [e for e in _events(session, "project.created") if e.entity_id == project_id][0]
+    event = next(e for e in _events(session, "project.created") if e.entity_id == project_id)
     assert event.request_id == first_id
 
     response = client.post(

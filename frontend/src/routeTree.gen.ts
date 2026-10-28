@@ -29,6 +29,7 @@ import { Route as LayoutAcademyConceptsRouteImport } from './routes/_layout/acad
 import { Route as LayoutAcademyLabsRouteImport } from './routes/_layout/academy.labs'
 import { Route as LayoutAcademyPathRouteImport } from './routes/_layout/academy.path'
 import { Route as LayoutAcademyProgressRouteImport } from './routes/_layout/academy.progress'
+import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents.index'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents.$documentId'
 
 const LayoutRoute = LayoutRouteImport.update({
@@ -130,6 +131,11 @@ const LayoutAcademyProgressRoute = LayoutAcademyProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => LayoutAcademyRoute,
 } as any)
+const LayoutDocumentsIndexRoute = LayoutDocumentsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutDocumentsRoute,
+} as any)
 const LayoutDocumentsDocumentIdRoute =
   LayoutDocumentsDocumentIdRouteImport.update({
     id: '/$documentId',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/academy/': typeof LayoutAcademyIndexRoute
+  '/documents/': typeof LayoutDocumentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -166,7 +173,6 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/analysis-tools': typeof LayoutAnalysisToolsRoute
-  '/documents': typeof LayoutDocumentsRouteWithChildren
   '/evidence': typeof LayoutEvidenceRoute
   '/integrations': typeof LayoutIntegrationsRoute
   '/projects': typeof LayoutProjectsRoute
@@ -179,6 +185,7 @@ export interface FileRoutesByTo {
   '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/academy': typeof LayoutAcademyIndexRoute
+  '/documents': typeof LayoutDocumentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -203,6 +210,7 @@ export interface FileRoutesById {
   '/_layout/academy/progress': typeof LayoutAcademyProgressRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
   '/_layout/academy/': typeof LayoutAcademyIndexRoute
+  '/_layout/documents/': typeof LayoutDocumentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -227,6 +235,7 @@ export interface FileRouteTypes {
     | '/academy/progress'
     | '/documents/$documentId'
     | '/academy/'
+    | '/documents/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -235,7 +244,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/analysis-tools'
-    | '/documents'
     | '/evidence'
     | '/integrations'
     | '/projects'
@@ -248,6 +256,7 @@ export interface FileRouteTypes {
     | '/academy/progress'
     | '/documents/$documentId'
     | '/academy'
+    | '/documents'
   id:
     | '__root__'
     | '/_layout'
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/_layout/academy/progress'
     | '/_layout/documents/$documentId'
     | '/_layout/academy/'
+    | '/_layout/documents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -423,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAcademyProgressRouteImport
       parentRoute: typeof LayoutAcademyRoute
     }
+    '/_layout/documents/': {
+      id: '/_layout/documents/'
+      path: '/'
+      fullPath: '/documents/'
+      preLoaderRoute: typeof LayoutDocumentsIndexRouteImport
+      parentRoute: typeof LayoutDocumentsRoute
+    }
     '/_layout/documents/$documentId': {
       id: '/_layout/documents/$documentId'
       path: '/$documentId'
@@ -455,10 +472,12 @@ const LayoutAcademyRouteWithChildren = LayoutAcademyRoute._addFileChildren(
 
 interface LayoutDocumentsRouteChildren {
   LayoutDocumentsDocumentIdRoute: typeof LayoutDocumentsDocumentIdRoute
+  LayoutDocumentsIndexRoute: typeof LayoutDocumentsIndexRoute
 }
 
 const LayoutDocumentsRouteChildren: LayoutDocumentsRouteChildren = {
   LayoutDocumentsDocumentIdRoute: LayoutDocumentsDocumentIdRoute,
+  LayoutDocumentsIndexRoute: LayoutDocumentsIndexRoute,
 }
 
 const LayoutDocumentsRouteWithChildren = LayoutDocumentsRoute._addFileChildren(
