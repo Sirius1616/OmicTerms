@@ -21,12 +21,20 @@ export type FixtureFinding = {
 /** Left-to-right evidence pipeline the map lays out in columns. */
 export type EvidenceStage =
   | "omics"
+  | "studies"
   | "samples"
   | "analysis"
   | "findings"
   | "reports"
 
-/** What a node represents. Drives its colour identity and scientific glyph. */
+/**
+ * What a node represents. Drives its colour identity and scientific glyph.
+ *
+ * `project` / `experiment` / `dataset` are the real-workspace structural
+ * kinds: they exist in every user's data (projects tree + documents) and are
+ * rendered by the evidence map in real-data mode. The omics kinds carry the
+ * `data_type` of a real uploaded document.
+ */
 export type EvidenceNodeKind =
   | "variants"
   | "expression"
@@ -35,6 +43,9 @@ export type EvidenceNodeKind =
   | "proteomics"
   | "microbiome"
   | "sample"
+  | "project"
+  | "experiment"
+  | "dataset"
   | "analysis"
   | "finding"
   | "report"
@@ -60,7 +71,12 @@ export type FixtureGraphNode = {
   kind: EvidenceNodeKind
   stage: EvidenceStage
   certainty: EvidenceCertainty
-  detail: string
+  detail?: string
+  /**
+   * Optional in-app route to the source record (e.g. `/documents/{id}`).
+   * Real-data nodes carry it so the inspector can link to provenance.
+   */
+  href?: string
 }
 
 export type FixtureGraphEdge = {

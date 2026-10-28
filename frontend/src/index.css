@@ -59,6 +59,8 @@
   --color-omics-proteomics: var(--omics-proteomics);
   --color-omics-microbiome: var(--omics-microbiome);
   --color-omics-sample: var(--omics-sample);
+  --color-omics-project: var(--omics-project);
+  --color-omics-experiment: var(--omics-experiment);
   --color-omics-analysis: var(--omics-analysis);
   --color-omics-finding: var(--omics-finding);
   --color-omics-document: var(--omics-document);
@@ -122,6 +124,8 @@
   --omics-proteomics: oklch(0.53 0.12 155);
   --omics-microbiome: oklch(0.56 0.12 100);
   --omics-sample: oklch(0.5 0.05 245);
+  --omics-project: oklch(0.55 0.14 27);
+  --omics-experiment: oklch(0.55 0.11 318);
   --omics-analysis: oklch(0.5 0.14 285);
   --omics-finding: oklch(0.6 0.15 58);
   --omics-document: oklch(0.52 0.02 250);
@@ -193,6 +197,8 @@
   --omics-proteomics: oklch(0.78 0.12 155);
   --omics-microbiome: oklch(0.82 0.13 100);
   --omics-sample: oklch(0.74 0.05 245);
+  --omics-project: oklch(0.72 0.13 32);
+  --omics-experiment: oklch(0.74 0.1 318);
   --omics-analysis: oklch(0.73 0.13 285);
   --omics-finding: oklch(0.82 0.15 62);
   --omics-document: oklch(0.76 0.02 250);

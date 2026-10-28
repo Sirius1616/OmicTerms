@@ -141,6 +141,29 @@ export function ReportGlyph(props: GlyphProps) {
   )
 }
 
+export function ProjectGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M3.5 5.5h17v13h-17z" />
+      <path d="M3.5 9.5h17" />
+      <path d="M7 7.5h4" />
+      <circle cx="8" cy="14.5" r="1.4" />
+      <circle cx="12.5" cy="14.5" r="1.4" />
+      <circle cx="16.5" cy="14.5" r="1.4" />
+    </Glyph>
+  )
+}
+
+export function ExperimentGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M9.5 3h5" />
+      <path d="M10.5 3v5.4L6.4 17.6A2.2 2.2 0 0 0 8.4 21h7.2a2.2 2.2 0 0 0 2-3.4L13.5 8.4V3" />
+      <path d="M8.2 14h7.6" />
+    </Glyph>
+  )
+}
+
 export function ProvenanceGlyph(props: GlyphProps) {
   return (
     <Glyph {...props}>
@@ -209,6 +232,8 @@ export type OmicsToken =
   | "--omics-proteomics"
   | "--omics-microbiome"
   | "--omics-sample"
+  | "--omics-project"
+  | "--omics-experiment"
   | "--omics-analysis"
   | "--omics-finding"
   | "--omics-document"
@@ -265,6 +290,20 @@ const OMICS_CLASSES: Record<
     bg: "bg-omics-sample/12",
     dot: "bg-omics-sample",
     solid: "bg-omics-sample",
+  },
+  "--omics-project": {
+    text: "text-omics-project",
+    border: "border-omics-project/45",
+    bg: "bg-omics-project/12",
+    dot: "bg-omics-project",
+    solid: "bg-omics-project",
+  },
+  "--omics-experiment": {
+    text: "text-omics-experiment",
+    border: "border-omics-experiment/45",
+    bg: "bg-omics-experiment/12",
+    dot: "bg-omics-experiment",
+    solid: "bg-omics-experiment",
   },
   "--omics-analysis": {
     text: "text-omics-analysis",

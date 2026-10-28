@@ -11,18 +11,22 @@ import {
 } from "@xyflow/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import "@xyflow/react/dist/style.css"
+import { Link } from "@tanstack/react-router"
 import {
   ChevronLeft,
   ChevronRight,
   Expand,
+  ExternalLink,
   RefreshCcw,
   Search,
 } from "lucide-react"
 import {
   AnalysisGlyph,
   DnaGlyph,
+  ExperimentGlyph,
   ExpressionGlyph,
   FindingGlyph,
+  GraphGlyph,
   MethylationGlyph,
   MicrobiomeGlyph,
   omicsClasses,
@@ -82,6 +86,17 @@ const NODE_META = {
     Icon: MicrobiomeGlyph,
   },
   sample: { label: "Samples", token: "--omics-sample", Icon: SampleGlyph },
+  project: { label: "Project", token: "--omics-project", Icon: GraphGlyph },
+  experiment: {
+    label: "Experiment",
+    token: "--omics-experiment",
+    Icon: ExperimentGlyph,
+  },
+  dataset: {
+    label: "Document file",
+    token: "--omics-document",
+    Icon: ReportGlyph,
+  },
   analysis: {
     label: "Analysis run",
     token: "--omics-analysis",
@@ -114,6 +129,51 @@ const CERTAINTY_META = {
   },
 } as const
 
+const STRUCTURAL_KINDS: ReadonlySet<string> = new Set([
+  "project",
+  "experiment",
+  "sample",
+])
+
+/**
+ * Node-link renderer component mapping the node's href (an in-app route
+ * written by the graph builder, so always internal) to typed router links.
+ */
+function ComponentLink({ href }: { href: string }) {
+  const documentIdMatch = href.match(/^\/documents\/([^/]+)$/)
+  const projectIdMatch = href.match(/^\/projects\/([^/]+)$/)
+  if (documentIdMatch) {
+    return (
+      <Link
+        to="/documents/$documentId"
+        params={{ documentId: documentIdMatch[1] }}
+        className="inline-flex items-center gap-1.5"
+      >
+        <ExternalLink className="size-3.5" />
+        Open source
+      </Link>
+    )
+  }
+  if (projectIdMatch) {
+    return (
+      <Link
+        to="/projects/$projectId"
+        params={{ projectId: projectIdMatch[1] }}
+        className="inline-flex items-center gap-1.5"
+      >
+        <ExternalLink className="size-3.5" />
+        Open project
+      </Link>
+    )
+  }
+  return (
+    <Link to={href as never} className="inline-flex items-center gap-1.5">
+      <ExternalLink className="size-3.5" />
+      Open source
+    </Link>
+  )
+}
+
 function buildNodes(graph: GraphData | null): Node[] {
   if (!graph) return []
   return graph.nodes.map((node) => ({
@@ -125,6 +185,7 @@ function buildNodes(graph: GraphData | null): Node[] {
       certainty: node.certainty,
       detail: node.detail,
       stage: node.stage,
+      href: node.href,
     },
     position: { x: 0, y: 0 },
   }))
@@ -412,16 +473,29 @@ export function EvidenceGraph({
                       {selectedNode.stage}
                     </span>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Certainty:</span>{" "}
-                    <span className="text-foreground">
-                      {(CERTAINTY_META as any)[selectedNode.certainty]?.label}
-                    </span>
-                  </div>
+                  {selectedNode.certainty &&
+                  !STRUCTURAL_KINDS.has(selectedNode.kind) ? (
+                    <div>
+                      <span className="text-muted-foreground">Certainty:</span>{" "}
+                      <span className="text-foreground">
+                        {(CERTAINTY_META as any)[selectedNode.certainty]?.label}
+                      </span>
+                    </div>
+                  ) : null}
                   {selectedNode.detail ? (
                     <p className="text-muted-foreground">
                       {selectedNode.detail}
                     </p>
+                  ) : null}
+                  {selectedNode.href ? (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1 text-xs"
+                    >
+                      <ComponentLink href={selectedNode.href} />
+                    </Button>
                   ) : null}
                 </div>
               </div>

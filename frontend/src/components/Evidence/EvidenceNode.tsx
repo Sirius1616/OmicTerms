@@ -3,8 +3,10 @@ import { memo } from "react"
 import {
   AnalysisGlyph,
   DnaGlyph,
+  ExperimentGlyph,
   ExpressionGlyph,
   FindingGlyph,
+  GraphGlyph,
   MethylationGlyph,
   MicrobiomeGlyph,
   omicsClasses,
@@ -15,6 +17,13 @@ import {
 } from "@/components/Common/ScientificIcons"
 import type { EvidenceNodeKind } from "@/fixtures/dashboard"
 import { cn } from "@/lib/utils"
+
+/** Kinds that are structural facts, not measured or computed results. */
+const STRUCTURAL_KINDS: ReadonlySet<EvidenceNodeKind> = new Set([
+  "project",
+  "experiment",
+  "sample",
+])
 
 const KIND_META: Record<
   EvidenceNodeKind,
@@ -28,6 +37,8 @@ const KIND_META: Record<
       | "--omics-proteomics"
       | "--omics-microbiome"
       | "--omics-sample"
+      | "--omics-project"
+      | "--omics-experiment"
       | "--omics-analysis"
       | "--omics-finding"
       | "--omics-document"
@@ -77,6 +88,24 @@ const KIND_META: Record<
     Icon: SampleGlyph,
     chip: "SMPL",
   },
+  project: {
+    label: "Project",
+    token: "--omics-project",
+    Icon: GraphGlyph,
+    chip: "PRJ",
+  },
+  experiment: {
+    label: "Experiment",
+    token: "--omics-experiment",
+    Icon: ExperimentGlyph,
+    chip: "EXPT",
+  },
+  dataset: {
+    label: "Document file",
+    token: "--omics-document",
+    Icon: ReportGlyph,
+    chip: "DOC",
+  },
   analysis: {
     label: "Analysis Run",
     token: "--omics-analysis",
@@ -109,16 +138,21 @@ export type EvidenceNodeData = {
   certainty: "observed" | "derived" | "inferred"
   detail?: string
   stage?: string
+  /** In-app route to the source record, set for real-data nodes. */
+  href?: string
 }
 
 function EvidenceNodeComponent({ data, selected }: NodeProps) {
   const nodeData = data as EvidenceNodeData
   const meta = KIND_META[nodeData.kind]
   const classes = omicsClasses(meta.token)
-  const ring = CERTAINTY_STYLE[nodeData.certainty] || ""
+  const certaintyRing = STRUCTURAL_KINDS.has(nodeData.kind)
+    ? ""
+    : CERTAINTY_STYLE[nodeData.certainty] || ""
 
   return (
     <div
+      data-testid="evidence-node"
       className={cn(
         "group relative flex w-[240px] items-center gap-3 rounded-lg border px-3 py-2 shadow-[0_10px_60px_-30px_var(--evidence-glow-strong)] transition-all",
         classes.border,
@@ -126,7 +160,7 @@ function EvidenceNodeComponent({ data, selected }: NodeProps) {
         selected
           ? "shadow-[0_0_0_1px_var(--evidence-glow-ring),0_30px_80px_-40px_var(--evidence-glow-strong)]"
           : "hover:shadow-[0_0_0_1px_var(--evidence-glow-soft)]",
-        selected ? ring : "",
+        selected ? certaintyRing : "",
       )}
       style={{
         borderColor:
