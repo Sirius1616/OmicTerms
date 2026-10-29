@@ -4,7 +4,7 @@
 
 Your DNA is not destiny — but right now, the data that would prove it is locked inside `.vcf` files, methylation matrices, and peak calls that only bioinformaticians can read.
 
-**OmicTerms is the translator.** It takes omics data and re-explains it in plain language, one question at a time — no jargon, no gatekeeping. Upload a gene expression matrix or a variant call file, and OmicTerms extracts the content, tells you what kind of data it is, and walks you through what it actually means for your health, your family, or your research.
+**OmicTerms is the translator.** It takes omics data and re-explains it in plain language, one question at a time — no jargon, no gatekeeping. Upload a gene expression matrix or a variant call file, and OmicTerms extracts the content, tells you what kind of data it is, checks whether it holds up, and walks you through what it actually means for your health, your family, or your research.
 
 Built to support the fight against disease through **epigenomic drift** research — how the genome's regulatory state shifts over time in cancer and neurodegeneration.
 
@@ -18,54 +18,70 @@ OmicTerms bridges that gap. The goal is simple: **nobody should need a PhD to un
 
 ---
 
-## Current state
+## What's inside
 
-Under active development. The backend foundation is complete; the document workflow is the active milestone.
+Under active development. The platform foundation is in place and the workspace is real end to end — from raw upload to an evidence graph you can see on screen.
 
-**Implemented**
+**Working today**
 
 - Full user authentication: registration, login with JWT, profile management, password reset via email, admin user management
-- Document upload with **real file validation** — magic-byte sniffing (PDF/PNG/JPEG/zip), size limits, and extension sanity so a renamed `bomb.exe` can't masquerade as a PDF
-- Project → Experiment → Sample → Document data hierarchy, with ownership rooted at the project level
-- Text extraction service (PDF via `pypdf`, OCR via `pytesseract`, `.docx`, `.eml`) — orchestration in progress
-- Database models for users, projects, experiments, samples, documents, explanations, and conversations (SQLModel + Alembic migrations)
-- Frontend shell: login/signup/password-recovery pages, dashboard, and a documents area with upload, explanation, and chat UI
+- Organised data hierarchy: Project → Experiment → Sample → Document, with ownership checked on every access (including a full project tree endpoint)
+- Document upload with **real file validation** — magic-byte sniffing (PDF/PNG/JPEG/zip), size limits, checksummed integrity, and extension sanity so a renamed `bomb.exe` can't masquerade as a PDF
+- Text extraction pipeline — PDF (`pypdf`), OCR (`pytesseract`), `.docx`, `.eml` — running as durable background jobs with retries, backoff, and admin job statistics
+- Omics data-type classification (expression / methylation / variants / peaks / document)
+- **Validation engine** — per-format validators for VCF, BED, and expression matrices, plus cross-sample validation at the experiment level ([issue code catalogue](docs/validation-codes.md))
+- Dataset metadata (genome assembly, coordinate system, source tool) with revalidation
+- Import from public repositories — a live-verified **GEO adapter** that fetches a series, rate-caps the requests, checksums what arrives, and maps it straight into your project hierarchy
+- **Append-only provenance log** — every meaningful event is recorded with request-id correlation and surfaced as an activity timeline on the dashboard and project pages
+- **Evidence graph** — automatically materialised nodes and edges (supports / contradicts relationships) rendered as an interactive graph on the frontend
+- Frontend: dashboard, document workspace, project management, activity timeline, evidence map, admin panel
 
 **In progress** — tracked as [GitHub issues](https://github.com/Sirius1616/OmicTerms/issues)
 
-- Project/Experiment/Sample CRUD routes + the ownership walk (document → sample → experiment → project → user)
-- Background text-extraction jobs that flip `pending → success / failed`
-- Omics data-type classification (`expression`, `methylation`, `variants`, `peaks`, `document`)
-- AI service layer for plain-language explanations and follow-up Q&A
-- Streaming conversation answers
+- AI explanation and follow-up Q&A layer (the UI is built; the backend service isn't wired yet)
+- Analysis runs, findings, and reports
+- OmicTerms Academy — a guided learning area
 
 ## Tech stack
 
 **Backend** (`backend/`)
 
-- FastAPI, SQLModel, Alembic, PostgreSQL
+- Python 3.14, FastAPI, SQLModel, Alembic, PostgreSQL
 - Pydantic Settings for configuration, PyJWT for tokens, Argon2/Bcrypt password hashing
 - Email delivery via the `emails` library with Jinja2 templates
 - `pypdf`, `pytesseract`/Pillow, `python-docx` for text extraction
 - Sentry for error tracking
+- Tests with pytest; lint/type gates with ruff and mypy
 
 **Frontend** (`frontend/`)
 
-- Vite + React + TypeScript
+- Vite + React + TypeScript (npm-based)
 - TanStack Router (file-based routing), TanStack Query for server state
-- Tailwind CSS v4 with shadcn/ui components
+- Tailwind CSS v4 with shadcn/ui components and an enforced semantic design-token system (no raw colour literals in code — a CI job checks)
+- Evidence graph via `@xyflow/react`; Playwright for end-to-end tests
 - API client generated from the backend's OpenAPI schema (`openapi-ts`)
 
 ## Getting started
 
 ### Prerequisites
 
-- Python 3.14+
-- [uv](https://docs.astral.sh/uv/) (package manager, from `uv.lock`)
-- PostgreSQL running locally
-- Node.js or Bun
+- Python 3.14+ and [uv](https://docs.astral.sh/uv/)
+- PostgreSQL
+- Node.js (frontend is npm-based)
 
-### 1. Backend
+You can either run the services manually or use Docker Compose.
+
+### Option 1: Docker Compose
+
+```bash
+docker compose up --build
+```
+
+This starts PostgreSQL, the backend API, and the frontend (nginx). Health checks are built in; the DB and API come up before the services that depend on them.
+
+### Option 2: Manual setup
+
+**Backend**
 
 ```bash
 cd backend
@@ -102,7 +118,7 @@ uvicorn app.main:app --reload
 - API: `http://localhost:8000/api/v1`
 - Interactive docs: `http://localhost:8000/docs`
 
-### 2. Frontend
+**Frontend**
 
 ```bash
 cd frontend
@@ -124,23 +140,31 @@ npm run generate-client
 backend/
   app/
     api/
-      routes/            # login, users, utils, private, documents
+      routes/            # login, users, documents, projects, experiments, samples,
+                         # validations, evidence, jobs, private, utils
       deps.py            # auth dependencies (current user, admin)
     core/                # config, database, security
     models.py            # SQLModel tables + request/response schemas
-    services/            # text extraction (pdf, image OCR, docx, eml)
+    services/            # extraction, classification, validation, provenance,
+                         # evidence graph, import jobs
+    integration/         # repository adapters (GEO)
     crud.py              # database operations
     initial_data.py      # seeds the first superuser
-    utils.py             # email and token helpers
   migration/             # Alembic migrations
   scripts/               # dev scripts (lint, format, tests, prestart)
 frontend/
   src/
-    routes/              # file-based router (login, dashboard, documents)
-    components/          # UI components
+    routes/              # file-based router (login, dashboard, documents,
+                         # projects, evidence, admin)
+    components/          # UI components (evidence map, provenance timeline,
+                         # documents, dashboard)
     services/            # API service layer
-    types/               # domain types
     client/              # generated API client
+docs/
+  planning/              # architecture audit, story backlog
+  validation-codes.md    # catalogue of validation issue codes
+  design-tokens.md       # frontend design-token reference
+  contributing.md        # CI quality-gate reference
 ```
 
 ## License
