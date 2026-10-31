@@ -346,3 +346,161 @@ test("real workspace data drives the graph with traceable sources", async ({
   await page.getByRole("link", { name: "Open source" }).click()
   await expect(page).toHaveURL(/\/documents\/d1$/)
 })
+
+test("graph table view is the accessible text alternative", async ({
+  page,
+}) => {
+  await stubEmptyWorkspace(page)
+  await primeFixtures(page, true)
+  await page.goto("/evidence")
+
+  await page.getByRole("button", { name: "Table view" }).click()
+
+  const table = page.getByTestId("evidence-graph-table")
+  await expect(table).toBeVisible()
+  await expect(page.getByText(/9 nodes, 9 edges/)).toBeVisible()
+  await expect(
+    page.getByRole("table").first().getByRole("row").nth(1),
+  ).toContainText("Variant calls")
+  await expect(
+    page.getByRole("table").nth(1).getByRole("row").nth(1),
+  ).toContainText("belongs to")
+
+  await page.getByRole("button", { name: "Graph view" }).click()
+  await expect(page.getByTestId("evidence-graph-canvas")).toBeVisible()
+})
+
+test("filters are keyboard accessible", async ({ page }) => {
+  await stubEmptyWorkspace(page)
+  await primeFixtures(page, true)
+  await page.goto("/")
+
+  const nodeSelector = page.locator(NODE_SELECTOR)
+  await expect(nodeSelector).toHaveCount(9)
+
+  const expressionFilter = page
+    .getByRole("button", { name: "Expression", exact: true })
+    .first()
+  await expect(expressionFilter).toBeVisible()
+  await expressionFilter.focus()
+  await page.keyboard.press("Enter")
+
+  await expect(nodeSelector).toHaveCount(1)
+  await expect(expressionFilter).toHaveAttribute("aria-pressed", "true")
+})
+
+test("500-node graph truncates, stays bounded and renders quickly", async ({
+  page,
+}) => {
+  await stubEmptyWorkspace(page)
+  await primeFixtures(page, false)
+
+  page.on("pageerror", (err) => console.log("PAGEERROR:", err))
+  page.on("console", (msg) => {
+    if (msg.type() === "error" || msg.type() === "warning") {
+      console.log(`CONSOLE ${msg.type()}:`, msg.text().slice(0, 300))
+    }
+  })
+
+  await page.route(/\/api\/v1\/users\/me\/?(\?.*)?$/, (route: Route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        email: "graph-check@example.com",
+        full_name: "Graph Check",
+        id: "u1",
+        created_at: "2026-10-01T00:00:00Z",
+      }),
+    }),
+  )
+
+  await page.route(/\/api\/v1\/projects\/(?:\?.*)?$/, (route: Route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: [
+          {
+            id: "p1",
+            name: "Big",
+            created_at: "2026-10-01T00:00:00Z",
+            experiments: [],
+          },
+        ],
+        count: 1,
+      }),
+    }),
+  )
+
+  const nodeCount = 520
+  const graphNodes: unknown[] = [
+    {
+      id: "root",
+      entity_type: "project",
+      entity_id: "p1",
+      label: "Big study",
+      project_id: "p1",
+      created_at: "2026-10-01T00:00:00Z",
+    },
+  ]
+  const graphEdges: unknown[] = []
+  for (let i = 0; i < nodeCount; i++) {
+    const id = `n${i}`
+    graphNodes.push({
+      id,
+      entity_type: "document",
+      entity_id: `d${i}`,
+      label: `doc-${i}.tsv`,
+      project_id: "p1",
+      created_at: "2026-10-02T00:00:00Z",
+    })
+    graphEdges.push({
+      id: `e${i}`,
+      source_id: id,
+      target_id: "root",
+      relation: "belongs_to",
+      created_at: "2026-10-02T00:00:00Z",
+    })
+  }
+
+  await page.route(/\/api\/v1\/projects\/p1\/graph(?:\?.*)?$/, (route: Route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        nodes: graphNodes,
+        edges: graphEdges,
+        truncated: false,
+      }),
+    }),
+  )
+
+  await page.route(/\/api\/v1\/documents\/(?:\?.*)?$/, (route: Route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: [], count: 0 }),
+    }),
+  )
+
+  const startedAt = Date.now()
+  await page.goto("/evidence")
+
+  await expect(
+    page.getByText(/Graph truncated — showing the first/),
+    "truncation must be visible, never silent",
+  ).toBeVisible({ timeout: 3000 })
+
+  // Canvas virtualization keeps the DOM bounded: at most 500 nodes exist and
+  // rendering only mounts what is in the viewport.
+  const renderedNodes = await page.locator(NODE_SELECTOR).count()
+  expect(renderedNodes).toBeGreaterThan(0)
+  expect(renderedNodes).toBeLessThanOrEqual(500)
+
+  const elapsed = Date.now() - startedAt
+  expect(
+    elapsed,
+    "500-node render must stay under 3 seconds",
+  ).toBeLessThanOrEqual(3000)
+})

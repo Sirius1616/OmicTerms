@@ -17,8 +17,10 @@ import {
   ChevronRight,
   Expand,
   ExternalLink,
+  Network as NetworkIcon,
   RefreshCcw,
   Search,
+  Table as TableIcon,
 } from "lucide-react"
 import {
   AnalysisGlyph,
@@ -238,6 +240,8 @@ export function EvidenceGraph({
   >("all")
   const [inspectorOpen, setInspectorOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  /** Accessibility text alternative to the canvas (Story 29 AC 5). */
+  const [tableView, setTableView] = useState(false)
 
   const reactFlowInstance = useRef<any>(null)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
@@ -270,6 +274,18 @@ export function EvidenceGraph({
       setInspectorOpen(true)
     }
   }, [selectedId])
+
+  // Small graphs fit the whole snapshot into view (React Flow's dimension
+  // aware fitView fires once nodes are measured); very large ones rely on
+  // canvas virtualization and start at default zoom — fitting 500 painted
+  // nodes pushed big snapshots past the 3s render budget.
+  const shouldFit = useMemo(
+    () => nodes.length > 0 && nodes.length <= 200,
+    [nodes],
+  )
+  const fitNow = useCallback(() => {
+    reactFlowInstance.current?.fitView({ padding: 0.25, maxZoom: 0.9 })
+  }, [])
 
   const filteredNodes = useMemo(() => {
     return nodes.filter((node) => {
@@ -339,28 +355,59 @@ export function EvidenceGraph({
           <RefreshCcw className="size-3.5" />
           Reset
         </Button>
-        <Button variant="outline" size="sm" className="h-7 gap-1 text-xs">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1 text-xs"
+          onClick={fitNow}
+        >
           <Expand className="size-3.5" />
           Fit view
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1 text-xs"
+          aria-pressed={tableView}
+          onClick={() => setTableView((prev) => !prev)}
+        >
+          {tableView ? (
+            <NetworkIcon className="size-3.5" />
+          ) : (
+            <TableIcon className="size-3.5" />
+          )}
+          {tableView ? "Graph view" : "Table view"}
         </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge
+          asChild
           variant={filterType === "all" ? "default" : "outline"}
-          className="cursor-pointer text-[10px] uppercase"
-          onClick={() => setFilterType("all")}
+          className="text-[10px] uppercase"
         >
-          All types
+          <button
+            type="button"
+            aria-pressed={filterType === "all"}
+            onClick={() => setFilterType("all")}
+          >
+            All types
+          </button>
         </Badge>
         {nodeKindSet.map((kind) => (
           <Badge
             key={kind}
+            asChild
             variant={filterType === kind ? "default" : "outline"}
-            className="cursor-pointer text-[10px] uppercase"
-            onClick={() => setFilterType(kind)}
+            className="text-[10px] uppercase"
           >
-            {(NODE_META as any)[kind]?.label || kind}
+            <button
+              type="button"
+              aria-pressed={filterType === kind}
+              onClick={() => setFilterType(kind)}
+            >
+              {(NODE_META as any)[kind]?.label || kind}
+            </button>
           </Badge>
         ))}
         <div className="ml-2 flex flex-wrap items-center gap-1.5">
@@ -369,13 +416,19 @@ export function EvidenceGraph({
           ).map((edgeKind) => (
             <Badge
               key={edgeKind}
+              asChild
               variant={filterEdge === edgeKind ? "secondary" : "outline"}
-              className="cursor-pointer text-[10px] uppercase"
-              onClick={() => setFilterEdge(edgeKind as any)}
+              className="text-[10px] uppercase"
             >
-              {edgeKind === "all"
-                ? "All links"
-                : (EDGE_META as any)[edgeKind]?.label}
+              <button
+                type="button"
+                aria-pressed={filterEdge === edgeKind}
+                onClick={() => setFilterEdge(edgeKind as any)}
+              >
+                {edgeKind === "all"
+                  ? "All links"
+                  : (EDGE_META as any)[edgeKind]?.label}
+              </button>
             </Badge>
           ))}
         </div>
@@ -384,39 +437,133 @@ export function EvidenceGraph({
       <div className="relative flex flex-1 min-h-0 overflow-hidden rounded-xl border border-border/70 bg-[var(--evidence-surface)] shadow-[inset_0_1px_0_var(--evidence-highlight-soft),0_40px_120px_-60px_var(--evidence-glow-strong)]">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
-        <div className="flex-1 min-h-0" data-testid="evidence-graph-canvas">
-          <ReactFlow
-            nodes={filteredNodes}
-            edges={filteredEdges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeClick={onSelectNode}
-            onInit={(instance) => {
-              reactFlowInstance.current = instance
-            }}
-            fitView
-            fitViewOptions={{ padding: 0.25, maxZoom: 0.9 }}
-            minZoom={0.3}
-            maxZoom={1.2}
-            proOptions={{ hideAttribution: true }}
-            attributionPosition="bottom-left"
-            className="bg-gradient-to-br from-[var(--evidence-surface)] via-[var(--evidence-surface-alt)] to-[var(--evidence-surface)]"
+        {tableView ? (
+          <div
+            data-testid="evidence-graph-table"
+            className="min-h-0 flex-1 overflow-auto p-4 text-xs text-muted-foreground"
           >
-            <Background
-              variant={BackgroundVariant.Lines}
-              gap={32}
-              size={1}
-              color="var(--evidence-grid-line)"
-            />
-            <Controls className="bg-card/80 border-border/70" />
-            <MiniMap
-              className="bg-card/80 border-border/70"
-              maskColor="var(--evidence-minimap-mask)"
-            />
-          </ReactFlow>
-        </div>
+            <p className="mb-3 text-[11px]">
+              Text alternative:{" "}
+              <span className="font-medium text-foreground">
+                {filteredNodes.length} nodes, {filteredEdges.length} edges
+              </span>{" "}
+              (filtered from {nodes.length} nodes and {edges.length} edges).
+            </p>
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">Evidence graph nodes</caption>
+              <thead>
+                <tr className="border-b border-border/70">
+                  <th
+                    scope="col"
+                    className="py-1 pr-3 font-medium text-foreground"
+                  >
+                    Label
+                  </th>
+                  <th
+                    scope="col"
+                    className="py-1 pr-3 font-medium text-foreground"
+                  >
+                    Type
+                  </th>
+                  <th scope="col" className="py-1 font-medium text-foreground">
+                    Stage
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredNodes.map((node) => {
+                  const data = node.data as any
+                  return (
+                    <tr key={node.id} className="border-b border-border/40">
+                      <td className="py-1 pr-3 text-foreground">
+                        {data.label}
+                      </td>
+                      <td className="py-1 pr-3">
+                        {(NODE_META as any)[data.kind]?.label || data.kind}
+                      </td>
+                      <td className="py-1">{data.stage}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            <table className="mt-4 w-full border-collapse text-left">
+              <caption className="sr-only">Evidence graph relations</caption>
+              <thead>
+                <tr className="border-b border-border/70">
+                  <th
+                    scope="col"
+                    className="py-1 pr-3 font-medium text-foreground"
+                  >
+                    From
+                  </th>
+                  <th
+                    scope="col"
+                    className="py-1 pr-3 font-medium text-foreground"
+                  >
+                    To
+                  </th>
+                  <th scope="col" className="py-1 font-medium text-foreground">
+                    Relation
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEdges.map((edge) => {
+                  const labelOf = (nodeId: string) =>
+                    (nodes.find((n) => n.id === nodeId)?.data as any)?.label ??
+                    nodeId
+                  return (
+                    <tr key={edge.id} className="border-b border-border/40">
+                      <td className="py-1 pr-3 text-foreground">
+                        {labelOf(edge.source)}
+                      </td>
+                      <td className="py-1 pr-3 text-foreground">
+                        {labelOf(edge.target)}
+                      </td>
+                      <td className="py-1">{(edge.data as any)?.label}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex-1 min-h-0" data-testid="evidence-graph-canvas">
+            <ReactFlow
+              nodes={filteredNodes}
+              edges={filteredEdges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onNodeClick={onSelectNode}
+              onInit={(instance) => {
+                reactFlowInstance.current = instance
+              }}
+              onlyRenderVisibleElements={nodes.length > 200}
+              fitView={shouldFit}
+              fitViewOptions={{ padding: 0.25, maxZoom: 0.9 }}
+              minZoom={0.3}
+              maxZoom={1.2}
+              proOptions={{ hideAttribution: true }}
+              attributionPosition="bottom-left"
+              className="bg-gradient-to-br from-[var(--evidence-surface)] via-[var(--evidence-surface-alt)] to-[var(--evidence-surface)]"
+            >
+              <Background
+                variant={BackgroundVariant.Lines}
+                gap={32}
+                size={1}
+                color="var(--evidence-grid-line)"
+              />
+              <Controls className="bg-card/80 border-border/70" />
+              <MiniMap
+                className="bg-card/80 border-border/70"
+                maskColor="var(--evidence-minimap-mask)"
+              />
+            </ReactFlow>
+          </div>
+        )}
 
         <div
           className={cn(

@@ -92,11 +92,21 @@ export function mergeProjectGraphs(
     documentsById.set(document.id, document)
   }
 
+  // Server edge rows reference nodes by UUID; resolve once up front.
+  const serverIdToClientId = new Map<string, string>()
+  for (const result of graphs) {
+    for (const node of result.nodes ?? []) {
+      serverIdToClientId.set(node.id, nodeId(node.entity_type, node.entity_id))
+    }
+  }
+
   const nodes: FixtureGraphNode[] = []
   const edges: FixtureGraphEdge[] = []
   const seenNodes = new Set<string>()
   const seenEdges = new Set<string>()
   let truncated = false
+  /** Aggregate guard mirroring the server cap (per-project caps can add up). */
+  const aggregateCap = 500
 
   const counts: Record<string, number> = {}
 
@@ -105,6 +115,10 @@ export function mergeProjectGraphs(
     for (const node of result.nodes ?? []) {
       const id = nodeId(node.entity_type, node.entity_id)
       if (seenNodes.has(id)) continue
+      if (nodes.length >= aggregateCap) {
+        truncated = true
+        break
+      }
       seenNodes.add(id)
 
       let kind = NODE_KIND_BY_ENTITY_TYPE[node.entity_type] ?? "dataset"
@@ -142,8 +156,8 @@ export function mergeProjectGraphs(
       // merged node set or they cannot be drawn (no decorative edges).
       edges.push({
         id: edge.id,
-        from: serverNodeIdToClientId(edge.source_id, graphs),
-        to: serverNodeIdToClientId(edge.target_id, graphs),
+        from: serverIdToClientId.get(edge.source_id) ?? edge.source_id,
+        to: serverIdToClientId.get(edge.target_id) ?? edge.target_id,
         kind: EDGE_KIND_BY_RELATION[edge.relation] ?? "membership",
         label: edge.relation,
         manual: edge.relation === "supports" || edge.relation === "contradicts",
@@ -166,23 +180,4 @@ export function mergeProjectGraphs(
   const summary = parts.join(" · ")
 
   return { graph: { nodes, edges: keptEdges }, truncated, summary }
-}
-
-/**
- * Server edge rows reference nodes by UUID; the client-side node ids carry
- * the `entity_type:` prefix. Both halves live in the same project snapshot,
- * so resolve via the node tables gathered there.
- */
-function serverNodeIdToClientId(
-  serverId: string,
-  graphs: EvidenceGraphPublic[],
-): string {
-  for (const result of graphs) {
-    for (const node of result.nodes ?? []) {
-      if (node.id === serverId) {
-        return nodeId(node.entity_type, node.entity_id)
-      }
-    }
-  }
-  return serverId
 }
