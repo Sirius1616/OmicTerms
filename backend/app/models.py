@@ -179,6 +179,99 @@ class EvidenceNodePublic(SQLModel):
     created_at: datetime
 
 
+#  ------  ANALYSIS RUNS (Story 22)  --------
+
+
+class AnalysisRunStatus(str, Enum):
+    queued = "queued"
+    running = "running"
+    succeeded = "succeeded"
+    failed = "failed"
+    cancelled = "cancelled"
+
+
+class AnalysisRun(SQLModel, table=True):
+    """Execution record: what ran, with what, on what, producing what.
+
+    Provenance backbone for the analysis module: ``input_refs``/``output_refs``
+    carry document ids and sha256 hashes so any run's chain can be verified
+    against upload integrity (Story 14). Missing metadata stays ``None`` —
+    never a fake default — so later missing-provenance checks (Story 35) can
+    flag it truthfully.
+
+    Lifecycle is transition-guarded (see ``app/services/runs.py``): illegal
+    state changes are rejected at the service boundary and races reject the
+    loser via compare-and-set.
+    """
+
+    __table_args__ = (
+        Index("ix_analysisrun_project_created", "project_id", "created_at"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    project_id: uuid.UUID = Field(foreign_key="project.id", index=True)
+    tool_name: str = Field(max_length=128)
+    tool_version: str | None = Field(default=None, max_length=64)
+    adapter_id: str | None = Field(default=None, max_length=128)
+    parameters: dict[str, Any] = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False)
+    )
+    config_hash: str | None = Field(default=None, max_length=64)
+    input_refs: list[dict[str, Any]] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
+    output_refs: list[dict[str, Any]] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
+    status: AnalysisRunStatus = AnalysisRunStatus.queued
+    started_at: datetime | None = Field(default=None)
+    finished_at: datetime | None = Field(default=None)
+    actor_user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
+    runtime_info: dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSON, nullable=True)
+    )
+    notes: str | None = Field(default=None, max_length=512)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    project: Project = Relationship()
+
+
+class AnalysisRunPublic(SQLModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    tool_name: str
+    tool_version: str | None = None
+    adapter_id: str | None = None
+    parameters: dict[str, Any] = {}
+    config_hash: str | None = None
+    input_refs: list[dict[str, Any]] = []
+    output_refs: list[dict[str, Any]] = []
+    status: AnalysisRunStatus
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    actor_user_id: uuid.UUID | None = None
+    runtime_info: dict[str, Any] | None = None
+    notes: str | None = None
+    created_at: datetime
+
+
+class AnalysisRunCreate(SQLModel):
+    """Run-record creation; no compute is triggered by this endpoint."""
+
+    tool_name: str = Field(max_length=128)
+    tool_version: str | None = Field(default=None, max_length=64)
+    adapter_id: str | None = Field(default=None, max_length=128)
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    config_hash: str | None = Field(default=None, max_length=64)
+    input_refs: list[dict[str, Any]] = Field(default_factory=list)
+    notes: str | None = Field(default=None, max_length=512)
+
+
+class AnalysisRunsPublic(SQLModel):
+    data: list[AnalysisRunPublic]
+    count: int
+
+
 class EvidenceGraphEdgePublic(SQLModel):
     id: uuid.UUID
     source_id: uuid.UUID

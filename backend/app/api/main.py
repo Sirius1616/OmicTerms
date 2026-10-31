@@ -9,6 +9,7 @@ from app.api.routes import (
     login,
     private,
     projects,
+    runs,
     samples,
     users,
     utils,
@@ -33,3 +34,4 @@ api_router.include_router(evidence.edge_router)
 api_router.include_router(experiments.router)
 api_router.include_router(samples.router)
 api_router.include_router(imports.router)
+api_router.include_router(runs.router)

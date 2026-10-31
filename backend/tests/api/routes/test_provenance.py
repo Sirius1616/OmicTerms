@@ -314,4 +314,5 @@ def test_registry_codes_are_namespaced():
             "user",
             "import",
             "evidence",
+            "run",
         }

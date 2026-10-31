@@ -30,6 +30,7 @@ import app as app_pkg
 from app.core.config import settings
 from app.crud import engine
 from app.models import (
+    AnalysisRun,
     Document,
     ExtractionJob,
     ExtractionJobStatus,
@@ -56,6 +57,12 @@ def upload_dir() -> Path:
 
 def _now() -> datetime:
     return datetime.now(UTC)
+
+
+def _project_for(session: Session, project_id: uuid.UUID) -> Any:
+    from app.models import Project
+
+    return session.get(Project, project_id)
 
 
 def extract_document(session: Session, document: Document) -> None:
@@ -91,6 +98,75 @@ def enqueue_extraction_job(session: Session, document_id: uuid.UUID) -> Extracti
     session.commit()
     session.refresh(job)
     return job
+
+
+#  ----  Story 22 wiring: extraction emits AnalysisRun records  ----
+
+
+def _extraction_run(
+    session: Session, document: Document, project_id: uuid.UUID
+) -> AnalysisRun | None:
+    """Create the queued run record describing this extraction."""
+    from app.models import ProvenanceActorType
+    from app.services import runs
+
+    adapter_id = (
+        document.data_type.value if document.data_type is not None else "text"
+    )
+    return runs.create_run(
+        session,
+        # project row (the run service needs it for tenant binding)
+        _project_for(session, project_id),
+        tool_name="extraction",
+        tool_version=None,
+        adapter_id=f"parser:{adapter_id}",
+        parameters={"text_mode": "plain"},
+        config_hash=None,
+        input_refs=[{"document_id": str(document.id), "sha256": document.sha256}],
+        actor_user_id=None,
+        actor_type=ProvenanceActorType.job,
+        notes="auto-emitted extraction run for uploaded document",
+    )
+
+
+def start_extraction_run(session: Session, run: AnalysisRun) -> bool:
+    from app.services import runs
+
+    return runs.start_run(session, run)
+
+
+def finish_extraction_run(
+    session: Session,
+    run: AnalysisRun | None,
+    session_document: Document,
+) -> AnalysisRun | None:
+    """Move the run running → succeeded and attach truthful output refs."""
+    if run is None:
+        return None
+    from app.services import runs
+
+    completed = runs.complete_run(
+        session,
+        run,
+        output_refs=[
+            {
+                "document_id": str(session_document.id),
+                "sha256": session_document.sha256,
+                "content_key": "raw_extracted_json",
+            }
+        ],
+    )
+    return completed
+
+
+def fail_extraction_run(
+    session: Session, run: AnalysisRun | None
+) -> bool:
+    if run is None:
+        return False
+    from app.services import runs
+
+    return runs.fail_run(session, run)
 
 
 def _claim_job(session: Session, job_id: uuid.UUID) -> bool:
@@ -194,6 +270,18 @@ def process_job(
 
     _emit("extraction.started")
 
+    # Story 22 wiring: extraction emits its own run record with a full
+    # input sha256 reference; the lifecycle below mirrors the job's.
+    document_snapshot = session.get(Document, document_id)
+    analysis_run: AnalysisRun | None = None
+    if document_snapshot is not None:
+        project_id = provenance.project_id_for_document(session, document_id)
+        if project_id is not None:
+            created_run = _extraction_run(session, document_snapshot, project_id)
+            if created_run is not None:
+                analysis_run = created_run
+                start_extraction_run(session, analysis_run)
+
     while True:
         document = session.get(Document, document_id)
         try:
@@ -213,6 +301,7 @@ def process_job(
                     session.add(document)
                 session.add(job)
                 session.commit()
+                fail_extraction_run(session, analysis_run)
                 _emit("extraction.failed", error=job.last_error)
                 logger.error(
                     "extraction job %s failed after %s attempts: %s",
@@ -243,6 +332,9 @@ def process_job(
             job.finished_at = _now()
             session.add(job)
             session.commit()
+            document = session.get(Document, job.document_id)
+            if document is not None:
+                finish_extraction_run(session, analysis_run, document)
             _trigger_upload_validation(session, job.document_id)
             _emit("extraction.succeeded")
             logger.info("extraction job %s succeeded", job.id)

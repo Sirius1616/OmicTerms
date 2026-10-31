@@ -38,7 +38,11 @@ from app.models import (
 )
 
 NODE_CAP = 500
-AUTO_EDGES = {EvidenceRelation.belongs_to}
+AUTO_EDGES = {
+    EvidenceRelation.belongs_to,
+    EvidenceRelation.input_to,
+    EvidenceRelation.produced_by,
+}
 MANUAL_RELATIONS = {EvidenceRelation.supports, EvidenceRelation.contradicts}
 
 
@@ -256,6 +260,57 @@ def purge_project_graph(session: Session, project_id: uuid.UUID) -> None:
             session.delete(edge)
         session.delete(node)
     session.commit()
+
+
+def materialise_run(session: Session, run) -> EvidenceNode | None:
+    """Node for an analysis run plus ``input_to`` edges to its inputs.
+
+    ``run`` is an :class:`~app.models.AnalysisRun`. Each entry in
+    ``input_refs`` may carry a sha256, which is stored in the edge's
+    ``evidence_ref`` so the graph keeps the integrity chain visible.
+    """
+    run_node = _ensure_node(
+        session, run.project_id, EvidenceEntityType.run, run.id, run.tool_name
+    )
+    for ref in run.input_refs or []:
+        document_node = get_node(
+            session, EvidenceEntityType.document, uuid.UUID(str(ref.get("document_id")))
+        )
+        if not document_node:
+            continue
+        evidence_ref = {"sha256": ref.get("sha256")} if ref.get("sha256") else None
+        _ensure_edge(
+            session,
+            run_node.id,
+            document_node.id,
+            EvidenceRelation.input_to,
+            evidence_ref=evidence_ref,
+        )
+    return run_node
+
+
+def materialise_run_outputs(session: Session, run) -> None:
+    """``produced_by`` edges from output artifacts back to their run (Story 25)."""
+    run_node = get_node(session, EvidenceEntityType.run, run.id)
+    if not run_node:
+        return
+    for ref in run.output_refs or []:
+        document_id = ref.get("document_id")
+        if not document_id:
+            continue
+        document_node = get_node(
+            session, EvidenceEntityType.document, uuid.UUID(str(document_id))
+        )
+        if not document_node:
+            continue
+        evidence_ref = {"sha256": ref.get("sha256")} if ref.get("sha256") else None
+        _ensure_edge(
+            session,
+            document_node.id,
+            run_node.id,
+            EvidenceRelation.produced_by,
+            evidence_ref=evidence_ref,
+        )
 
 
 #  ----------  GRAPH QUERY  ----------

@@ -51,6 +51,11 @@ ACTION_REGISTRY: set[str] = {
     "import.failed",
     "evidence.edge_created",
     "evidence.edge_deleted",
+    "run.created",
+    "run.started",
+    "run.succeeded",
+    "run.failed",
+    "run.cancelled",
 }
 
 
