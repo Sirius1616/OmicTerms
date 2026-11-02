@@ -43,6 +43,29 @@ def test_update_user_me(client, session):
     assert res.status_code == 200
     assert res.json()["full_name"] == "Updated Name"
 
+    # Story 2 AC1: the same PATCH accepts an email change and persists it.
+    res = client.patch(
+        "/api/v1/users/me",
+        json={"email": "updated@example.com"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 200
+    assert res.json()["email"] == "updated@example.com"
+    # The old session token bound to the previous email no longer resolves:
+    # persistence is verified with a fresh login.
+    new_login = client.post(
+        "/api/v1/login/access-token",
+        data={"username": "updated@example.com", "password": "testpass123"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert new_login.status_code == 200
+    me = client.get(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {new_login.json()['access_token']}"},
+    )
+    assert me.status_code == 201
+    assert me.json()["email"] == "updated@example.com"
+
 
 def test_non_admin_cannot_patch_other_user(client, session):
     attacker = User(
