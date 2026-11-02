@@ -138,12 +138,8 @@ test("global search: debounce, filtering, navigation, placeholders, keyboard", a
   await dialog.getByRole("option", { name: /Methylation atlas/ }).isVisible()
 
   // --- AC6/AC4: keyboard + mouse navigation to a document ------------------
-  await dialog
-    .getByRole("option", { name: seeded.filename })
-    .click()
-  await expect(page).toHaveURL(
-    new RegExp(`/documents/${seeded.documentId}$`),
-  )
+  await dialog.getByRole("option", { name: seeded.filename }).click()
+  await expect(page).toHaveURL(new RegExp(`/documents/${seeded.documentId}$`))
 
   // --- AC4: keyboard path to the project -----------------------------------
   const dialogAgain = await openSearch(page)
@@ -184,7 +180,13 @@ test("global search is reachable from every authenticated page", async ({
   await page.getByRole("button", { name: "Log In" }).click()
   await page.waitForURL("/")
 
-  for (const path of ["/", "/documents", "/projects", "/evidence", "/findings"]) {
+  for (const path of [
+    "/",
+    "/documents",
+    "/projects",
+    "/evidence",
+    "/findings",
+  ]) {
     await page.goto(path)
     await expect(
       page.getByRole("button", { name: "Open global search" }),
