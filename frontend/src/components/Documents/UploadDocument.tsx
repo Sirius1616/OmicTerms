@@ -3,6 +3,7 @@ import { FileUp } from "lucide-react"
 import type { ReactNode } from "react"
 import { useState } from "react"
 
+import type { ApiError } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
+import { sessionNotifications } from "@/hooks/useSessionNotifications"
 import { documentsApi } from "@/services/documents"
 import { hierarchyApi } from "@/services/hierarchy"
 import { DATA_TYPES } from "@/types/documents"
@@ -107,14 +109,27 @@ const UploadDocument = ({
   const uploadMutation = useMutation({
     mutationFn: (payload: { file: File; sampleId: string }) =>
       documentsApi.uploadDocument(payload.file, payload.sampleId, dataType),
-    onSuccess: () => {
+    onSuccess: (_created, variables) => {
       showSuccessToast("Document uploaded successfully")
+      // Story 12: the upload outcome also surfaces in the bell for the session.
+      sessionNotifications.push({
+        title: "Document uploaded",
+        body: variables.file.name,
+        kind: "success",
+      })
       setFile(null)
       setSampleId("")
       setDataType("auto")
       setIsOpen(false)
     },
-    onError: handleError.bind(showErrorToast),
+    onError: (error, variables) => {
+      sessionNotifications.push({
+        title: "Upload failed",
+        body: variables.file.name,
+        kind: "error",
+      })
+      handleError.bind(showErrorToast)(error as ApiError)
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] })
     },
