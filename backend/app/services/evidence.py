@@ -34,6 +34,9 @@ from app.models import (
     EvidenceNode,
     EvidenceRelation,
     Experiment,
+    FindingEvidence,
+    FindingEvidenceRole,
+    FindingEvidenceTarget,
     Project,
     Sample,
 )
@@ -43,6 +46,7 @@ AUTO_EDGES = {
     EvidenceRelation.belongs_to,
     EvidenceRelation.input_to,
     EvidenceRelation.produced_by,
+    EvidenceRelation.derived_from,
 }
 MANUAL_RELATIONS = {EvidenceRelation.supports, EvidenceRelation.contradicts}
 
@@ -318,14 +322,81 @@ def materialise_run_outputs(session: Session, run) -> None:
 
 
 def materialise_finding(session: Session, finding) -> EvidenceNode:
-    """Node for a finding; ``supports`` edges stay manual by design.
+    """Node for a finding plus edges mirroring its own evidence rows.
 
-    ``finding`` is a :class:`~app.models.Finding`. Retraction keeps the node
-    (the claim exists and is retracted); only deletion removes it.
+    ``finding`` is a :class:`~app.models.Finding`. Each resolvable reference
+    (document, run, graph edge) mirrors one edge from the finding node:
+
+    - primary / supporting → ``derived_from`` (the claim is derived from the
+      material it cites)
+    - contradicting → ``contradicts`` (why the claim cannot auto-validate)
+
+    The edges are structural mirrors of ``FindingEvidence`` rows, tagged with
+    the row id in ``evidence_ref`` — never invented, never user-decorative.
+    User ``supports`` edges remain manual by design. Retraction keeps the
+    node (the claim exists and is retracted); only deletion removes it.
     """
-    return _ensure_node(
-        session, finding.project_id, EvidenceEntityType.finding, finding.id, finding.title
+    node = _ensure_node(
+        session,
+        finding.project_id,
+        EvidenceEntityType.finding,
+        finding.id,
+        finding.title,
     )
+    rows = session.exec(
+        select(FindingEvidence).where(col(FindingEvidence.finding_id) == finding.id)
+    ).all()
+    for row in rows:
+        target_node = None
+        if row.target_type == FindingEvidenceTarget.document:
+            target_node = get_node(
+                session, EvidenceEntityType.document, uuid.UUID(row.target_id)
+            )
+        elif row.target_type == FindingEvidenceTarget.run:
+            target_node = get_node(
+                session, EvidenceEntityType.run, uuid.UUID(row.target_id)
+            )
+        elif row.target_type == FindingEvidenceTarget.graph_edge:
+            target_node = _node_for_edge(session, row.target_id)
+        if target_node is None:
+            continue
+        _ensure_edge(
+            session,
+            node.id,
+            target_node.id,
+            (
+                EvidenceRelation.contradicts
+                if row.role == FindingEvidenceRole.contradicting
+                else EvidenceRelation.derived_from
+            ),
+            evidence_ref={"finding_evidence_id": str(row.id)},
+        )
+    return node
+
+
+def refresh_finding_after_evidence_change(
+    session: Session, finding, evidence_id: str
+) -> None:
+    """Re-anchor the mirror edges when one evidence row disappears."""
+    node = get_node(session, EvidenceEntityType.finding, finding.id)
+    if node is None:
+        return
+    for edge in _incident_edges(session, node.id):
+        ref = edge.evidence_ref or {}
+        if ref.get("finding_evidence_id") == str(evidence_id):
+            session.delete(edge)
+    session.commit()
+    materialise_finding(session, finding)
+
+
+def _node_for_edge(session: Session, edge_id: str) -> EvidenceNode | None:
+    try:
+        edge = session.get(EvidenceEdge, uuid.UUID(edge_id))
+    except ValueError:
+        return None
+    if edge is None:
+        return None
+    return session.get(EvidenceNode, edge.source_id)
 
 
 def remove_finding_node(session: Session, finding_id: uuid.UUID) -> None:

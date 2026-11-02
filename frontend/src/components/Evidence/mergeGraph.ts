@@ -137,7 +137,13 @@ export function mergeProjectGraphs(
             ? "studies"
             : kind === "experiment" || kind === "sample"
               ? "samples"
-              : "omics",
+              : kind === "analysis"
+                ? "analysis"
+                : kind === "finding"
+                  ? "findings"
+                  : kind === "report"
+                    ? "reports"
+                    : "omics",
         certainty: "observed",
         detail,
         href:
@@ -177,6 +183,8 @@ export function mergeProjectGraphs(
   if (counts.experiment) parts.push(`${counts.experiment} experiments`)
   if (counts.sample) parts.push(`${counts.sample} samples`)
   if (counts.dataset) parts.push(`${counts.dataset} documents`)
+  if (counts.analysis) parts.push(`${counts.analysis} analysis runs`)
+  if (counts.finding) parts.push(`${counts.finding} findings`)
   const summary = parts.join(" · ")
 
   return { graph: { nodes, edges: keptEdges }, truncated, summary }

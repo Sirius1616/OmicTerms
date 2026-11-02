@@ -351,3 +351,94 @@ def test_relation_registry_covers_documented_relations():
     ):
         assert hasattr(EvidenceRelation, relation)
 
+
+def test_ac1_two_documents_one_run_and_finding_show_typed_nodes_and_edges(
+    upload_env, client, session
+):
+    # Story 29's flagship scenario, now exercisable on real models:
+    # project → experiment → sample; two documents; one analysis run whose
+    # input_refs cover both documents; one finding referencing both the
+    # document and the run.
+    headers = _user(client, session, prefix="ac1")
+    project_id, _, sample_id = _make_hierarchy(client, headers)
+    doc_one = _upload_doc(client, headers, sample_id, name="counts-a.tsv")
+    doc_two = _upload_doc(client, headers, sample_id, name="peaks-b.bed")
+
+    run = client.post(
+        f"/api/v1/projects/{project_id}/runs",
+        json={
+            "tool_name": "matrix-de",
+            "input_refs": [
+                {
+                    "document_id": doc_one["id"],
+                    "sha256": doc_one["sha256"],
+                },
+                {
+                    "document_id": doc_two["id"],
+                    "sha256": doc_two["sha256"],
+                },
+            ],
+        },
+        headers=headers,
+    )
+    assert run.status_code == 201, run.text
+    run = run.json()
+
+    finding = client.post(
+        f"/api/v1/projects/{project_id}/findings",
+        json={
+            "title": "Shift confirmed on both inputs",
+            "summary": "Claim tied to two documents and the run.",
+            "evidence": [
+                {
+                    "target_type": "document",
+                    "target_id": doc_one["id"],
+                    "role": "primary",
+                },
+                {
+                    "target_type": "run",
+                    "target_id": run["id"],
+                    "role": "supporting",
+                },
+            ],
+        },
+        headers=headers,
+    )
+    assert finding.status_code == 201, finding.text
+    finding = finding.json()
+
+    body = _get_graph(client, headers, project_id).json()
+    docs = [n for n in body["nodes"] if n["entity_type"] == "document"]
+    runs = [n for n in body["nodes"] if n["entity_type"] == "run"]
+    findings = [n for n in body["nodes"] if n["entity_type"] == "finding"]
+    assert len(docs) == 2
+    assert [node["label"] for node in runs] == ["matrix-de"]
+    assert [node["label"] for node in findings] == [finding["title"]]
+
+    by_type_entity = {
+        (n["entity_type"], n["entity_id"]): n for n in body["nodes"]
+    }
+    run_node = by_type_entity[("run", run["id"])]
+    doc_one_node = by_type_entity[("document", doc_one["id"])]
+    doc_two_node = by_type_entity[("document", doc_two["id"])]
+    finding_node = by_type_entity[("finding", finding["id"])]
+
+    edges = _edge_tuples(body)
+    assert (run_node["id"], doc_one_node["id"], "input_to") in edges
+    assert (run_node["id"], doc_two_node["id"], "input_to") in edges
+    for document in docs:
+        sample_node = by_type_entity[("sample", sample_id)]
+        assert (
+            document["id"],
+            sample_node["id"],
+            "belongs_to",
+        ) in edges
+
+    # The finding's own evidence rows mirror as FK-backed edges: one
+    # derived_from to each cited target. Manual supports stay manual.
+    assert (finding_node["id"], doc_one_node["id"], "derived_from") in edges
+    assert (finding_node["id"], run_node["id"], "derived_from") in edges
+    assert not any(
+        edge[2] == "supports" or edge[2] == "contradicts" for edge in edges
+    )
+

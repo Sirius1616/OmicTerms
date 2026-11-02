@@ -752,6 +752,12 @@ def remove_evidence(
     session.add(finding)
     session.commit()
 
+    from app.services import evidence
+
+    evidence.refresh_finding_after_evidence_change(
+        session, finding, str(evidence_id)
+    )
+
     provenance.record(
         session,
         project_id=finding.project_id,

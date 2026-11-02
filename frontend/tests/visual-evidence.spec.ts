@@ -253,6 +253,22 @@ test("real workspace data drives the graph with traceable sources", async ({
             project_id: "p1",
             created_at: "2026-10-02T00:00:00Z",
           },
+          {
+            id: "n5",
+            entity_type: "run",
+            entity_id: "r1",
+            label: "matrix-de",
+            project_id: "p1",
+            created_at: "2026-10-04T00:00:00Z",
+          },
+          {
+            id: "n6",
+            entity_type: "finding",
+            entity_id: "f1",
+            label: "Shift confirmed on both inputs",
+            project_id: "p1",
+            created_at: "2026-10-05T00:00:00Z",
+          },
         ],
         edges: [
           {
@@ -285,6 +301,33 @@ test("real workspace data drives the graph with traceable sources", async ({
             note: "promoter hypothesis",
             created_by: "u1",
             created_at: "2026-10-03T00:00:00Z",
+          },
+          {
+            id: "eg5",
+            source_id: "n5",
+            target_id: "n4",
+            relation: "input_to",
+            evidence_ref: { sha256: "a".repeat(64) },
+            created_by: "u1",
+            created_at: "2026-10-04T00:00:00Z",
+          },
+          {
+            id: "eg6",
+            source_id: "n6",
+            target_id: "n4",
+            relation: "derived_from",
+            evidence_ref: { finding_evidence_id: "fe1" },
+            created_by: "u1",
+            created_at: "2026-10-05T00:00:00Z",
+          },
+          {
+            id: "eg7",
+            source_id: "n6",
+            target_id: "n5",
+            relation: "derived_from",
+            evidence_ref: { finding_evidence_id: "fe2" },
+            created_by: "u1",
+            created_at: "2026-10-05T00:00:00Z",
           },
         ],
         truncated: false,
@@ -320,25 +363,32 @@ test("real workspace data drives the graph with traceable sources", async ({
   await expect(page.getByText(/Real workspace data/).first()).toBeVisible()
 
   const nodes = page.locator(NODE_SELECTOR)
-  await expect(nodes).toHaveCount(4)
+  await expect(nodes).toHaveCount(6)
 
   const project = page.locator(NODE_SELECTOR, { hasText: "Prostate study" })
   const experiment = page.locator(NODE_SELECTOR, { hasText: "Baseline" })
   const sample = page.locator(NODE_SELECTOR, { hasText: "Sample A" })
   const variantDoc = page.locator(NODE_SELECTOR, { hasText: "calls.vcf" })
+  const runNode = page.locator(NODE_SELECTOR, { hasText: "matrix-de" })
+  const findingNode = page.locator(NODE_SELECTOR, {
+    hasText: "Shift confirmed on both inputs",
+  })
 
   await expect(project).toBeVisible()
   await expect(experiment).toBeVisible()
   await expect(sample).toBeVisible()
   await expect(variantDoc).toBeVisible()
+  await expect(runNode).toBeVisible()
+  await expect(findingNode).toBeVisible()
 
-  // Every drawn edge comes from the intercepted graph API: exactly the four
-  // relations the server returned (3 structural belongs_to + 1 manual
-  // supports); nothing is invented on the client.
+  // Every drawn edge comes from the intercepted graph API: exactly the seven
+  // relations the server returned (3 structural belongs_to, 1 manual dashed
+  // supports, 2 run input_to, 2 finding derived_from); nothing is invented
+  // on the client.
   await expect(
     page.locator(EDGE_SELECTOR),
     "edges must exist in the API response only",
-  ).toHaveCount(4)
+  ).toHaveCount(7)
 
   // Manual supports edges render dashed.
   await expect(
@@ -358,6 +408,14 @@ test("real workspace data drives the graph with traceable sources", async ({
 
   await page.getByRole("link", { name: "Open source" }).click()
   await expect(page).toHaveURL(/\/documents\/d1$/)
+
+  // Story 29 with Story 22/30 data: the run node also opens the inspector
+  // (facts only — no run detail page exists yet, so no navigation link).
+  await page.goto("/evidence")
+  await expect(nodes).toHaveCount(6)
+  await runNode.click()
+  const inspector = page.getByTestId("evidence-inspector")
+  await expect(inspector.getByText("matrix-de", { exact: true })).toBeVisible()
 })
 
 test("graph table view is the accessible text alternative", async ({

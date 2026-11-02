@@ -584,7 +584,10 @@ export function EvidenceGraph({
               <ChevronRight className="size-4" />
             </Button>
           </div>
-          <div className="h-[calc(100%-41px)] overflow-y-auto p-4">
+          <div
+            className="h-[calc(100%-41px)] overflow-y-auto p-4"
+            data-testid="evidence-inspector"
+          >
             {selectedNode ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
