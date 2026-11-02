@@ -392,6 +392,20 @@ export type FindingVersionsPublic = {
     count: number;
 };
 
+export type FormatDefinitionPublic = {
+    id: string;
+    extension: string;
+    media_type: string;
+    description: string;
+    parser_id: string;
+    examples?: Array<(string)>;
+};
+
+export type FormatsPublic = {
+    data: Array<FormatDefinitionPublic>;
+    count: number;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -479,6 +493,13 @@ export type ProvenanceEventsPublic = {
     count: number;
 };
 
+/**
+ * What the registry promises, exactly: ``supported`` means a working
+ * parser exists (and CI tests enforce the match); ``planned``/``experimental``
+ * are visible promises that never fake capabilities.
+ */
+export type RegistrySupportStatus = 'supported' | 'planned' | 'experimental';
+
 export type RepositoryImportPublic = {
     id: string;
     owner_id: string;
@@ -530,6 +551,25 @@ export type SampleUpdate = {
 export type Token = {
     access_token: string;
     token_type?: string;
+};
+
+export type ToolDefinitionPublic = {
+    id: string;
+    name: string;
+    version_policy: string;
+    category: string;
+    website_url?: (string | null);
+    docs_url?: (string | null);
+    input_formats?: Array<(string)>;
+    output_formats?: Array<(string)>;
+    internal_representation_mapping_id?: (string | null);
+    support_status: RegistrySupportStatus;
+    notes?: (string | null);
+};
+
+export type ToolsPublic = {
+    data: Array<ToolDefinitionPublic>;
+    count: number;
 };
 
 export type UpdatePassword = {
@@ -936,6 +976,21 @@ export type ProjectsReadProjectEventsData = {
 };
 
 export type ProjectsReadProjectEventsResponse = (ProvenanceEventsPublic);
+
+export type RegistryListToolsData = {
+    limit?: number;
+    skip?: number;
+    status?: (RegistrySupportStatus | null);
+};
+
+export type RegistryListToolsResponse = (ToolsPublic);
+
+export type RegistryListFormatsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type RegistryListFormatsResponse = (FormatsPublic);
 
 export type RunsCreateRunData = {
     projectId: string;

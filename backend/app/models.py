@@ -480,6 +480,101 @@ class FindingValidationResult(SQLModel):
     issues: list[FindingValidationIssuePublic] = []
 
 
+#  ------  REGISTRY (Story 20)  --------
+
+
+class RegistrySupportStatus(str, Enum):
+    """What the registry promises, exactly: ``supported`` means a working
+    parser exists (and CI tests enforce the match); ``planned``/``experimental``
+    are visible promises that never fake capabilities."""
+
+    supported = "supported"
+    planned = "planned"
+    experimental = "experimental"
+
+
+class ToolDefinition(SQLModel, table=True):
+    """One tool line in the supported/planned tooling registry.
+
+    Seeded via migration: adding a row is a migration/seed change only
+    (see ``docs/adapters.md``). ``input_formats``/``output_formats`` carry
+    format extensions so the registry is queryable without joins.
+    """
+
+    __table_args__ = (
+        Index(
+            "ix_tooldefinition_category_status",
+            "category",
+            "support_status",
+        ),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    name: str = Field(max_length=128, unique=True, index=True)
+    version_policy: str = Field(max_length=128)
+    category: str = Field(max_length=64)
+    website_url: str | None = Field(default=None, max_length=512)
+    docs_url: str | None = Field(default=None, max_length=512)
+    input_formats: list[str] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
+    output_formats: list[str] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
+    internal_representation_mapping_id: str | None = Field(
+        default=None, max_length=128
+    )
+    support_status: RegistrySupportStatus
+    notes: str | None = Field(default=None, max_length=512)
+
+
+class ToolDefinitionPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    version_policy: str
+    category: str
+    website_url: str | None = None
+    docs_url: str | None = None
+    input_formats: list[str] = []
+    output_formats: list[str] = []
+    internal_representation_mapping_id: str | None = None
+    support_status: RegistrySupportStatus
+    notes: str | None = None
+
+
+class ToolsPublic(SQLModel):
+    data: list[ToolDefinitionPublic]
+    count: int
+
+
+class FormatDefinition(SQLModel, table=True):
+    """One file-format line: extension, media type, and the parser id that
+    actually handles it (``parser_id`` must exist for ``supported`` formats)."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    extension: str = Field(max_length=16, unique=True, index=True)
+    media_type: str = Field(max_length=128)
+    description: str = Field(max_length=4000)
+    parser_id: str = Field(max_length=64)
+    examples: list[str] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
+
+
+class FormatDefinitionPublic(SQLModel):
+    id: uuid.UUID
+    extension: str
+    media_type: str
+    description: str
+    parser_id: str
+    examples: list[str] = []
+
+
+class FormatsPublic(SQLModel):
+    data: list[FormatDefinitionPublic]
+    count: int
+
+
 class EvidenceGraphEdgePublic(SQLModel):
     id: uuid.UUID
     source_id: uuid.UUID

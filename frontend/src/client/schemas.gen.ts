@@ -1676,6 +1676,62 @@ export const FindingsPublicSchema = {
     title: 'FindingsPublic'
 } as const;
 
+export const FormatDefinitionPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        extension: {
+            type: 'string',
+            title: 'Extension'
+        },
+        media_type: {
+            type: 'string',
+            title: 'Media Type'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        parser_id: {
+            type: 'string',
+            title: 'Parser Id'
+        },
+        examples: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Examples',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'extension', 'media_type', 'description', 'parser_id'],
+    title: 'FormatDefinitionPublic'
+} as const;
+
+export const FormatsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/FormatDefinitionPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'FormatsPublic'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -2075,6 +2131,15 @@ export const ProvenanceEventsPublicSchema = {
     title: 'ProvenanceEventsPublic'
 } as const;
 
+export const RegistrySupportStatusSchema = {
+    type: 'string',
+    enum: ['supported', 'planned', 'experimental'],
+    title: 'RegistrySupportStatus',
+    description: `What the registry promises, exactly: \`\`supported\`\` means a working
+parser exists (and CI tests enforce the match); \`\`planned\`\`/\`\`experimental\`\`
+are visible promises that never fake capabilities.`
+} as const;
+
 export const RepositoryImportPublicSchema = {
     properties: {
         id: {
@@ -2312,6 +2377,113 @@ export const TokenSchema = {
     type: 'object',
     required: ['access_token'],
     title: 'Token'
+} as const;
+
+export const ToolDefinitionPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        version_policy: {
+            type: 'string',
+            title: 'Version Policy'
+        },
+        category: {
+            type: 'string',
+            title: 'Category'
+        },
+        website_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Website Url'
+        },
+        docs_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Docs Url'
+        },
+        input_formats: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Input Formats',
+            default: []
+        },
+        output_formats: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Output Formats',
+            default: []
+        },
+        internal_representation_mapping_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Internal Representation Mapping Id'
+        },
+        support_status: {
+            '$ref': '#/components/schemas/RegistrySupportStatus'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'version_policy', 'category', 'support_status'],
+    title: 'ToolDefinitionPublic'
+} as const;
+
+export const ToolsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ToolDefinitionPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ToolsPublic'
 } as const;
 
 export const UpdatePasswordSchema = {

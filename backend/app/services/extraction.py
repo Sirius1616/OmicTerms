@@ -76,8 +76,50 @@ DOCUMENT_EXTRACTORS: dict[str, Callable[[str], str]] = {
     "email": extract_email,
 }
 
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 TEXT_EXTENSIONS = {".txt", ".tsv", ".csv", ".vcf", ".bed"}
+
+# Story 20 — the single source of truth the registry is checked against:
+# every parser id that ``extract_text`` can actually dispatch, and every
+# extension it routes. ``app.validation``/registry tests derive ``supported``
+# claims from these constants so the registry can list only what exists.
+SUPPORTED_PARSER_IDS: tuple[str, ...] = (
+    "pdf",
+    "image",
+    "docx",
+    "email",
+    "text",
+    "vcf",
+    "bed",
+    "matrix",
+)
+SUPPORTED_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        ".pdf",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".docx",
+        ".eml",
+        ".zip",
+        ".txt",
+        ".tsv",
+        ".csv",
+        ".vcf",
+        ".bed",
+    }
+)
+
+# Extension → parser id used for the *statically* routed families; the text
+# family (.txt/.tsv/.csv/.vcf/.bed) is resolved dynamically by the omics
+# sniffers, so it is part of SUPPORTED_EXTENSIONS but not of this map.
+STATIC_EXTRACTOR_BY_EXTENSION: dict[str, str] = {
+    ".pdf": "pdf",
+    ".png": "image",
+    ".jpg": "image",
+    ".jpeg": "image",
+    ".docx": "docx",
+    ".eml": "email",
+}
 
 
 def _sniff_zip(file: str) -> str:
@@ -95,13 +137,14 @@ def extract_text(file: str) -> ExtractionResult:
     path = Path(file)
     ext = path.suffix.lower()
 
-    if ext == ".pdf":
+    static_parser = STATIC_EXTRACTOR_BY_EXTENSION.get(ext)
+    if static_parser == "pdf":
         return ExtractionResult("pdf", extract_pdf(file))
-    if ext in IMAGE_EXTENSIONS:
+    if static_parser == "image":
         return ExtractionResult("image", extract_img(file))
-    if ext == ".docx":
+    if static_parser == "docx":
         return ExtractionResult("docx", extract_docx(file))
-    if ext == ".eml":
+    if static_parser == "email":
         return ExtractionResult("email", extract_email(file))
     if ext == ".zip":
         inner = _sniff_zip(file)
@@ -110,12 +153,13 @@ def extract_text(file: str) -> ExtractionResult:
         raise UnsupportedFormat(
             f"ZIP contents look like '{inner}'. Only .docx inside .zip is supported."
         )
-
-    text = read_text(path)
-    structure = parse_omics(text)
-    if structure["kind"] in {"vcf", "bed", "matrix"}:
-        return ExtractionResult(structure["kind"], text, structure)
-    return ExtractionResult("text", text, None)
+    if ext in TEXT_EXTENSIONS:
+        text = read_text(path)
+        structure = parse_omics(text)
+        if structure["kind"] in {"vcf", "bed", "matrix"}:
+            return ExtractionResult(structure["kind"], text, structure)
+        return ExtractionResult("text", text, None)
+    return ExtractionResult("text", read_text(path))
 
 
 def main() -> None:

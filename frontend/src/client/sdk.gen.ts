@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, DocumentsListDocumentCrossValidationsData, DocumentsListDocumentCrossValidationsResponse, DocumentsValidateExperimentCrossData, DocumentsValidateExperimentCrossResponse, DocumentsListExperimentCrossValidationsData, DocumentsListExperimentCrossValidationsResponse, EvidenceReadProjectGraphData, EvidenceReadProjectGraphResponse, EvidenceCreateGraphEdgeData, EvidenceCreateGraphEdgeResponse, EvidenceDeleteGraphEdgeData, EvidenceDeleteGraphEdgeResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, FindingsCreateFindingData, FindingsCreateFindingResponse, FindingsListProjectFindingsData, FindingsListProjectFindingsResponse, FindingsReadFindingData, FindingsReadFindingResponse, FindingsUpdateFindingData, FindingsUpdateFindingResponse, FindingsDeleteFindingData, FindingsDeleteFindingResponse, FindingsListFindingVersionsData, FindingsListFindingVersionsResponse, FindingsAddFindingEvidenceData, FindingsAddFindingEvidenceResponse, FindingsRemoveFindingEvidenceData, FindingsRemoveFindingEvidenceResponse, FindingsPublishFindingData, FindingsPublishFindingResponse, FindingsRetractFindingData, FindingsRetractFindingResponse, FindingsValidateFindingData, FindingsValidateFindingResponse, ImportsCreateImportData, ImportsCreateImportResponse, ImportsListImportsResponse, ImportsGetImportData, ImportsGetImportResponse, ImportsListImportJobsData, ImportsListImportJobsResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, ProjectsReadProjectEventsData, ProjectsReadProjectEventsResponse, RunsCreateRunData, RunsCreateRunResponse, RunsListProjectRunsData, RunsListProjectRunsResponse, RunsReadRunData, RunsReadRunResponse, RunsCancelRunData, RunsCancelRunResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, DocumentsListDocumentCrossValidationsData, DocumentsListDocumentCrossValidationsResponse, DocumentsValidateExperimentCrossData, DocumentsValidateExperimentCrossResponse, DocumentsListExperimentCrossValidationsData, DocumentsListExperimentCrossValidationsResponse, EvidenceReadProjectGraphData, EvidenceReadProjectGraphResponse, EvidenceCreateGraphEdgeData, EvidenceCreateGraphEdgeResponse, EvidenceDeleteGraphEdgeData, EvidenceDeleteGraphEdgeResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, FindingsCreateFindingData, FindingsCreateFindingResponse, FindingsListProjectFindingsData, FindingsListProjectFindingsResponse, FindingsReadFindingData, FindingsReadFindingResponse, FindingsUpdateFindingData, FindingsUpdateFindingResponse, FindingsDeleteFindingData, FindingsDeleteFindingResponse, FindingsListFindingVersionsData, FindingsListFindingVersionsResponse, FindingsAddFindingEvidenceData, FindingsAddFindingEvidenceResponse, FindingsRemoveFindingEvidenceData, FindingsRemoveFindingEvidenceResponse, FindingsPublishFindingData, FindingsPublishFindingResponse, FindingsRetractFindingData, FindingsRetractFindingResponse, FindingsValidateFindingData, FindingsValidateFindingResponse, ImportsCreateImportData, ImportsCreateImportResponse, ImportsListImportsResponse, ImportsGetImportData, ImportsGetImportResponse, ImportsListImportJobsData, ImportsListImportJobsResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, ProjectsReadProjectEventsData, ProjectsReadProjectEventsResponse, RegistryListToolsData, RegistryListToolsResponse, RegistryListFormatsData, RegistryListFormatsResponse, RunsCreateRunData, RunsCreateRunResponse, RunsListProjectRunsData, RunsListProjectRunsResponse, RunsReadRunData, RunsReadRunResponse, RunsCancelRunData, RunsCancelRunResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -1028,6 +1028,55 @@ export class ProjectsService {
             },
             query: {
                 action: data.action,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class RegistryService {
+    /**
+     * List Tools
+     * Seed once on first read so a fresh deployment reports real rows.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.status
+     * @returns ToolsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listTools(data: RegistryListToolsData = {}): CancelablePromise<RegistryListToolsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/registry/tools',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                status: data.status
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Formats
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns FormatsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listFormats(data: RegistryListFormatsData = {}): CancelablePromise<RegistryListFormatsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/registry/formats',
+            query: {
                 skip: data.skip,
                 limit: data.limit
             },

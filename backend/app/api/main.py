@@ -10,6 +10,7 @@ from app.api.routes import (
     login,
     private,
     projects,
+    registry,
     runs,
     samples,
     users,
@@ -37,3 +38,4 @@ api_router.include_router(samples.router)
 api_router.include_router(imports.router)
 api_router.include_router(runs.router)
 api_router.include_router(findings.router)
+api_router.include_router(registry.router)
