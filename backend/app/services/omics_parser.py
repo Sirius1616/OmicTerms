@@ -78,6 +78,80 @@ def parse_omics(text: str) -> dict:
     }
 
 
+#  ----------  full-pass helpers for the adapters (Story 21)  ----------
+#
+# Each ``*_full`` function resolves the same structure as the classic
+# parsers AND the per-row payloads the adapters map, in one pass; the
+# behaviour of the structure dicts is identical (tests assert it).
+
+
+def parse_vcf_full(text: str) -> tuple[dict, list[list[str]]]:
+    """Return the legacy VCF structure dict plus the raw data rows."""
+    meta: list[str] = []
+    header: list[str] = []
+    sample_columns: list[str] = []
+    variant_count = 0
+    preview: list[list[str]] = []
+    records: list[list[str]] = []
+
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        if not line:
+            continue
+        if line.startswith("##"):
+            if len(meta) < 200:
+                meta.append(line)
+        elif line.startswith("#CHROM"):
+            header = line.lstrip("#").split("\t")
+            if "FORMAT" in header:
+                sample_columns = header[header.index("FORMAT") + 1 :]
+        elif line.startswith("#"):
+            continue
+        else:
+            variant_count += 1
+            cells = line.split("\t")
+            records.append(cells)
+            if len(preview) < PREVIEW_ROWS:
+                preview.append(cells[:COLUMN_CAP])
+
+    return (
+        {
+            "kind": "vcf",
+            "meta_lines": meta,
+            "header": header,
+            "sample_columns": sample_columns,
+            "variant_count": variant_count,
+            "preview_rows": preview,
+        },
+        records,
+    )
+
+
+def parse_bed_full(text: str) -> tuple[dict, list[list[str]]]:
+    """Return the legacy BED structure dict plus every qualifying row."""
+    rows = _rows(text)
+    structure = _parse_bed(rows)
+    qualifying = [row for row in rows if len(row) >= 3 and _is_int(row[1]) and _is_int(row[2])]
+    return structure, qualifying
+
+
+def parse_matrix_full(
+    text: str,
+) -> tuple[dict, list[list[str]], list[str]]:
+    """Return the legacy matrix structure dict plus rows and header."""
+    rows = _rows(text)
+    structure = _parse_matrix(rows)
+    header = _full_header(rows, structure)
+    return structure, rows[1:], header
+
+
+def _full_header(rows: list[list[str]], structure: dict) -> list[str]:
+    """Header beyond the capped slice stored in the structure dict."""
+    if not rows:
+        return []
+    return rows[0][:COLUMN_CAP]
+
+
 def _looks_like_vcf(text: str) -> bool:
     lines = [line for line in text.splitlines() if line.strip()][:250]
     has_chrom = any(line.startswith("#CHROM") for line in lines)

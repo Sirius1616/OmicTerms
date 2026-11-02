@@ -19,7 +19,8 @@ from docx import Document
 from PIL import Image
 from pypdf import PdfReader
 
-from app.services.omics_parser import parse_omics, read_text
+from app.integration.adapters import OMICS_ADAPTER as omics_adapter
+from app.services.omics_parser import read_text
 
 
 class UnsupportedFormat(Exception):
@@ -155,10 +156,18 @@ def extract_text(file: str) -> ExtractionResult:
         )
     if ext in TEXT_EXTENSIONS:
         text = read_text(path)
-        structure = parse_omics(text)
-        if structure["kind"] in {"vcf", "bed", "matrix"}:
+        mapped = omics_adapter.parse(text)
+        structure = mapped.source
+        if mapped.kind != "other":
+            structure["__meta"] = {
+                "adapter_id": omics_adapter.describe(),
+                "parser_id": mapped.provenance["parser_id"],
+                "parser_version": mapped.provenance["parser_version"],
+                "dataset_kind": mapped.kind,
+            }
             return ExtractionResult(structure["kind"], text, structure)
         return ExtractionResult("text", text, None)
+    return ExtractionResult("text", read_text(path))
     return ExtractionResult("text", read_text(path))
 
 

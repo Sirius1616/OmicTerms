@@ -49,9 +49,53 @@ checked against:
 Adding a parser means: implement it in `extract_text`, extend the constants,
 extend the seed, and run the suite.
 
-## 3. Adapter interface (Story 21, planned)
+## 3. Adapter interface (Story 21)
 
-Upcoming: `app/integration/adapters/` maps tool outputs into typed internal
-structures (`MappedDataset`) with an explicit mapping table documented here —
-this file will grow that table when Story 21 lands. Nothing today is silently
-coerced: keep any unmapped field visible and listed.
+`backend/app/integration/adapters/` is the extension point. One adapter,
+`OmicsAdapter` (mapping id `extraction-pipeline:v1`), owns the text omics
+family behind the adapter protocol (`sniff` → confidence in [0, 1],
+`parse` → `MappedDataset`, `describe` → registry mapping id).
+
+`omics_parser.parse_omics` keeps its legacy JSON structure
+(`MappedDataset.source` is the same dict, byte-for-byte), which keeps
+existing extraction/validation flows stable; new consumers go through the
+API and get typed `records` plus metadata in the additive `__meta`
+envelope inside `raw_extracted_json`:
+
+```json
+"__meta": {
+  "adapter_id": "extraction-pipeline:v1",
+  "parser_id": "matrix",
+  "parser_version": "1.0",
+  "dataset_kind": "expression"
+}
+```
+
+Validators read `__meta` as metadata and keep parsing files as their own
+surface (format bytes stay the primary source — the envelope is optional
+colour, never required).
+
+### Mapping table — OmicsAdapter (`extraction-pipeline:v1`)
+
+Records are capped (`RECORD_CAP = 100` rows; 1000 variants) — large files
+keep their totals in `source`, previews live in `records`. Nothing is
+coerced and nothing is dropped silently: every unmapped value remains
+verbatim in `raw`.
+
+| Family | Source column | Internal field | Mapping note |
+| --- | --- | --- | --- |
+| VCF | `CHROM` | `VariantRecord.chrom` | 1-based pos documented in `coordinate_meta` |
+| VCF | `POS` | `VariantRecord.pos` | `int | None`; invalid stays `None`, raw keeps the text |
+| VCF | `ID` | `IdentifierNamespace` | rule-ordered namespace detection |
+| VCF | `REF`/`ALT` | `VariantRecord.ref`/`.alt` | string-verbatim |
+| VCF | `FORMAT`, sample columns, `INFO`, `QUAL`, `FILTER` | — (raw only) | **unmapped by design**: format-additive consumers (Story 25) will add explicit mappings |
+| BED | col 1 | `IntervalRecord.chrom` | 0-based half-open documented |
+| BED | col 2/3 | `start`/`end` | ints (parser guarantees) |
+| BED | col 4-6 | — (raw only) | name/score/strand unmapped |
+| Matrix | col 1 | `identifier` + `IdentifierNamespace` | `cpg_probe` → methylation kind, otherwise `expression` |
+| Matrix | col ≥2 | `values[sample_id]` | string-verbatim; numeric coercion is a consumer decision |
+
+`Identifiers` are never fabricated: unmatched tokens report `unknown` with
+the rule trace in `evidence`. Registering a new adapter is one
+`register_adapter(...)` call — no core code changes (AC4 tests in
+`tests/unit/test_adapters.py`).
