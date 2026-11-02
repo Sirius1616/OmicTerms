@@ -315,4 +315,5 @@ def test_registry_codes_are_namespaced():
             "import",
             "evidence",
             "run",
+            "finding",
         }

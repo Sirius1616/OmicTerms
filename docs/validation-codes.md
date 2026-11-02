@@ -40,3 +40,15 @@ failure is recorded as a `skipped` issue with `VAL-INTERNAL-001`.
 | CROSS-ASSEMBLY-001 | error | Assembly mismatch across files in experiment |
 | CROSS-ID-NS-001 | warning | Mixed identifier namespaces across matrices |
 | CROSS-IO-001 | skipped | Input/output compatibility checks skipped (requires AnalysisRun) |
+
+Findings (Story 30): deterministic claim checks run by
+`POST /findings/{id}/validate`; results persist as validation runs with
+`subject_type = finding`. No body can force `validated` — the checks below
+are the only path to that state.
+
+| Code | Severity | Description |
+| --- | --- | --- |
+| finding.content_missing | error | Finding title or summary is empty |
+| finding.no_primary_evidence | error | No primary evidence reference attached |
+| finding.evidence_unresolved | error | Evidence reference target cannot be resolved (deleted or invalid id) |
+| finding.contradicting_evidence | error | Contradicting evidence attached — claim must stay in human review |

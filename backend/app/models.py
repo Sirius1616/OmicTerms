@@ -46,6 +46,7 @@ class ValidationSubjectType(str, Enum):
     dataset = "dataset"
     report = "report"
     experiment = "experiment"
+    finding = "finding"
 
 
 class ValidationTrigger(str, Enum):
@@ -270,6 +271,213 @@ class AnalysisRunCreate(SQLModel):
 class AnalysisRunsPublic(SQLModel):
     data: list[AnalysisRunPublic]
     count: int
+
+
+#  ------  FINDINGS (Story 30)  --------
+
+
+class FindingStatus(str, Enum):
+    """Lifecycle of a research claim.
+
+    Draft → review → published; retracting a published claim leaves it
+    ``retracted`` — visible and historic, never erased — until a human
+    deliberately returns it to ``review`` (``PATCH status="review"``) for a
+    corrected edition, which publishes again as a new version. Publishing is
+    the only other transition and requires primary evidence; erasing a
+    published claim outright is forbidden.
+    """
+
+    draft = "draft"
+    review = "review"
+    published = "published"
+    retracted = "retracted"
+
+
+class FindingValidationState(str, Enum):
+    """Epistemic status of the claim's support.
+
+    ``validated`` is reachable only through deterministic checks run by
+    ``POST /findings/{id}/validate``; never assigned automatically by any
+    write path. ``disputed`` is a human-action-only state (set through PATCH).
+    AI-assisted drafting (Story 63) can never set this field.
+    """
+
+    unvalidated = "unvalidated"
+    validated = "validated"
+    disputed = "disputed"
+
+
+class FindingEvidenceTarget(str, Enum):
+    document = "document"
+    run = "run"
+    artifact = "artifact"
+    report_passage = "report_passage"
+    graph_edge = "graph_edge"
+
+
+class FindingEvidenceRole(str, Enum):
+    primary = "primary"
+    supporting = "supporting"
+    contradicting = "contradicting"
+
+
+class Finding(SQLModel, table=True):
+    """A research claim tied to supporting material — never free-floating text.
+
+    The claim-to-evidence rule is enforced server-side: publishing requires at
+    least one ``primary`` evidence row and a ``version`` history keeps prior
+    published states retrievable. ``validation_state`` is deliberately only a
+    state — no confidence percentage exists because no methodologically defined
+    calculation backs one.
+    """
+
+    __table_args__ = (
+        Index("ix_finding_project_updated", "project_id", "updated_at"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    project_id: uuid.UUID = Field(foreign_key="project.id", index=True)
+    title: str = Field(max_length=256)
+    summary: str = Field(max_length=4000)
+    status: FindingStatus = FindingStatus.draft
+    validation_state: FindingValidationState = (
+        FindingValidationState.unvalidated
+    )
+    created_by: uuid.UUID | None = Field(
+        default=None, foreign_key="user.id", index=True
+    )
+    supersedes_id: uuid.UUID | None = Field(
+        default=None, foreign_key="finding.id", index=True
+    )
+    version: int = Field(default=1)
+    history: list[dict[str, Any]] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    project: Project = Relationship()
+
+
+class FindingEvidence(SQLModel, table=True):
+    """One piece of material referenced by a finding, with an explicit role.
+
+    ``target_id`` is a string to cover ids beyond UUIDs (report passages,
+    evidence-graph edge ids). ``quote_or_field`` carries the exact quoted text
+    or the field path (with the extracted value) the claim rests on — kept
+    verbatim so the reference can be re-checked later.
+    """
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    finding_id: uuid.UUID = Field(foreign_key="finding.id", index=True)
+    target_type: FindingEvidenceTarget
+    target_id: str = Field(max_length=64)
+    quote_or_field: dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSON, nullable=True)
+    )
+    role: FindingEvidenceRole
+    added_by: uuid.UUID | None = Field(default=None, foreign_key="user.id")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class FindingEvidenceCreate(SQLModel):
+    target_type: FindingEvidenceTarget
+    target_id: str = Field(min_length=1, max_length=64)
+    quote_or_field: dict[str, Any] | None = None
+    role: FindingEvidenceRole
+
+
+class FindingEvidencePublic(SQLModel):
+    """Evidence reference as returned by the API, resolved with a label."""
+
+    id: uuid.UUID
+    finding_id: uuid.UUID
+    target_type: FindingEvidenceTarget
+    target_id: str
+    quote_or_field: dict[str, Any] | None = None
+    role: FindingEvidenceRole
+    added_by: uuid.UUID | None = None
+    created_at: datetime
+    label: str | None = None
+
+
+class FindingCreate(SQLModel):
+    """Creating a finding may already reference material inline (AC 1)."""
+
+    title: str = Field(min_length=1, max_length=256)
+    summary: str = Field(min_length=1, max_length=4000)
+    supersedes_id: uuid.UUID | None = None
+    evidence: list[FindingEvidenceCreate] = []
+
+
+class FindingUpdate(SQLModel):
+    """Content edit + explicit human status handling.
+
+    Status moves normally go through publish/retract endpoints. The one
+    exception is ``status="review"`` — the only value accepted here — which
+    returns a *retracted* claim into review for a corrected edition. It is a
+    deliberate human step, never an automatic re-publication.
+
+    ``validation_state`` accepts only ``disputed`` — raising a dispute is a
+    human action; withdrawing a dispute resets to ``unvalidated``. Neither AI
+    services nor this endpoint can ever set ``validated``.
+    """
+
+    title: str | None = Field(default=None, min_length=1, max_length=256)
+    summary: str | None = Field(default=None, min_length=1, max_length=4000)
+    supersedes_id: uuid.UUID | None = None
+    disputed: bool | None = None
+    status: FindingStatus | None = None
+
+
+class FindingVersionPublic(SQLModel):
+    version: int
+    status: FindingStatus
+    title: str
+    summary: str
+    validation_state: FindingValidationState
+    recorded_at: datetime
+    published_by: uuid.UUID | None = None
+
+
+class FindingVersionsPublic(SQLModel):
+    data: list[FindingVersionPublic]
+    count: int
+
+
+class FindingPublic(SQLModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    title: str
+    summary: str
+    status: FindingStatus
+    validation_state: FindingValidationState
+    created_by: uuid.UUID | None = None
+    supersedes_id: uuid.UUID | None = None
+    version: int
+    created_at: datetime
+    updated_at: datetime
+    evidence: list[FindingEvidencePublic] = []
+
+
+class FindingsPublic(SQLModel):
+    data: list[FindingPublic]
+    count: int
+
+
+class FindingValidationIssuePublic(SQLModel):
+    code: str
+    severity: ValidationSeverity
+    message: str
+
+
+class FindingValidationResult(SQLModel):
+    """Outcome of a deterministic validation run (validate endpoint)."""
+
+    finding: FindingPublic
+    validation_state_before: FindingValidationState
+    validation_state_after: FindingValidationState
+    issues: list[FindingValidationIssuePublic] = []
 
 
 class EvidenceGraphEdgePublic(SQLModel):

@@ -4,6 +4,7 @@ from app.api.routes import (
     documents,
     evidence,
     experiments,
+    findings,
     imports,
     jobs,
     login,
@@ -35,3 +36,4 @@ api_router.include_router(experiments.router)
 api_router.include_router(samples.router)
 api_router.include_router(imports.router)
 api_router.include_router(runs.router)
+api_router.include_router(findings.router)

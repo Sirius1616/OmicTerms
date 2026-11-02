@@ -12,12 +12,13 @@ Hook points already wired:
 - document uploaded → document node + ``belongs_to`` edge to sample node
 - document renamed → node label updated
 - document/sample/experiment/project deleted → node + incident edges removed
+- finding created/updated → finding node (label refresh on edit)
+- finding deleted → finding node + incident edges removed
 
 Hook points still to come (their models do not exist yet):
 - Story 25 analysis run created → run node, ``input_to`` edges to document
   inputs with sha256 ``evidence_ref``, ``produced_by`` edge back from the
   result artifact to the run.
-- Story 30 finding created → finding node; ``supports`` edges stay manual.
 - Story 36 report created → report node, ``reports_on`` edges to findings,
   ``derived_from`` edge from the report to its evidence snapshot.
 """
@@ -311,6 +312,24 @@ def materialise_run_outputs(session: Session, run) -> None:
             EvidenceRelation.produced_by,
             evidence_ref=evidence_ref,
         )
+
+
+#  ----------  FINDINGS (Story 30)  ----------
+
+
+def materialise_finding(session: Session, finding) -> EvidenceNode:
+    """Node for a finding; ``supports`` edges stay manual by design.
+
+    ``finding`` is a :class:`~app.models.Finding`. Retraction keeps the node
+    (the claim exists and is retracted); only deletion removes it.
+    """
+    return _ensure_node(
+        session, finding.project_id, EvidenceEntityType.finding, finding.id, finding.title
+    )
+
+
+def remove_finding_node(session: Session, finding_id: uuid.UUID) -> None:
+    _remove_node(session, EvidenceEntityType.finding, finding_id)
 
 
 #  ----------  GRAPH QUERY  ----------
