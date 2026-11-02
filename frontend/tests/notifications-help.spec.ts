@@ -47,9 +47,7 @@ async function uploadViaUi(page: Page) {
 
   await comboboxes.nth(2).click()
   await page.getByText("Create new experiment").click()
-  await page
-    .getByPlaceholder("Experiment name")
-    .fill("Notify Experiment")
+  await page.getByPlaceholder("Experiment name").fill("Notify Experiment")
   await page.keyboard.press("Enter")
   await expect(page.getByPlaceholder("Experiment name")).toBeHidden()
 
