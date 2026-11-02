@@ -144,6 +144,40 @@ def test_document_jobs_endpoint_is_scoped_to_owner(upload_env, client, session):
     )
 
 
+def test_list_search_filters_by_filename(upload_env, client, session):
+    """Story 11: the documented ``search`` filter matches filenames."""
+    owner = _owner(client, session)
+    sample_id = _make_sample(client, owner)
+
+    for filename in ("alpha-counts.tsv", "beta-peaks.bed"):
+        response = client.post(
+            "/api/v1/documents/",
+            files={"file": (filename, b"gene\tv\nTP53\t1.0\n", "text/plain")},
+            data={"sample_id": sample_id},
+            headers=owner,
+        )
+        assert response.status_code == 201, response.text
+
+    base = client.get("/api/v1/documents/", headers=owner)
+    assert base.status_code == 200
+    assert base.json()["count"] == 2
+
+    filtered = client.get(
+        "/api/v1/documents/", params={"search": "alpha"}, headers=owner
+    )
+    assert filtered.status_code == 200
+    body = filtered.json()
+    assert body["count"] == 1
+    assert [doc["filename"] for doc in body["data"]] == ["alpha-counts.tsv"]
+
+    # A search that matches nothing stays honest.
+    empty = client.get(
+        "/api/v1/documents/", params={"search": "no-such-file"}, headers=owner
+    )
+    assert empty.status_code == 200
+    assert empty.json() == {"data": [], "count": 0}
+
+
 def test_upload_rejects_invalid_magic_bytes(upload_env, client, session):
     owner = _owner(client, session)
     sample_id = _make_sample(client, owner)

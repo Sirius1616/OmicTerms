@@ -211,6 +211,11 @@ def read_documents(
     )
     if filters.sha256:
         query = query.where(Document.sha256 == filters.sha256)
+    if filters.search:
+        # Story 11: filename search is the documented contract of the
+        # ``Filter.search`` field; it was accepted but previously ignored.
+        pattern = f"%{filters.search}%"
+        query = query.where(col(Document.filename).ilike(pattern))
     count = session.exec(
         select(func.count()).select_from(query.subquery())
     ).one()

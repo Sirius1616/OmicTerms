@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import {
   BookOpen,
@@ -12,7 +13,6 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
-
 import {
   AnalysisGlyph,
   DataSourcesGlyph,
@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { documentsApi } from "@/services/documents"
+import { hierarchyApi } from "@/services/hierarchy"
 
 type Destination = {
   title: string
@@ -122,6 +124,7 @@ export function GlobalSearch() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
+  const [debounced, setDebounced] = useState("")
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -139,11 +142,38 @@ export function GlobalSearch() {
   useEffect(() => {
     if (open) {
       setQuery("")
+      setDebounced("")
       setActiveIndex(0)
       const id = window.setTimeout(() => inputRef.current?.focus(), 0)
       return () => window.clearTimeout(id)
     }
   }, [open])
+  // Story 11 — 250 ms debounce so a typing pause issues at most one
+  // document-search request. Selection resets when the query settles.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setDebounced(query.trim())
+      setActiveIndex(0)
+    }, 250)
+    return () => window.clearTimeout(id)
+  }, [query])
+
+  const searchReady = debounced.length >= 2
+
+  const documentsQuery = useQuery({
+    queryKey: ["globalSearchDocuments", debounced],
+    queryFn: () =>
+      documentsApi.listDocuments({ search: debounced, limit: 100 }),
+    enabled: open && searchReady,
+    staleTime: 5000,
+  })
+
+  const projectsQuery = useQuery({
+    queryKey: ["globalSearchProjects", debounced],
+    queryFn: () => hierarchyApi.listProjectsTree(),
+    enabled: open && searchReady,
+    staleTime: 5000,
+  })
 
   const trimmed = query.trim()
 
@@ -169,22 +199,49 @@ export function GlobalSearch() {
       run: () => navigate({ to: destination.path }),
     }))
 
-    if (trimmed) {
-      items.push({
-        key: "search-documents",
-        title: `Search data sources for “${trimmed}”`,
-        hint: "Data Sources",
-        icon: Search,
-        run: () => navigate({ to: "/documents", search: { q: trimmed } }),
-      })
+    if (searchReady) {
+      const documentMatches = documentsQuery.data?.data ?? []
+      for (const document of documentMatches) {
+        items.push({
+          key: `document:${document.id}`,
+          title: document.filename || document.file_url,
+          hint: "Data Sources",
+          icon: DataSourcesGlyph,
+          run: () =>
+            navigate({
+              to: "/documents/$documentId",
+              params: { documentId: document.id },
+            }),
+        })
+      }
+      const projectMatches = (projectsQuery.data?.data ?? []).filter(
+        (project) =>
+          project.name.toLowerCase().includes(debounced.toLowerCase()),
+      )
+      for (const project of projectMatches) {
+        items.push({
+          key: `project:${project.id}`,
+          title: project.name,
+          hint: "Projects",
+          icon: FolderKanban,
+          run: () =>
+            navigate({
+              to: "/projects/$projectId",
+              params: { projectId: project.id },
+            }),
+        })
+      }
     }
 
     return items
-  }, [trimmed, navigate])
-
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [])
+  }, [
+    trimmed,
+    searchReady,
+    debounced,
+    documentsQuery.data,
+    projectsQuery.data,
+    navigate,
+  ])
 
   const runItem = (index: number) => {
     const item = results[index]
@@ -245,10 +302,33 @@ export function GlobalSearch() {
             />
           </div>
           <div className="max-h-80 overflow-y-auto p-2" role="listbox">
-            {results.length === 0 ? (
-              <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-                No matches.
+            {searchReady ? (
+              <p
+                className="px-2 pb-1 text-[11px] text-muted-foreground"
+                data-testid="search-scope-note"
+              >
+                Searching document filenames (server) and projects (locally).
+                Findings, genes, and samples arrive with the evidence graph era
+                (M3).
               </p>
+            ) : null}
+            {results.length === 0 ? (
+              searchReady && documentsQuery.isPending ? (
+                <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                  Searching data sources…
+                </p>
+              ) : searchReady && documentsQuery.isError ? (
+                <p
+                  className="px-2 py-6 text-center text-sm text-destructive"
+                  data-testid="search-error"
+                >
+                  Document search failed — retry by editing the query.
+                </p>
+              ) : (
+                <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                  No matches.
+                </p>
+              )
             ) : (
               results.map((item, index) => (
                 <div key={item.key}>
