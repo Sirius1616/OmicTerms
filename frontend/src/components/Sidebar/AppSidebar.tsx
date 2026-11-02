@@ -20,6 +20,7 @@ import { Logo } from "@/components/Common/Logo"
 import {
   AnalysisGlyph,
   DataSourcesGlyph,
+  FindingGlyph,
   GraphGlyph,
 } from "@/components/Common/ScientificIcons"
 import {
@@ -42,6 +43,7 @@ const researchGroup: ItemGroup = {
     { icon: LayoutDashboard, title: "Home", path: "/" },
     { icon: FolderKanban, title: "Projects", path: "/projects" },
     { icon: DataSourcesGlyph, title: "Data Sources", path: "/documents" },
+    { icon: FindingGlyph, title: "Findings", path: "/findings" },
     { icon: Plug, title: "Integrations", path: "/integrations" },
     { icon: AnalysisGlyph, title: "Analysis Tools", path: "/analysis-tools" },
     { icon: GraphGlyph, title: "Evidence Graph", path: "/evidence" },

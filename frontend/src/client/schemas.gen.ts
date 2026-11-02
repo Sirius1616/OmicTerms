@@ -1216,6 +1216,466 @@ export const ExtractionStatusSchema = {
     title: 'ExtractionStatus'
 } as const;
 
+export const FindingCreateSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            maxLength: 256,
+            minLength: 1,
+            title: 'Title'
+        },
+        summary: {
+            type: 'string',
+            maxLength: 4000,
+            minLength: 1,
+            title: 'Summary'
+        },
+        supersedes_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Supersedes Id'
+        },
+        evidence: {
+            items: {
+                '$ref': '#/components/schemas/FindingEvidenceCreate'
+            },
+            type: 'array',
+            title: 'Evidence',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['title', 'summary'],
+    title: 'FindingCreate',
+    description: 'Creating a finding may already reference material inline (AC 1).'
+} as const;
+
+export const FindingEvidenceCreateSchema = {
+    properties: {
+        target_type: {
+            '$ref': '#/components/schemas/FindingEvidenceTarget'
+        },
+        target_id: {
+            type: 'string',
+            maxLength: 64,
+            minLength: 1,
+            title: 'Target Id'
+        },
+        quote_or_field: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Quote Or Field'
+        },
+        role: {
+            '$ref': '#/components/schemas/FindingEvidenceRole'
+        }
+    },
+    type: 'object',
+    required: ['target_type', 'target_id', 'role'],
+    title: 'FindingEvidenceCreate'
+} as const;
+
+export const FindingEvidencePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        finding_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Finding Id'
+        },
+        target_type: {
+            '$ref': '#/components/schemas/FindingEvidenceTarget'
+        },
+        target_id: {
+            type: 'string',
+            title: 'Target Id'
+        },
+        quote_or_field: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Quote Or Field'
+        },
+        role: {
+            '$ref': '#/components/schemas/FindingEvidenceRole'
+        },
+        added_by: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Added By'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        label: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Label'
+        }
+    },
+    type: 'object',
+    required: ['id', 'finding_id', 'target_type', 'target_id', 'role', 'created_at'],
+    title: 'FindingEvidencePublic',
+    description: 'Evidence reference as returned by the API, resolved with a label.'
+} as const;
+
+export const FindingEvidenceRoleSchema = {
+    type: 'string',
+    enum: ['primary', 'supporting', 'contradicting'],
+    title: 'FindingEvidenceRole'
+} as const;
+
+export const FindingEvidenceTargetSchema = {
+    type: 'string',
+    enum: ['document', 'run', 'artifact', 'report_passage', 'graph_edge'],
+    title: 'FindingEvidenceTarget'
+} as const;
+
+export const FindingPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        summary: {
+            type: 'string',
+            title: 'Summary'
+        },
+        status: {
+            '$ref': '#/components/schemas/FindingStatus'
+        },
+        validation_state: {
+            '$ref': '#/components/schemas/FindingValidationState'
+        },
+        created_by: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created By'
+        },
+        supersedes_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Supersedes Id'
+        },
+        version: {
+            type: 'integer',
+            title: 'Version'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        },
+        evidence: {
+            items: {
+                '$ref': '#/components/schemas/FindingEvidencePublic'
+            },
+            type: 'array',
+            title: 'Evidence',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'project_id', 'title', 'summary', 'status', 'validation_state', 'version', 'created_at', 'updated_at'],
+    title: 'FindingPublic'
+} as const;
+
+export const FindingStatusSchema = {
+    type: 'string',
+    enum: ['draft', 'review', 'published', 'retracted'],
+    title: 'FindingStatus',
+    description: `Lifecycle of a research claim.
+
+Draft → review → published; retracting a published claim leaves it
+\`\`retracted\`\` — visible and historic, never erased — until a human
+deliberately returns it to \`\`review\`\` (\`\`PATCH status="review"\`\`) for a
+corrected edition, which publishes again as a new version. Publishing is
+the only other transition and requires primary evidence; erasing a
+published claim outright is forbidden.`
+} as const;
+
+export const FindingUpdateSchema = {
+    properties: {
+        title: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 256,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        supersedes_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Supersedes Id'
+        },
+        disputed: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Disputed'
+        },
+        status: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/FindingStatus'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    title: 'FindingUpdate',
+    description: `Content edit + explicit human status handling.
+
+Status moves normally go through publish/retract endpoints. The one
+exception is \`\`status="review"\`\` — the only value accepted here — which
+returns a *retracted* claim into review for a corrected edition. It is a
+deliberate human step, never an automatic re-publication.
+
+\`\`validation_state\`\` accepts only \`\`disputed\`\` — raising a dispute is a
+human action; withdrawing a dispute resets to \`\`unvalidated\`\`. Neither AI
+services nor this endpoint can ever set \`\`validated\`\`.`
+} as const;
+
+export const FindingValidationIssuePublicSchema = {
+    properties: {
+        code: {
+            type: 'string',
+            title: 'Code'
+        },
+        severity: {
+            '$ref': '#/components/schemas/ValidationSeverity'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['code', 'severity', 'message'],
+    title: 'FindingValidationIssuePublic'
+} as const;
+
+export const FindingValidationResultSchema = {
+    properties: {
+        finding: {
+            '$ref': '#/components/schemas/FindingPublic'
+        },
+        validation_state_before: {
+            '$ref': '#/components/schemas/FindingValidationState'
+        },
+        validation_state_after: {
+            '$ref': '#/components/schemas/FindingValidationState'
+        },
+        issues: {
+            items: {
+                '$ref': '#/components/schemas/FindingValidationIssuePublic'
+            },
+            type: 'array',
+            title: 'Issues',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['finding', 'validation_state_before', 'validation_state_after'],
+    title: 'FindingValidationResult',
+    description: 'Outcome of a deterministic validation run (validate endpoint).'
+} as const;
+
+export const FindingValidationStateSchema = {
+    type: 'string',
+    enum: ['unvalidated', 'validated', 'disputed'],
+    title: 'FindingValidationState',
+    description: `Epistemic status of the claim's support.
+
+\`\`validated\`\` is reachable only through deterministic checks run by
+\`\`POST /findings/{id}/validate\`\`; never assigned automatically by any
+write path. \`\`disputed\`\` is a human-action-only state (set through PATCH).
+AI-assisted drafting (Story 63) can never set this field.`
+} as const;
+
+export const FindingVersionPublicSchema = {
+    properties: {
+        version: {
+            type: 'integer',
+            title: 'Version'
+        },
+        status: {
+            '$ref': '#/components/schemas/FindingStatus'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        summary: {
+            type: 'string',
+            title: 'Summary'
+        },
+        validation_state: {
+            '$ref': '#/components/schemas/FindingValidationState'
+        },
+        recorded_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Recorded At'
+        },
+        published_by: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Published By'
+        }
+    },
+    type: 'object',
+    required: ['version', 'status', 'title', 'summary', 'validation_state', 'recorded_at'],
+    title: 'FindingVersionPublic'
+} as const;
+
+export const FindingVersionsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/FindingVersionPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'FindingVersionsPublic'
+} as const;
+
+export const FindingsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/FindingPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'FindingsPublic'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -2383,7 +2843,7 @@ export const ValidationSeveritySchema = {
 
 export const ValidationSubjectTypeSchema = {
     type: 'string',
-    enum: ['document', 'dataset', 'report', 'experiment'],
+    enum: ['document', 'dataset', 'report', 'experiment', 'finding'],
     title: 'ValidationSubjectType'
 } as const;
 

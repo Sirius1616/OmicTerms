@@ -20,6 +20,7 @@ import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutAnalysisToolsRouteImport } from './routes/_layout/analysis-tools'
 import { Route as LayoutDocumentsRouteImport } from './routes/_layout/documents'
 import { Route as LayoutEvidenceRouteImport } from './routes/_layout/evidence'
+import { Route as LayoutFindingsRouteImport } from './routes/_layout/findings'
 import { Route as LayoutIntegrationsRouteImport } from './routes/_layout/integrations'
 import { Route as LayoutProjectsRouteImport } from './routes/_layout/projects'
 import { Route as LayoutReportsRouteImport } from './routes/_layout/reports'
@@ -31,6 +32,8 @@ import { Route as LayoutAcademyPathRouteImport } from './routes/_layout/academy.
 import { Route as LayoutAcademyProgressRouteImport } from './routes/_layout/academy.progress'
 import { Route as LayoutDocumentsIndexRouteImport } from './routes/_layout/documents.index'
 import { Route as LayoutDocumentsDocumentIdRouteImport } from './routes/_layout/documents.$documentId'
+import { Route as LayoutFindingsIndexRouteImport } from './routes/_layout/findings.index'
+import { Route as LayoutFindingsFindingIdRouteImport } from './routes/_layout/findings.$findingId'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects.index'
 import { Route as LayoutProjectsProjectIdRouteImport } from './routes/_layout/projects.$projectId'
 import { Route as LayoutProjectsProjectIdActivityRouteImport } from './routes/_layout/projects.$projectId_.activity'
@@ -89,6 +92,11 @@ const LayoutEvidenceRoute = LayoutEvidenceRouteImport.update({
   path: '/evidence',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutFindingsRoute = LayoutFindingsRouteImport.update({
+  id: '/findings',
+  path: '/findings',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutIntegrationsRoute = LayoutIntegrationsRouteImport.update({
   id: '/integrations',
   path: '/integrations',
@@ -145,6 +153,16 @@ const LayoutDocumentsDocumentIdRoute =
     path: '/$documentId',
     getParentRoute: () => LayoutDocumentsRoute,
   } as any)
+const LayoutFindingsIndexRoute = LayoutFindingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutFindingsRoute,
+} as any)
+const LayoutFindingsFindingIdRoute = LayoutFindingsFindingIdRouteImport.update({
+  id: '/$findingId',
+  path: '/$findingId',
+  getParentRoute: () => LayoutFindingsRoute,
+} as any)
 const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -173,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/analysis-tools': typeof LayoutAnalysisToolsRoute
   '/documents': typeof LayoutDocumentsRouteWithChildren
   '/evidence': typeof LayoutEvidenceRoute
+  '/findings': typeof LayoutFindingsRouteWithChildren
   '/integrations': typeof LayoutIntegrationsRoute
   '/projects': typeof LayoutProjectsRouteWithChildren
   '/reports': typeof LayoutReportsRoute
@@ -182,9 +201,11 @@ export interface FileRoutesByFullPath {
   '/academy/path': typeof LayoutAcademyPathRoute
   '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/findings/$findingId': typeof LayoutFindingsFindingIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/academy/': typeof LayoutAcademyIndexRoute
   '/documents/': typeof LayoutDocumentsIndexRoute
+  '/findings/': typeof LayoutFindingsIndexRoute
   '/projects/': typeof LayoutProjectsIndexRoute
   '/projects/$projectId/activity': typeof LayoutProjectsProjectIdActivityRoute
 }
@@ -205,9 +226,11 @@ export interface FileRoutesByTo {
   '/academy/path': typeof LayoutAcademyPathRoute
   '/academy/progress': typeof LayoutAcademyProgressRoute
   '/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/findings/$findingId': typeof LayoutFindingsFindingIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/academy': typeof LayoutAcademyIndexRoute
   '/documents': typeof LayoutDocumentsIndexRoute
+  '/findings': typeof LayoutFindingsIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/projects/$projectId/activity': typeof LayoutProjectsProjectIdActivityRoute
 }
@@ -223,6 +246,7 @@ export interface FileRoutesById {
   '/_layout/analysis-tools': typeof LayoutAnalysisToolsRoute
   '/_layout/documents': typeof LayoutDocumentsRouteWithChildren
   '/_layout/evidence': typeof LayoutEvidenceRoute
+  '/_layout/findings': typeof LayoutFindingsRouteWithChildren
   '/_layout/integrations': typeof LayoutIntegrationsRoute
   '/_layout/projects': typeof LayoutProjectsRouteWithChildren
   '/_layout/reports': typeof LayoutReportsRoute
@@ -233,9 +257,11 @@ export interface FileRoutesById {
   '/_layout/academy/path': typeof LayoutAcademyPathRoute
   '/_layout/academy/progress': typeof LayoutAcademyProgressRoute
   '/_layout/documents/$documentId': typeof LayoutDocumentsDocumentIdRoute
+  '/_layout/findings/$findingId': typeof LayoutFindingsFindingIdRoute
   '/_layout/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/_layout/academy/': typeof LayoutAcademyIndexRoute
   '/_layout/documents/': typeof LayoutDocumentsIndexRoute
+  '/_layout/findings/': typeof LayoutFindingsIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/projects/$projectId_/activity': typeof LayoutProjectsProjectIdActivityRoute
 }
@@ -252,6 +278,7 @@ export interface FileRouteTypes {
     | '/analysis-tools'
     | '/documents'
     | '/evidence'
+    | '/findings'
     | '/integrations'
     | '/projects'
     | '/reports'
@@ -261,9 +288,11 @@ export interface FileRouteTypes {
     | '/academy/path'
     | '/academy/progress'
     | '/documents/$documentId'
+    | '/findings/$findingId'
     | '/projects/$projectId'
     | '/academy/'
     | '/documents/'
+    | '/findings/'
     | '/projects/'
     | '/projects/$projectId/activity'
   fileRoutesByTo: FileRoutesByTo
@@ -284,9 +313,11 @@ export interface FileRouteTypes {
     | '/academy/path'
     | '/academy/progress'
     | '/documents/$documentId'
+    | '/findings/$findingId'
     | '/projects/$projectId'
     | '/academy'
     | '/documents'
+    | '/findings'
     | '/projects'
     | '/projects/$projectId/activity'
   id:
@@ -301,6 +332,7 @@ export interface FileRouteTypes {
     | '/_layout/analysis-tools'
     | '/_layout/documents'
     | '/_layout/evidence'
+    | '/_layout/findings'
     | '/_layout/integrations'
     | '/_layout/projects'
     | '/_layout/reports'
@@ -311,9 +343,11 @@ export interface FileRouteTypes {
     | '/_layout/academy/path'
     | '/_layout/academy/progress'
     | '/_layout/documents/$documentId'
+    | '/_layout/findings/$findingId'
     | '/_layout/projects/$projectId'
     | '/_layout/academy/'
     | '/_layout/documents/'
+    | '/_layout/findings/'
     | '/_layout/projects/'
     | '/_layout/projects/$projectId_/activity'
   fileRoutesById: FileRoutesById
@@ -405,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutEvidenceRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/findings': {
+      id: '/_layout/findings'
+      path: '/findings'
+      fullPath: '/findings'
+      preLoaderRoute: typeof LayoutFindingsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/integrations': {
       id: '/_layout/integrations'
       path: '/integrations'
@@ -482,6 +523,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDocumentsDocumentIdRouteImport
       parentRoute: typeof LayoutDocumentsRoute
     }
+    '/_layout/findings/': {
+      id: '/_layout/findings/'
+      path: '/'
+      fullPath: '/findings/'
+      preLoaderRoute: typeof LayoutFindingsIndexRouteImport
+      parentRoute: typeof LayoutFindingsRoute
+    }
+    '/_layout/findings/$findingId': {
+      id: '/_layout/findings/$findingId'
+      path: '/$findingId'
+      fullPath: '/findings/$findingId'
+      preLoaderRoute: typeof LayoutFindingsFindingIdRouteImport
+      parentRoute: typeof LayoutFindingsRoute
+    }
     '/_layout/projects/': {
       id: '/_layout/projects/'
       path: '/'
@@ -540,6 +595,20 @@ const LayoutDocumentsRouteWithChildren = LayoutDocumentsRoute._addFileChildren(
   LayoutDocumentsRouteChildren,
 )
 
+interface LayoutFindingsRouteChildren {
+  LayoutFindingsFindingIdRoute: typeof LayoutFindingsFindingIdRoute
+  LayoutFindingsIndexRoute: typeof LayoutFindingsIndexRoute
+}
+
+const LayoutFindingsRouteChildren: LayoutFindingsRouteChildren = {
+  LayoutFindingsFindingIdRoute: LayoutFindingsFindingIdRoute,
+  LayoutFindingsIndexRoute: LayoutFindingsIndexRoute,
+}
+
+const LayoutFindingsRouteWithChildren = LayoutFindingsRoute._addFileChildren(
+  LayoutFindingsRouteChildren,
+)
+
 interface LayoutProjectsRouteChildren {
   LayoutProjectsProjectIdRoute: typeof LayoutProjectsProjectIdRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
@@ -562,6 +631,7 @@ interface LayoutRouteChildren {
   LayoutAnalysisToolsRoute: typeof LayoutAnalysisToolsRoute
   LayoutDocumentsRoute: typeof LayoutDocumentsRouteWithChildren
   LayoutEvidenceRoute: typeof LayoutEvidenceRoute
+  LayoutFindingsRoute: typeof LayoutFindingsRouteWithChildren
   LayoutIntegrationsRoute: typeof LayoutIntegrationsRoute
   LayoutProjectsRoute: typeof LayoutProjectsRouteWithChildren
   LayoutReportsRoute: typeof LayoutReportsRoute
@@ -575,6 +645,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAnalysisToolsRoute: LayoutAnalysisToolsRoute,
   LayoutDocumentsRoute: LayoutDocumentsRouteWithChildren,
   LayoutEvidenceRoute: LayoutEvidenceRoute,
+  LayoutFindingsRoute: LayoutFindingsRouteWithChildren,
   LayoutIntegrationsRoute: LayoutIntegrationsRoute,
   LayoutProjectsRoute: LayoutProjectsRouteWithChildren,
   LayoutReportsRoute: LayoutReportsRoute,

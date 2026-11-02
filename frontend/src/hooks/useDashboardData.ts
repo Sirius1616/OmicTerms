@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
-
 import type { DashboardFixtures } from "@/fixtures/dashboard"
+import type { FindingsPanelRow } from "@/hooks/useFindings"
+import { loadAllFindings } from "@/hooks/useFindings"
 import { isFixtureModeEnabled } from "@/lib/fixtures"
 import { documentsApi } from "@/services/documents"
 import { hierarchyApi } from "@/services/hierarchy"
@@ -64,6 +65,11 @@ export function useDashboardData() {
     queryFn: () => hierarchyApi.listProjectsTree(),
   })
 
+  const findingsQuery = useQuery({
+    queryKey: ["findings", "all"],
+    queryFn: loadAllFindings,
+  })
+
   const fixturesQuery = useQuery({
     queryKey: ["fixtures", "dashboard"],
     queryFn: loadDashboardFixtures,
@@ -103,6 +109,8 @@ export function useDashboardData() {
     )
     .slice(0, 5)
 
+  const findingsPanel: FindingsPanelRow[] = findingsQuery.data ?? []
+
   const fixtures = fixturesQuery.data ?? null
 
   const integrity: Record<string, IntegrityMetric> = {
@@ -135,6 +143,8 @@ export function useDashboardData() {
     documentsQuery,
     projects,
     projectsQuery,
+    findingsQuery,
+    findingsPanel,
     fixtures,
     fixturesEnabled,
     fixtureActivity: fixtureEvents(fixtures),

@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import {
   AnalysisGlyph,
   DataSourcesGlyph,
+  FindingGlyph,
   GraphGlyph,
   type IconComponent,
 } from "@/components/Common/ScientificIcons"
@@ -54,6 +55,12 @@ const DESTINATIONS: Destination[] = [
     path: "/documents",
     group: "Research Workspace",
     icon: DataSourcesGlyph,
+  },
+  {
+    title: "Findings",
+    path: "/findings",
+    group: "Research Workspace",
+    icon: FindingGlyph,
   },
   {
     title: "Integrations",

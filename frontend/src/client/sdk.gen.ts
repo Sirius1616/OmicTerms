@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, DocumentsListDocumentCrossValidationsData, DocumentsListDocumentCrossValidationsResponse, DocumentsValidateExperimentCrossData, DocumentsValidateExperimentCrossResponse, DocumentsListExperimentCrossValidationsData, DocumentsListExperimentCrossValidationsResponse, EvidenceReadProjectGraphData, EvidenceReadProjectGraphResponse, EvidenceCreateGraphEdgeData, EvidenceCreateGraphEdgeResponse, EvidenceDeleteGraphEdgeData, EvidenceDeleteGraphEdgeResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, ImportsCreateImportData, ImportsCreateImportResponse, ImportsListImportsResponse, ImportsGetImportData, ImportsGetImportResponse, ImportsListImportJobsData, ImportsListImportJobsResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, ProjectsReadProjectEventsData, ProjectsReadProjectEventsResponse, RunsCreateRunData, RunsCreateRunResponse, RunsListProjectRunsData, RunsListProjectRunsResponse, RunsReadRunData, RunsReadRunResponse, RunsCancelRunData, RunsCancelRunResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsDeleteFileData, DocumentsDeleteFileResponse, DocumentsChangeFilenameData, DocumentsChangeFilenameResponse, DocumentsReadDocData, DocumentsReadDocResponse, DocumentsReadDocumentJobsData, DocumentsReadDocumentJobsResponse, DocumentsGetDocumentMetadataData, DocumentsGetDocumentMetadataResponse, DocumentsPutDocumentMetadataData, DocumentsPutDocumentMetadataResponse, DocumentsValidateDocumentData, DocumentsValidateDocumentResponse, DocumentsListDocumentValidationsData, DocumentsListDocumentValidationsResponse, DocumentsListDocumentCrossValidationsData, DocumentsListDocumentCrossValidationsResponse, DocumentsValidateExperimentCrossData, DocumentsValidateExperimentCrossResponse, DocumentsListExperimentCrossValidationsData, DocumentsListExperimentCrossValidationsResponse, EvidenceReadProjectGraphData, EvidenceReadProjectGraphResponse, EvidenceCreateGraphEdgeData, EvidenceCreateGraphEdgeResponse, EvidenceDeleteGraphEdgeData, EvidenceDeleteGraphEdgeResponse, ExperimentsCreateExperimentData, ExperimentsCreateExperimentResponse, ExperimentsReadProjectExperimentsData, ExperimentsReadProjectExperimentsResponse, ExperimentsReadExperimentData, ExperimentsReadExperimentResponse, ExperimentsUpdateExperimentData, ExperimentsUpdateExperimentResponse, ExperimentsDeleteExperimentData, ExperimentsDeleteExperimentResponse, FindingsCreateFindingData, FindingsCreateFindingResponse, FindingsListProjectFindingsData, FindingsListProjectFindingsResponse, FindingsReadFindingData, FindingsReadFindingResponse, FindingsUpdateFindingData, FindingsUpdateFindingResponse, FindingsDeleteFindingData, FindingsDeleteFindingResponse, FindingsListFindingVersionsData, FindingsListFindingVersionsResponse, FindingsAddFindingEvidenceData, FindingsAddFindingEvidenceResponse, FindingsRemoveFindingEvidenceData, FindingsRemoveFindingEvidenceResponse, FindingsPublishFindingData, FindingsPublishFindingResponse, FindingsRetractFindingData, FindingsRetractFindingResponse, FindingsValidateFindingData, FindingsValidateFindingResponse, ImportsCreateImportData, ImportsCreateImportResponse, ImportsListImportsResponse, ImportsGetImportData, ImportsGetImportResponse, ImportsListImportJobsData, ImportsListImportJobsResponse, JobsReadJobStatsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsTreeResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectTreeData, ProjectsReadProjectTreeResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, ProjectsReadProjectEventsData, ProjectsReadProjectEventsResponse, RunsCreateRunData, RunsCreateRunResponse, RunsListProjectRunsData, RunsListProjectRunsResponse, RunsReadRunData, RunsReadRunResponse, RunsCancelRunData, RunsCancelRunResponse, SamplesCreateSampleData, SamplesCreateSampleResponse, SamplesReadExperimentSamplesData, SamplesReadExperimentSamplesResponse, SamplesReadSampleData, SamplesReadSampleResponse, SamplesUpdateSampleData, SamplesUpdateSampleResponse, SamplesDeleteSampleData, SamplesDeleteSampleResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, ValidationsGetValidationRunData, ValidationsGetValidationRunResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -544,6 +544,250 @@ export class ExperimentsService {
             url: '/api/v1/experiments/{experiment_id}',
             path: {
                 experiment_id: data.experimentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class FindingsService {
+    /**
+     * Create Finding
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.requestBody
+     * @returns FindingPublic Successful Response
+     * @throws ApiError
+     */
+    public static createFinding(data: FindingsCreateFindingData): CancelablePromise<FindingsCreateFindingResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{project_id}/findings',
+            path: {
+                project_id: data.projectId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Project Findings
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.skip
+     * @param data.limit
+     * @returns FindingsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listProjectFindings(data: FindingsListProjectFindingsData): CancelablePromise<FindingsListProjectFindingsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/findings',
+            path: {
+                project_id: data.projectId
+            },
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Finding
+     * @param data The data for the request.
+     * @param data.findingId
+     * @returns FindingPublic Successful Response
+     * @throws ApiError
+     */
+    public static readFinding(data: FindingsReadFindingData): CancelablePromise<FindingsReadFindingResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/findings/{finding_id}',
+            path: {
+                finding_id: data.findingId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Finding
+     * @param data The data for the request.
+     * @param data.findingId
+     * @param data.requestBody
+     * @returns FindingPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateFinding(data: FindingsUpdateFindingData): CancelablePromise<FindingsUpdateFindingResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/findings/{finding_id}',
+            path: {
+                finding_id: data.findingId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Finding
+     * @param data The data for the request.
+     * @param data.findingId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static deleteFinding(data: FindingsDeleteFindingData): CancelablePromise<FindingsDeleteFindingResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/findings/{finding_id}',
+            path: {
+                finding_id: data.findingId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Finding Versions
+     * @param data The data for the request.
+     * @param data.findingId
+     * @returns FindingVersionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static listFindingVersions(data: FindingsListFindingVersionsData): CancelablePromise<FindingsListFindingVersionsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/findings/{finding_id}/versions',
+            path: {
+                finding_id: data.findingId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Add Finding Evidence
+     * @param data The data for the request.
+     * @param data.findingId
+     * @param data.requestBody
+     * @returns FindingEvidencePublic Successful Response
+     * @throws ApiError
+     */
+    public static addFindingEvidence(data: FindingsAddFindingEvidenceData): CancelablePromise<FindingsAddFindingEvidenceResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/findings/{finding_id}/evidence',
+            path: {
+                finding_id: data.findingId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Finding Evidence
+     * @param data The data for the request.
+     * @param data.findingId
+     * @param data.evidenceId
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static removeFindingEvidence(data: FindingsRemoveFindingEvidenceData): CancelablePromise<FindingsRemoveFindingEvidenceResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/findings/{finding_id}/evidence/{evidence_id}',
+            path: {
+                finding_id: data.findingId,
+                evidence_id: data.evidenceId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Publish Finding
+     * @param data The data for the request.
+     * @param data.findingId
+     * @returns FindingPublic Successful Response
+     * @throws ApiError
+     */
+    public static publishFinding(data: FindingsPublishFindingData): CancelablePromise<FindingsPublishFindingResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/findings/{finding_id}/publish',
+            path: {
+                finding_id: data.findingId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Retract Finding
+     * @param data The data for the request.
+     * @param data.findingId
+     * @returns FindingPublic Successful Response
+     * @throws ApiError
+     */
+    public static retractFinding(data: FindingsRetractFindingData): CancelablePromise<FindingsRetractFindingResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/findings/{finding_id}/retract',
+            path: {
+                finding_id: data.findingId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Validate Finding
+     * Deterministic claim checks.
+     *
+     * The endpoint takes **no body**: no caller — human or AI — can declare
+     * ``validated``. The result carries before/after validation states and the
+     * issues found; fixing them and re-running sets ``validated`` server-side.
+     * @param data The data for the request.
+     * @param data.findingId
+     * @returns FindingValidationResult Successful Response
+     * @throws ApiError
+     */
+    public static validateFinding(data: FindingsValidateFindingData): CancelablePromise<FindingsValidateFindingResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/findings/{finding_id}/validate',
+            path: {
+                finding_id: data.findingId
             },
             errors: {
                 422: 'Validation Error'

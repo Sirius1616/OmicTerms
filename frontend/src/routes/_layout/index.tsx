@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { useState } from "react"
 
 import { AcademyPanel } from "@/components/Dashboard/AcademyPanel"
 import { ActivityTimelinePanel } from "@/components/Dashboard/ActivityTimelinePanel"
@@ -9,6 +10,7 @@ import { KeyFindingsPanel } from "@/components/Dashboard/KeyFindingsPanel"
 import { RecentFilesPanel } from "@/components/Dashboard/RecentFilesPanel"
 import { SummaryCards } from "@/components/Dashboard/SummaryCards"
 import { WelcomeBanner } from "@/components/Dashboard/WelcomeBanner"
+import { CreateFindingDialog } from "@/components/Findings/CreateFindingDialog"
 import useAuth from "@/hooks/useAuth"
 import { useDashboardData } from "@/hooks/useDashboardData"
 
@@ -26,6 +28,8 @@ export const Route = createFileRoute("/_layout/")({
 function Dashboard() {
   const { user } = useAuth()
   const dashboard = useDashboardData()
+  const [createOpen, setCreateOpen] = useState(false)
+  const findingsQuery = dashboard.findingsQuery
 
   const displayName =
     user?.full_name || user?.email?.split("@")[0] || "researcher"
@@ -57,7 +61,12 @@ function Dashboard() {
 
       <div className="grid gap-4 xl:grid-cols-12">
         <EvidenceMapPanel fixtures={dashboard.fixtures} />
-        <KeyFindingsPanel fixtures={dashboard.fixtures} />
+        <KeyFindingsPanel
+          rows={dashboard.findingsPanel}
+          isLoading={findingsQuery.isPending}
+          fixtures={dashboard.fixtures}
+          onCreate={() => setCreateOpen(true)}
+        />
         <ActivityTimelinePanel
           projects={dashboard.projects.map((project) => ({
             id: project.id,
@@ -78,6 +87,7 @@ function Dashboard() {
 
       <DashboardQuickActions />
       <AcademyPanel fixtures={dashboard.fixtures} />
+      <CreateFindingDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   )
 }

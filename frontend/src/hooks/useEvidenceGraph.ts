@@ -85,7 +85,7 @@ export function useEvidenceGraph(): EvidenceGraphData {
     return {
       mode: "real",
       graph: real.graph,
-      notice: `Real workspace data — ${real.summary}. Structure only: analysis runs and findings land with the Analysis and Findings milestones.`,
+      notice: `Real workspace data — ${real.summary}. Analysis runs and findings appear on the map as they are recorded.`,
       truncated: real.truncated,
       summary: real.summary,
       isLoading,

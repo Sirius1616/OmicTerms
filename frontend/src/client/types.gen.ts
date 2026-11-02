@@ -259,6 +259,139 @@ export type ExtractionJobStatus = 'pending' | 'running' | 'succeeded' | 'failed'
 
 export type ExtractionStatus = 'pending' | 'success' | 'failed';
 
+/**
+ * Creating a finding may already reference material inline (AC 1).
+ */
+export type FindingCreate = {
+    title: string;
+    summary: string;
+    supersedes_id?: (string | null);
+    evidence?: Array<FindingEvidenceCreate>;
+};
+
+export type FindingEvidenceCreate = {
+    target_type: FindingEvidenceTarget;
+    target_id: string;
+    quote_or_field?: ({
+    [key: string]: unknown;
+} | null);
+    role: FindingEvidenceRole;
+};
+
+/**
+ * Evidence reference as returned by the API, resolved with a label.
+ */
+export type FindingEvidencePublic = {
+    id: string;
+    finding_id: string;
+    target_type: FindingEvidenceTarget;
+    target_id: string;
+    quote_or_field?: ({
+    [key: string]: unknown;
+} | null);
+    role: FindingEvidenceRole;
+    added_by?: (string | null);
+    created_at: string;
+    label?: (string | null);
+};
+
+export type FindingEvidenceRole = 'primary' | 'supporting' | 'contradicting';
+
+export type FindingEvidenceTarget = 'document' | 'run' | 'artifact' | 'report_passage' | 'graph_edge';
+
+export type FindingPublic = {
+    id: string;
+    project_id: string;
+    title: string;
+    summary: string;
+    status: FindingStatus;
+    validation_state: FindingValidationState;
+    created_by?: (string | null);
+    supersedes_id?: (string | null);
+    version: number;
+    created_at: string;
+    updated_at: string;
+    evidence?: Array<FindingEvidencePublic>;
+};
+
+export type FindingsPublic = {
+    data: Array<FindingPublic>;
+    count: number;
+};
+
+/**
+ * Lifecycle of a research claim.
+ *
+ * Draft → review → published; retracting a published claim leaves it
+ * ``retracted`` — visible and historic, never erased — until a human
+ * deliberately returns it to ``review`` (``PATCH status="review"``) for a
+ * corrected edition, which publishes again as a new version. Publishing is
+ * the only other transition and requires primary evidence; erasing a
+ * published claim outright is forbidden.
+ */
+export type FindingStatus = 'draft' | 'review' | 'published' | 'retracted';
+
+/**
+ * Content edit + explicit human status handling.
+ *
+ * Status moves normally go through publish/retract endpoints. The one
+ * exception is ``status="review"`` — the only value accepted here — which
+ * returns a *retracted* claim into review for a corrected edition. It is a
+ * deliberate human step, never an automatic re-publication.
+ *
+ * ``validation_state`` accepts only ``disputed`` — raising a dispute is a
+ * human action; withdrawing a dispute resets to ``unvalidated``. Neither AI
+ * services nor this endpoint can ever set ``validated``.
+ */
+export type FindingUpdate = {
+    title?: (string | null);
+    summary?: (string | null);
+    supersedes_id?: (string | null);
+    disputed?: (boolean | null);
+    status?: (FindingStatus | null);
+};
+
+export type FindingValidationIssuePublic = {
+    code: string;
+    severity: ValidationSeverity;
+    message: string;
+};
+
+/**
+ * Outcome of a deterministic validation run (validate endpoint).
+ */
+export type FindingValidationResult = {
+    finding: FindingPublic;
+    validation_state_before: FindingValidationState;
+    validation_state_after: FindingValidationState;
+    issues?: Array<FindingValidationIssuePublic>;
+};
+
+/**
+ * Epistemic status of the claim's support.
+ *
+ * ``validated`` is reachable only through deterministic checks run by
+ * ``POST /findings/{id}/validate``; never assigned automatically by any
+ * write path. ``disputed`` is a human-action-only state (set through PATCH).
+ * AI-assisted drafting (Story 63) can never set this field.
+ */
+export type FindingValidationState = 'unvalidated' | 'validated' | 'disputed';
+
+export type FindingVersionPublic = {
+    version: number;
+    status: FindingStatus;
+    title: string;
+    summary: string;
+    validation_state: FindingValidationState;
+    recorded_at: string;
+    published_by?: (string | null);
+};
+
+export type FindingVersionsPublic = {
+    data: Array<FindingVersionPublic>;
+    count: number;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -497,7 +630,7 @@ export type ValidationRunSummary = {
 
 export type ValidationSeverity = 'error' | 'warning' | 'info' | 'skipped';
 
-export type ValidationSubjectType = 'document' | 'dataset' | 'report' | 'experiment';
+export type ValidationSubjectType = 'document' | 'dataset' | 'report' | 'experiment' | 'finding';
 
 export type ValidationTrigger = 'upload' | 'manual' | 'dependency';
 
@@ -663,6 +796,78 @@ export type ExperimentsDeleteExperimentData = {
 };
 
 export type ExperimentsDeleteExperimentResponse = (void);
+
+export type FindingsCreateFindingData = {
+    projectId: string;
+    requestBody: FindingCreate;
+};
+
+export type FindingsCreateFindingResponse = (FindingPublic);
+
+export type FindingsListProjectFindingsData = {
+    limit?: number;
+    projectId: string;
+    skip?: number;
+};
+
+export type FindingsListProjectFindingsResponse = (FindingsPublic);
+
+export type FindingsReadFindingData = {
+    findingId: string;
+};
+
+export type FindingsReadFindingResponse = (FindingPublic);
+
+export type FindingsUpdateFindingData = {
+    findingId: string;
+    requestBody: FindingUpdate;
+};
+
+export type FindingsUpdateFindingResponse = (FindingPublic);
+
+export type FindingsDeleteFindingData = {
+    findingId: string;
+};
+
+export type FindingsDeleteFindingResponse = (void);
+
+export type FindingsListFindingVersionsData = {
+    findingId: string;
+};
+
+export type FindingsListFindingVersionsResponse = (FindingVersionsPublic);
+
+export type FindingsAddFindingEvidenceData = {
+    findingId: string;
+    requestBody: FindingEvidenceCreate;
+};
+
+export type FindingsAddFindingEvidenceResponse = (FindingEvidencePublic);
+
+export type FindingsRemoveFindingEvidenceData = {
+    evidenceId: string;
+    findingId: string;
+};
+
+export type FindingsRemoveFindingEvidenceResponse = (void);
+
+export type FindingsPublishFindingData = {
+    findingId: string;
+};
+
+export type FindingsPublishFindingResponse = (FindingPublic);
+
+export type FindingsRetractFindingData = {
+    findingId: string;
+};
+
+export type FindingsRetractFindingResponse = (FindingPublic);
+
+export type FindingsValidateFindingData = {
+    findingId: string;
+};
+
+export type FindingsValidateFindingResponse = (FindingValidationResult);
 
 export type ImportsCreateImportData = {
     accession: string;
