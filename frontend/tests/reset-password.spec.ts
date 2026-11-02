@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test"
-import { findLastEmail } from "./utils/mailcatcher"
+import { findLastEmail, mailcatcherSkipReason } from "./utils/mailcatcher"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser, signUpNewUser } from "./utils/user"
 
@@ -31,6 +31,12 @@ test("User can reset password successfully using the link", async ({
   page,
   request,
 }) => {
+  const skipReason = await mailcatcherSkipReason(request)
+  if (skipReason) {
+    console.warn("[reset-password] skipping:", skipReason)
+    test.skip(true, skipReason)
+  }
+
   const fullName = "Test User"
   const email = randomEmail()
   const password = randomPassword()
@@ -87,6 +93,12 @@ test("Expired or invalid reset link", async ({ page }) => {
 })
 
 test("Weak new password validation", async ({ page, request }) => {
+  const skipReason = await mailcatcherSkipReason(request)
+  if (skipReason) {
+    console.warn("[reset-password] skipping:", skipReason)
+    test.skip(true, skipReason)
+  }
+
   const fullName = "Test User"
   const email = randomEmail()
   const password = randomPassword()

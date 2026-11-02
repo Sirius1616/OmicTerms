@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright"
 import type { Route } from "@playwright/test"
 import { expect, type Page, test } from "@playwright/test"
 
@@ -161,6 +162,18 @@ test("evidence page uses the full graph with identity legend", async ({
   await expect(
     page.getByTestId("evidence-graph").getByText("Links", { exact: true }),
   ).toBeVisible()
+
+  // The fixture graph is axe-clean (contrast is reviewed separately, as in
+  // data-integrity.spec.ts).
+  const axeResults = await new AxeBuilder({ page })
+    .include('[data-testid="evidence-graph"]')
+    .analyze()
+  const violations = axeResults.violations.filter(
+    (v) => v.id !== "color-contrast",
+  )
+  expect(
+    violations.map((v) => `${v.id}: ${JSON.stringify(v.nodes[0]?.target)}`),
+  ).toEqual([])
 })
 
 test("real workspace data drives the graph with traceable sources", async ({

@@ -30,6 +30,36 @@ async function findEmail({
   return null
 }
 
+/**
+ * Preflight for tests that need the mailcatcher container: returns a
+ * human-readable reason to skip when it is unreachable or unconfigured, and
+ * null when it is up. The reason must be logged by the caller so a silent
+ * skip can never hide a broken reset-password suite.
+ */
+export async function mailcatcherSkipReason(
+  request: APIRequestContext,
+): Promise<string | null> {
+  const host = process.env.MAILCATCHER_HOST
+
+  if (!host) {
+    return "MAILCATCHER_HOST is not set (start the mailcatcher container so the reset-email flow can be exercised)"
+  }
+
+  try {
+    const response = await request.get(`${host}/messages`, {
+      timeout: 2000,
+    })
+
+    if (!response.ok()) {
+      return `mailcatcher at ${host} responded ${response.status()}`
+    }
+  } catch {
+    return `mailcatcher at ${host} is not reachable — start it (e.g. docker run -p 1080:1080 -p 1025:1025 schickling/mailcatcher) to run these tests`
+  }
+
+  return null
+}
+
 export function findLastEmail({
   request,
   filter,

@@ -56,9 +56,6 @@ export function KeyFindingsPanel({ fixtures }: KeyFindingsPanelProps) {
               </div>
             </li>
           ))}
-          <li className="px-4 py-2 text-[11px] font-medium text-warning">
-            {fixtures.notice}
-          </li>
         </ul>
       ) : (
         <EmptyState
