@@ -1,29 +1,38 @@
 from __future__ import annotations
 
-from app.validation.base import Issue, ValidationContext, Validator
+from app.validation.base import (
+    Issue,
+    ValidationContext,
+    Validator,
+    format_scope_applies,
+)
 from app.validation.files import decode_text, read_document_bytes
 
 SKIPPED_PREFIXES = ("#", "track", "browser")
+
+BED_EXTENSIONS = (".bed",)
 
 
 class BEDValidator(Validator):
     name = "bed_validator"
 
     def applies_to(self, ctx: ValidationContext) -> bool:
-        document = ctx.document
-        if document is None:
+        def content_sniff() -> bool:
+            content = read_document_bytes(ctx)
+            if content is None:
+                return False
+            for line in decode_text(content).splitlines():
+                if not line.strip() or line.startswith(SKIPPED_PREFIXES):
+                    continue
+                return len(line.split("\t")) >= 3
             return False
-        filename = (getattr(document, "filename", "") or "").lower()
-        if filename.endswith(".bed"):
-            return True
-        content = read_document_bytes(ctx)
-        if content is None:
-            return False
-        for line in decode_text(content).splitlines():
-            if not line.strip() or line.startswith(SKIPPED_PREFIXES):
-                continue
-            return len(line.split("\t")) >= 3
-        return False
+
+        return format_scope_applies(
+            ctx,
+            data_types=frozenset({"peaks"}),
+            extensions=BED_EXTENSIONS,
+            content_sniff=content_sniff,
+        )
 
     def run(self, ctx: ValidationContext) -> list[Issue]:
         content = read_document_bytes(ctx)

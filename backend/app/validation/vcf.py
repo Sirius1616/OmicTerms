@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from app.validation.base import Issue, ValidationContext, Validator
+from app.validation.base import (
+    Issue,
+    ValidationContext,
+    Validator,
+    format_scope_applies,
+)
 from app.validation.files import decode_text, read_document_bytes
 
 REQUIRED_COLUMNS = [
@@ -15,21 +20,25 @@ REQUIRED_COLUMNS = [
 ]
 VALID_BASES = set("ACGTN")
 
+VCF_EXTENSIONS = (".vcf", ".vcf.gz")
+
 
 class VCFValidator(Validator):
     name = "vcf_validator"
 
     def applies_to(self, ctx: ValidationContext) -> bool:
-        document = ctx.document
-        if document is None:
-            return False
-        filename = (getattr(document, "filename", "") or "").lower()
-        if filename.endswith((".vcf", ".vcf.gz")):
-            return True
-        content = read_document_bytes(ctx)
-        if content is None:
-            return False
-        return content.startswith((b"##fileformat=VCF", b"#CHROM"))
+        def content_sniff() -> bool:
+            content = read_document_bytes(ctx)
+            if content is None:
+                return False
+            return content.startswith((b"##fileformat=VCF", b"#CHROM"))
+
+        return format_scope_applies(
+            ctx,
+            data_types=frozenset({"variants"}),
+            extensions=VCF_EXTENSIONS,
+            content_sniff=content_sniff,
+        )
 
     def run(self, ctx: ValidationContext) -> list[Issue]:
         content = read_document_bytes(ctx)

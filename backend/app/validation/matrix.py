@@ -2,34 +2,39 @@ from __future__ import annotations
 
 from collections import Counter
 
-from app.validation.base import Issue, ValidationContext, Validator
+from app.validation.base import (
+    Issue,
+    ValidationContext,
+    Validator,
+    format_scope_applies,
+)
 from app.validation.files import decode_text, read_document_bytes
 
 MAX_CELLS_SCANNED = 100_000
+
+MATRIX_EXTENSIONS = (".tsv", ".csv", ".txt", ".matrix")
 
 
 class MatrixValidator(Validator):
     name = "matrix_validator"
 
     def applies_to(self, ctx: ValidationContext) -> bool:
-        document = ctx.document
-        if document is None:
+        def content_sniff() -> bool:
+            content = read_document_bytes(ctx)
+            if content is None:
+                return False
+            for line in decode_text(content).splitlines():
+                if not line.strip():
+                    continue
+                return "\t" in line or "," in line
             return False
-        data_type = getattr(document, "data_type", None)
-        data_type_value = getattr(data_type, "value", data_type)
-        if data_type_value in ("expression", "methylation"):
-            return True
-        filename = (getattr(document, "filename", "") or "").lower()
-        if filename.endswith((".tsv", ".csv", ".txt", ".matrix")):
-            return True
-        content = read_document_bytes(ctx)
-        if content is None:
-            return False
-        for line in decode_text(content).splitlines():
-            if not line.strip():
-                continue
-            return "\t" in line or "," in line
-        return False
+
+        return format_scope_applies(
+            ctx,
+            data_types=frozenset({"expression", "methylation"}),
+            extensions=MATRIX_EXTENSIONS,
+            content_sniff=content_sniff,
+        )
 
     def run(self, ctx: ValidationContext) -> list[Issue]:
         content = read_document_bytes(ctx)

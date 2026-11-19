@@ -227,7 +227,108 @@ def test_matrix_methylation_beta_in_range(tmp_path):
     assert not [issue for issue in issues if issue.severity == "error"]
 
 
+#  -----  Real-data scoping (validators must not cross formats)  -----
+
+
+def test_vcf_document_does_not_trigger_bed_or_matrix_validators(tmp_path):
+    """A real VCF's rows also have >=3 tab columns; only the VCF validator
+    may run on it (found with real 1000 Genomes data)."""
+    path = tmp_path / "real.vcf"
+    path.write_text(
+        "##fileformat=VCFv4.2\n"
+        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\n"
+        "MT\t72\t.\tT\tC\t100\tPASS\t.\tGT\t0\n"
+    )
+    doc = DummyDoc("real.vcf", str(path), data_type="variants")
+    assert BEDValidator().applies_to(_ctx(doc)) is False
+    assert MatrixValidator().applies_to(_ctx(doc)) is False
+    issues = VCFValidator().run(_ctx(doc))
+    assert not [issue for issue in issues if issue.severity == "error"]
+
+
+def test_peaks_document_does_not_trigger_matrix_validator(tmp_path):
+    """Real narrowPeak BEDs are tab-separated; the matrix validator must not
+    fire on them (found with real ENCODE narrowPeak data)."""
+    path = tmp_path / "peaks.bed"
+    path.write_text("chr7\t143620479\t143621175\t.\t1000\t.\t21.47\t419.24\t413.13\t300\n")
+    doc = DummyDoc("peaks.bed", str(path), data_type="peaks")
+    assert MatrixValidator().applies_to(_ctx(doc)) is False
+    issues = BEDValidator().run(_ctx(doc))
+    assert not [issue for issue in issues if issue.severity == "error"]
+
+
+def test_expression_document_does_not_trigger_bed_validator(tmp_path):
+    """Real GEO FPKM tracking files (.tsv) have >=3 columns per row; the BED
+    validator must not fire on them."""
+    path = tmp_path / "fpkm.tsv"
+    path.write_text(
+        "tracking_id\tclass_code\tgene_id\nENSG0001\t-\tENSG0001\nENSG0002\t-\tENSG0002\n"
+    )
+    doc = DummyDoc("fpkm.tsv", str(path), data_type="expression")
+    assert BEDValidator().applies_to(_ctx(doc)) is False
+    issues = MatrixValidator().applies_to(_ctx(doc))
+    assert issues is True  # it IS the matrix validator's domain
+
+
+def test_registry_runs_only_the_matching_format_validator(tmp_path):
+    """Registry-level behaviour: a classified document produces issues only
+    from its own format's validator."""
+    from app.validation import get_registry
+
+    path = tmp_path / "real.vcf"
+    path.write_text(
+        "##fileformat=VCFv4.2\n"
+        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\n"
+        "MT\t72\t.\tT\tC\t100\tPASS\t.\tGT\t0\n"
+    )
+    doc = DummyDoc("real.vcf", str(path), data_type="variants")
+    issues = get_registry().run_all(_ctx(doc))
+    codes = {issue.code for issue in issues}
+    assert "BED-INT-001" not in codes
+    assert "MAT-NONNUM-001" not in codes
+    assert "VCF-OK-001" in codes
+
+
+def test_unknown_extension_unclassified_falls_back_to_sniff(tmp_path):
+    """Unclassified files with unknown extensions keep the honest discovery
+    path (sniffing); classification then locks the scope."""
+    path = tmp_path / "something.fpkm_tracking"
+    path.write_text("tracking\tcol2\nENSG0001\tvalue\n")
+    doc = DummyDoc("something.fpkm_tracking", str(path))
+    assert BEDValidator().applies_to(_ctx(doc)) is False  # 2 columns, no sniff hit
+    assert MatrixValidator().applies_to(_ctx(doc)) is True
+    assert VCFValidator().applies_to(_ctx(doc)) is False
+
+
+def test_untyped_document_falls_back_to_content_sniff(tmp_path):
+    """With no data_type and a generic extension, the honest content
+    fallback still routes the file to its validator."""
+    path = tmp_path / "peak-file.bed"
+    path.write_text("chr1\t100\t200\n")
+    doc = DummyDoc("peak-file.bed", str(path))
+    assert BEDValidator().applies_to(_ctx(doc)) is True
+    path2 = tmp_path / "mystery.dat"
+    path2.write_text("gene\tS1\nTP53\t1.0\n")
+    doc2 = DummyDoc("mystery.dat", str(path2))
+    assert MatrixValidator().applies_to(_ctx(doc2)) is True
+    path3 = tmp_path / "variants-file.vcf"
+    path3.write_text("##fileformat=VCFv4.2\n")
+    doc3 = DummyDoc("variants-file.vcf", str(path3))
+    assert VCFValidator().applies_to(_ctx(doc3)) is True
+
+
+def test_other_format_extension_never_sniffs(tmp_path):
+    """A matrix-shaped file named .bed must never fire the matrix validator:
+    the extension is the stronger signal than the content shape."""
+    path = tmp_path / "not-really.bed"
+    path.write_text("gene\tS1\nTP53\t1.0\n")
+    doc = DummyDoc("not-really.bed", str(path))
+    assert MatrixValidator().applies_to(_ctx(doc)) is False
+    assert BEDValidator().applies_to(_ctx(doc)) is True
+
+
 #  -----  Story 7 fixture compatibility  -----
+
 
 STORY7_VCF = """##fileformat=VCFv4.2
 ##source=DemoCaller
